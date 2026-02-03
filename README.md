@@ -311,12 +311,33 @@ npm run verify
 
 Contract address will be saved to `.env` after deployment.
 
+## iOS App
+
+Native iOS app for life logging on the go:
+
+```bash
+cd ios-app
+open LifeLog.xcodeproj
+```
+
+### Features
+
+- 📝 **Quick Check-ins** — Text, voice notes, camera snapshots
+- 📅 **Timeline View** — Color-coded hourly activity blocks
+- 🎯 **Goals** — Progress bars, streaks, completion tracking
+- 📱 **Widgets** — Home screen and lock screen widgets
+
+Requirements: iOS 17+, Xcode 16+
+
+See [iOS App README](ios-app/README.md) for setup instructions.
+
 ## Roadmap
 
 - [x] Phase 1: Foundation + Data Collection
 - [x] Phase 2: AI Analysis Engine
 - [x] Phase 3: Coaching System
 - [x] Phase 4: Dashboard UI
+- [x] Phase 4.5: Native iOS App
 - [x] Phase 5: $LIFE Token + ACP Integration
 - [ ] Phase 6: Demo + Marketing
 
