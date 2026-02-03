@@ -4,6 +4,11 @@ node_modules/
 # Build output
 dist/
 
+# Hardhat
+artifacts/
+cache/
+typechain-types/
+
 # Data (local only - privacy first)
 data/*.db
 data/*.db-journal
