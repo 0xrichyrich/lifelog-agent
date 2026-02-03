@@ -13,6 +13,7 @@ struct ContentView: View {
     
     enum Tab: String {
         case checkIn = "checkin"
+        case wellness = "wellness"
         case timeline = "timeline"
         case goals = "goals"
         case settings = "settings"
@@ -36,6 +37,12 @@ struct ContentView: View {
                     Label("Check In", systemImage: "square.and.pencil")
                 }
                 .tag(Tab.checkIn)
+            
+            WellnessView()
+                .tabItem {
+                    Label("Wellness", systemImage: "leaf.fill")
+                }
+                .tag(Tab.wellness)
             
             TimelineView()
                 .tabItem {
@@ -61,6 +68,7 @@ struct ContentView: View {
             if url.scheme == "lifelog" {
                 switch url.host {
                 case "checkin": selectedTab = .checkIn
+                case "wellness": selectedTab = .wellness
                 case "timeline": selectedTab = .timeline
                 case "goals": selectedTab = .goals
                 case "settings": selectedTab = .settings
