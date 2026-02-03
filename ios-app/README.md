@@ -1,6 +1,6 @@
-# LifeLog iOS App
+# Nudge iOS App
 
-Native iOS app for the LifeLog personal life logging system. Built with SwiftUI for iOS 17+.
+Native iOS app for the Nudge personal life logging system. Built with SwiftUI for iOS 17+.
 
 ## Features
 
@@ -49,11 +49,11 @@ Native iOS app for the LifeLog personal life logging system. Built with SwiftUI 
 1. **Open the project in Xcode:**
    ```bash
    cd ios-app
-   open LifeLog.xcodeproj
+   open Nudge.xcodeproj
    ```
 
 2. **Configure signing:**
-   - Select the LifeLog target
+   - Select the Nudge target
    - Go to Signing & Capabilities
    - Select your development team
    - Xcode will automatically manage signing
@@ -77,7 +77,7 @@ By default, the app connects to `http://localhost:3000`. To change this:
 
 ### Required API Endpoints
 
-The app expects these endpoints from the LifeLog dashboard:
+The app expects these endpoints from the Nudge dashboard:
 
 - `GET /api/activities?date=YYYY-MM-DD` - Fetch activities for a date
 - `GET /api/goals` - Fetch all goals
@@ -88,8 +88,8 @@ The app expects these endpoints from the LifeLog dashboard:
 ## Architecture
 
 ```
-LifeLog/
-├── LifeLogApp.swift         # App entry point
+Nudge/
+├── NudgeApp.swift         # App entry point
 ├── ContentView.swift        # Tab-based navigation
 ├── Models/
 │   ├── AppState.swift       # @Observable app state
@@ -103,8 +103,8 @@ LifeLog/
 │   └── APIClient.swift      # REST API client
 └── Assets.xcassets/         # App icons and colors
 
-LifeLogWidget/
-├── LifeLogWidget.swift      # Widget extension
+NudgeWidget/
+├── NudgeWidget.swift      # Widget extension
 └── WidgetAssets.xcassets/   # Widget colors
 ```
 
@@ -132,7 +132,7 @@ The app uses a dark theme matching the web dashboard:
 ### Widget Testing
 1. Build and run the app
 2. Go to Home screen
-3. Long press → tap "+" → search "LifeLog"
+3. Long press → tap "+" → search "Nudge"
 4. Add medium widget and lock screen widget
 5. Verify they display data from the app
 
@@ -158,4 +158,4 @@ The app uses a dark theme matching the web dashboard:
 
 ## License
 
-Part of the LifeLog Agent project for the Moltiverse Hackathon.
+Part of the Nudge Agent project for the Moltiverse Hackathon.

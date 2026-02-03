@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'LifeLog - The AI Life Coach That Pays You to Improve',
-  description: 'Track your life, get AI insights, earn $LIFE tokens.',
+  title: 'Nudge - Sometimes You Need a Little Nudge',
+  description: 'Your gentle AI life coach. Track your habits, get insights, earn $LIFE tokens.',
 };
 
 export default function RootLayout({

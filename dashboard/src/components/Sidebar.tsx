@@ -29,7 +29,7 @@ export default function Sidebar() {
         <div className="p-2 bg-accent/20 rounded-lg">
           <Activity className="w-6 h-6 text-accent" />
         </div>
-        <h1 className="text-xl font-bold">LifeLog</h1>
+        <h1 className="text-xl font-bold">Nudge</h1>
       </div>
       
       <nav className="space-y-2">

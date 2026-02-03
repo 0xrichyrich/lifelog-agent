@@ -1,7 +1,7 @@
 {
-  "name": "lifelog-distribution",
+  "name": "nudge-distribution",
   "version": "1.0.0",
-  "description": "LifeLog Distribution Agent - Hackathon growth hacking through quality integrations",
+  "description": "Nudge Distribution Agent - Hackathon growth hacking through quality integrations",
   "type": "module",
   "scripts": {
     "scan": "npx tsx scanner.ts",

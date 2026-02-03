@@ -93,7 +93,7 @@ struct SettingsView: View {
                                 .foregroundStyle(Color.brandAccent)
                             VStack(alignment: .leading, spacing: 2) {
                                 Text("Siri & Shortcuts")
-                                Text("\"Hey Siri, log focus in LifeLog\"")
+                                Text("\"Hey Siri, log focus in Nudge\"")
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                             }
@@ -241,7 +241,7 @@ struct SettingsView: View {
                         HStack {
                             Image(systemName: "info.circle")
                                 .foregroundStyle(Color.brandAccent)
-                            Text("About LifeLog")
+                            Text("About Nudge")
                         }
                     }
                     
@@ -392,7 +392,7 @@ struct ExportSheet: View {
                     .font(.title2)
                     .fontWeight(.semibold)
                 
-                Text("Download all your LifeLog data in JSON format.")
+                Text("Download all your Nudge data in JSON format.")
                     .multilineTextAlignment(.center)
                     .foregroundStyle(.secondary)
                 
@@ -448,7 +448,7 @@ struct ExportSheet: View {
         let export: [String: Any] = [
             "exportedAt": ISO8601DateFormatter().string(from: Date()),
             "version": "1.0.0",
-            "message": "Export from LifeLog iOS app"
+            "message": "Export from Nudge iOS app"
         ]
         
         if let data = try? JSONSerialization.data(withJSONObject: export, options: .prettyPrinted),
@@ -471,11 +471,11 @@ struct AboutSheet: View {
                         .font(.system(size: 80))
                         .foregroundStyle(Color.brandAccent)
                     
-                    Text("LifeLog")
+                    Text("Nudge")
                         .font(.largeTitle)
                         .fontWeight(.bold)
                     
-                    Text("Your personal life logging companion")
+                    Text("Sometimes you need a little nudge")
                         .foregroundStyle(.secondary)
                     
                     VStack(alignment: .leading, spacing: 16) {

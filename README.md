@@ -1,6 +1,8 @@
-# LifeLog Agent 🧠
+# Nudge 🌱
 
-Multimodal AI life coach that records, analyzes, and coaches you through your daily activities — with **on-chain $LIFE token rewards** for hitting your goals and an **AI agent marketplace** to hire wellness specialists.
+*Sometimes you need a little nudge.*
+
+Your gentle AI life coach that records, analyzes, and coaches you through your daily activities — with **on-chain $LIFE token rewards** for hitting your goals and an **AI agent marketplace** to hire wellness specialists.
 
 **Status:** Phase 5 Complete (Token + ACP Integration)
 
@@ -317,7 +319,7 @@ Native iOS app for life logging on the go:
 
 ```bash
 cd ios-app
-open LifeLog.xcodeproj
+open Nudge.xcodeproj
 ```
 
 ### Features

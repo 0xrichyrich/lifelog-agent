@@ -1,19 +1,19 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'LifeLog - The AI Life Coach That Pays You to Improve',
-  description: 'Track your life, get AI insights, earn $LIFE tokens. The first life-tracking app that rewards you for building better habits.',
-  keywords: ['life tracking', 'AI coach', 'crypto rewards', 'habit tracking', 'wellness', 'productivity'],
+  title: 'Nudge - Sometimes You Need a Little Nudge',
+  description: 'Your gentle AI life coach. Get personalized insights, build healthy habits, and earn $LIFE tokens.',
+  keywords: ['nudge', 'AI coach', 'life coach', 'habit tracking', 'wellness', 'productivity', 'crypto rewards'],
   openGraph: {
-    title: 'LifeLog - The AI Life Coach That Pays You to Improve',
-    description: 'Track your life, get AI insights, earn $LIFE tokens.',
+    title: 'Nudge - Sometimes You Need a Little Nudge',
+    description: 'Your gentle AI life coach. Get personalized insights and earn $LIFE tokens.',
     type: 'website',
     images: ['/og-image.png'],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'LifeLog - The AI Life Coach That Pays You',
-    description: 'Track your life, get AI insights, earn $LIFE tokens.',
+    title: 'Nudge - Sometimes You Need a Little Nudge',
+    description: 'Your gentle AI life coach that helps you build better habits.',
   },
 };
 

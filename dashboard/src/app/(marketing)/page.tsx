@@ -206,7 +206,7 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Brain className="w-8 h-8 text-accent" />
-            <span className="text-xl font-bold">LifeLog</span>
+            <span className="text-xl font-bold">Nudge</span>
           </div>
           <div className="flex items-center gap-4">
             <a href="#features" className="text-text-muted hover:text-text transition">Features</a>
@@ -240,7 +240,7 @@ export default function LandingPage() {
               </div>
               
               <h1 className="text-5xl lg:text-6xl font-bold leading-tight">
-                The AI Life Coach That{' '}
+                Your Gentle AI Coach That{' '}
                 <span className="bg-gradient-to-r from-cyan-400 to-blue-500 text-transparent bg-clip-text">
                   Pays You
                 </span>{' '}
@@ -483,7 +483,7 @@ export default function LandingPage() {
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold mb-4">See It In Action</h2>
-            <p className="text-xl text-text-muted">Watch how LifeLog transforms your daily routine</p>
+            <p className="text-xl text-text-muted">Watch how Nudge transforms your daily routine</p>
           </div>
           
           {/* Video placeholder */}
@@ -550,10 +550,10 @@ export default function LandingPage() {
             <div className="md:col-span-2">
               <div className="flex items-center gap-3 mb-4">
                 <Brain className="w-8 h-8 text-accent" />
-                <span className="text-xl font-bold">LifeLog</span>
+                <span className="text-xl font-bold">Nudge</span>
               </div>
               <p className="text-text-muted mb-4">
-                The AI life coach that pays you to improve. Track, learn, earn.
+                Sometimes you need a little nudge. Your gentle AI life coach.
               </p>
               <div className="flex items-center gap-4">
                 <a 
@@ -606,7 +606,7 @@ export default function LandingPage() {
           {/* Bottom */}
           <div className="pt-8 border-t border-surface-light flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-text-muted text-sm">
-              © 2025 LifeLog. All rights reserved.
+              © 2025 Nudge. All rights reserved.
             </p>
             
             {/* Hackathon badge */}

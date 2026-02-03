@@ -278,14 +278,14 @@ struct WelcomeScreen: View {
             }
             
             VStack(spacing: 16) {
-                Text("LifeLog")
+                Text("Nudge")
                     .font(.system(size: 44, weight: .bold, design: .rounded))
                     .foregroundStyle(Color.textPrimary)
                     .opacity(showLogo ? 1 : 0)
                     .offset(y: showLogo ? 0 : 20)
                     .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.2), value: showLogo)
                 
-                Text("The AI life coach that\npays you to improve")
+                Text("Sometimes you need\na little nudge")
                     .font(.title3)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
@@ -953,7 +953,7 @@ struct EnableCoachingScreen: View {
                     
                     VStack(alignment: .leading, spacing: 4) {
                         HStack {
-                            Text("LifeLog")
+                            Text("Nudge")
                                 .font(.caption)
                                 .fontWeight(.semibold)
                                 .foregroundStyle(Color.textPrimary)
@@ -1206,7 +1206,7 @@ struct WidgetPromoScreen: View {
                     Text("Tap +")
                     Image(systemName: "arrow.right")
                         .font(.caption2)
-                    Text("Find LifeLog")
+                    Text("Find Nudge")
                 }
                 .font(.caption)
                 .foregroundStyle(.secondary)

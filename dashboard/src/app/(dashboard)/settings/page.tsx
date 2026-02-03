@@ -90,7 +90,7 @@ export default function SettingsPage() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `lifelog-export-${new Date().toISOString().split('T')[0]}.json`;
+      a.download = `nudge-export-${new Date().toISOString().split('T')[0]}.json`;
       a.click();
       URL.revokeObjectURL(url);
     } catch (error) {
@@ -108,7 +108,7 @@ export default function SettingsPage() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold mb-2">Settings</h1>
-          <p className="text-text-muted">Configure your LifeLog experience</p>
+          <p className="text-text-muted">Configure your Nudge experience</p>
         </div>
         <button 
           onClick={handleSave}
@@ -220,7 +220,7 @@ export default function SettingsPage() {
         </div>
         
         <p className="text-text-muted mb-4">
-          Download all your LifeLog data as a JSON file. This includes activities, 
+          Download all your Nudge data as a JSON file. This includes activities, 
           check-ins, media metadata, and summaries.
         </p>
         

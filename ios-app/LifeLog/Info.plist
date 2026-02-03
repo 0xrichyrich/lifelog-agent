@@ -8,10 +8,10 @@
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>CFBundleURLName</key>
-			<string>com.skynet.lifelog</string>
+			<string>com.skynet.nudge</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>lifelog</string>
+				<string>nudge</string>
 			</array>
 		</dict>
 	</array>

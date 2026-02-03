@@ -1,6 +1,6 @@
 //
 //  AppState.swift
-//  LifeLog
+//  Nudge
 //
 //  Created by Joshua Rich on 2026-02-02.
 //  Updated with secure API key storage via Keychain

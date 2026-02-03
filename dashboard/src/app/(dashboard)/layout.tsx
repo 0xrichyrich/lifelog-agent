@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Sidebar from '@/components/Sidebar';
 
 export const metadata: Metadata = {
-  title: 'LifeLog Dashboard',
+  title: 'Nudge Dashboard',
   description: 'Visualize your life data - timeline, goals, insights',
 };
 

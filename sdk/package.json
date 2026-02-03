@@ -1,7 +1,7 @@
 {
-  "name": "@lifelog/sdk",
+  "name": "@nudge/sdk",
   "version": "1.0.0",
-  "description": "LifeLog SDK - Add wellness tracking and habit logging to any app",
+  "description": "Nudge SDK - Add wellness tracking and habit logging to any app",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -16,7 +16,7 @@
     "prepublishOnly": "npm run build"
   },
   "keywords": [
-    "lifelog",
+    "nudge",
     "wellness",
     "habits",
     "tracking",
@@ -26,7 +26,7 @@
     "life-token",
     "ai-coaching"
   ],
-  "author": "LifeLog Team <team@lifelog.app>",
+  "author": "Nudge Team",
   "license": "MIT",
   "repository": {
     "type": "git",

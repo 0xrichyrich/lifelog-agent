@@ -1,7 +1,7 @@
 {
-  "name": "lifelog-agent",
+  "name": "nudge",
   "version": "0.5.0",
-  "description": "Multimodal AI life coach with on-chain token rewards and agent marketplace",
+  "description": "Your gentle AI life coach. Sometimes you need a little nudge.",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
@@ -19,10 +19,11 @@
     "verify": "hardhat run scripts/verify.cjs --network monadTestnet"
   },
   "keywords": [
-    "lifelog",
+    "nudge",
     "ai",
-    "multimodal",
     "life-coach",
+    "wellness",
+    "habits",
     "web3",
     "monad",
     "token",
