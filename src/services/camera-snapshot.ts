@@ -34,46 +34,31 @@ export class CameraSnapshot {
     try {
       console.log(`📷 Taking camera snapshot (${facing})...`);
       
-      // Use OpenClaw nodes camera_snap command
-      const command = `openclaw nodes camera_snap --facing ${facing}`;
+      // Use OpenClaw nodes camera snap command
+      const command = `openclaw nodes camera snap --facing ${facing}`;
       
-      const { stdout } = await execAsync(command, { timeout: 30000 });
+      const { stdout } = await execAsync(command, { timeout: 60000 });
       
-      // Parse output to find the image path
-      // OpenClaw returns the image data or path in stdout
-      const match = stdout.match(/saved to:?\s*([^\s]+)/i) || stdout.match(/path:?\s*([^\s]+)/i);
+      // Parse output to find the image path (MEDIA:<path> format)
+      const mediaMatch = stdout.match(/MEDIA:([^\s\n]+)/i);
       
       let savedPath = filePath;
-      if (match && match[1]) {
-        savedPath = match[1];
+      if (mediaMatch && mediaMatch[1]) {
+        savedPath = mediaMatch[1].trim();
       }
 
-      // If we got image data directly, we'd save it
-      if (fs.existsSync(savedPath) || stdout.includes('camera_snap')) {
-        const media: MediaRecord = {
-          timestamp,
-          type: 'camera',
-          file_path: savedPath,
-        };
+      const media: MediaRecord = {
+        timestamp,
+        type: 'camera',
+        file_path: savedPath,
+      };
 
-        const id = this.db.insertMedia(media);
-        media.id = id;
-        this.logger.logMedia(media);
+      const id = this.db.insertMedia(media);
+      media.id = id;
+      this.logger.logMedia(media);
 
-        console.log(`✓ Camera snapshot saved: ${path.basename(savedPath)}`);
-        return media;
-      } else {
-        // Store reference even if file handling differs
-        const media: MediaRecord = {
-          timestamp,
-          type: 'camera',
-          file_path: `openclaw_snap_${timestamp}`,
-        };
-        const id = this.db.insertMedia(media);
-        media.id = id;
-        console.log(`✓ Camera snapshot recorded (via OpenClaw)`);
-        return media;
-      }
+      console.log(`✓ Camera snapshot saved: ${path.basename(savedPath)}`);
+      return media;
     } catch (error) {
       console.error('❌ Camera snapshot failed:', error);
       return null;

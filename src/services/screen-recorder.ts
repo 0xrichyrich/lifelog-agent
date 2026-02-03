@@ -36,10 +36,10 @@ export class ScreenRecorder {
     try {
       console.log(`📹 Recording screen for ${durationSec}s...`);
       
-      // Use OpenClaw nodes screen_record command
-      const command = `openclaw nodes screen_record --durationMs ${duration} --outPath "${filePath}"`;
+      // Use OpenClaw nodes screen record command
+      const command = `openclaw nodes screen record --duration ${duration} --out "${filePath}"`;
       
-      await execAsync(command, { timeout: duration + 30000 });
+      await execAsync(command, { timeout: duration + 60000 });
 
       if (fs.existsSync(filePath)) {
         const media: MediaRecord = {
