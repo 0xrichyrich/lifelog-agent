@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { exportAllData } from '@/lib/db';
+import { exportAllData } from '@/lib/db-mock';
 
 export async function GET() {
   try {

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getActivitiesByDate } from '@/lib/db';
+import { getActivitiesByDate } from '@/lib/db-mock';
 import { mockActivities } from '@/lib/mock-data';
 
 export async function GET(request: NextRequest) {

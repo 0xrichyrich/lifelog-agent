@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getRecentActivities } from '@/lib/db';
+import { getRecentActivities } from '@/lib/db-mock';
 import { mockInsightData, categorizeActivity } from '@/lib/mock-data';
 import { Activity, InsightData } from '@/lib/types';
 

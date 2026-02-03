@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db, initializeDatabase } from '@/lib/db';
+import { db, initializeDatabase } from '@/lib/db-mock';
 
 // Initialize database on first request
 initializeDatabase();
