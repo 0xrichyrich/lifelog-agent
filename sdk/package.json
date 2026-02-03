@@ -1,0 +1,46 @@
+{
+  "name": "@lifelog/sdk",
+  "version": "1.0.0",
+  "description": "LifeLog SDK - Add wellness tracking and habit logging to any app",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "lifelog",
+    "wellness",
+    "habits",
+    "tracking",
+    "productivity",
+    "goals",
+    "web3",
+    "life-token",
+    "ai-coaching"
+  ],
+  "author": "LifeLog Team <team@lifelog.app>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/0xrichyrich/lifelog-agent"
+  },
+  "homepage": "https://github.com/0xrichyrich/lifelog-agent#readme",
+  "bugs": {
+    "url": "https://github.com/0xrichyrich/lifelog-agent/issues"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

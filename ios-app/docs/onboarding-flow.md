@@ -29,12 +29,14 @@ This creates immediate value demonstration and investment (IKEA effect—users v
 | Subheadline | "The AI life coach that pays you to improve" |
 | CTA | "Get Started" (implicit—swipe or tap Continue) |
 
-**Animations:**
-- Brain pulses with subtle glow
-- Sparkle effects around the brain
-- Fade-in on appear
+**Animations (Things 3 inspired):**
+- Staggered entrance: logo scales in with spring physics
+- Layered radial glow with parallax depth
+- 8 floating sparkles with randomized positions
+- Subtle pulse animation (2.5s loop)
+- Soft haptic on logo appearance
 
-**Rationale:** Creates wonder and curiosity. The crypto angle ("pays you") is a unique differentiator that hooks interest without being the sole focus.
+**Rationale:** Creates wonder and curiosity. The crypto angle ("pays you") is a unique differentiator. Premium animation establishes quality bar from first frame.
 
 ---
 
@@ -54,24 +56,26 @@ This creates immediate value demonstration and investment (IKEA effect—users v
 ### Screen 3: First Check-In (Interactive!) ⭐
 **Purpose:** THE AHA MOMENT TRIGGER
 
+**Design: Streaks-inspired one-tap + Day One formatting**
+
 | Element | Details |
 |---------|---------|
-| Prompt | "What's on your mind right now?" |
-| Input | TextEditor with 120px height |
-| Quick Prompts | Tappable pills: "Feeling focused 🎯", "Just woke up ☀️", etc. |
-| CTA | "Log It" button |
-| Success State | Checkmark, quoted text, "Logged just now" |
+| Header | "What's happening?" |
+| One-Tap Moods | 2x2 grid: Focused 🎯, Fresh Start ☀️, Deep Work 💻, Taking Break 🧘 |
+| Custom Input | Single-line TextField with circular send button |
+| Success State | Animated checkmark with glow, formatted quote |
 
-**Behavior:**
-- Keyboard auto-focuses on appear
-- Quick prompts pre-fill text (lower friction)
-- Cannot proceed until check-in is submitted
-- Success animation with haptic feedback
+**Behavior (Streaks speed benchmark):**
+- One-tap moods: Tap = DONE (no confirmation needed)
+- Button press animation (0.96 scale)
+- Submit time: 0.3s (feels instant)
+- Checkmark scales in with spring physics
+- Pulsing glow on success
+- Medium + success haptics
 
-**Rationale:** This is the critical screen. Per the playbook: "Do, don't show." Users must **do** their first check-in, not just read about it. This creates:
-1. **Investment** — They've put effort in
-2. **Data** — We have something to show them
-3. **Habit initiation** — First action in the loop
+**Rationale:** This is the critical screen. Streaks users praise "tap and done" — we match that. Per playbook: "Do, don't show." The 2x2 grid reduces cognitive load vs. horizontal scroll. Custom input available but not required (one-tap is faster).
+
+**Speed target: <5 seconds to complete**
 
 ---
 
@@ -137,7 +141,28 @@ They're primed to want coaching help to achieve their goal.
 
 ---
 
-### Screen 7: You're All Set!
+### Screen 7: Widget Promo (Optional but Recommended)
+**Purpose:** Encourage widget adoption (Streaks benchmark)
+
+| Element | Details |
+|---------|---------|
+| Header | "Add a Widget" |
+| Subheadline | "See your goals at a glance. No need to open the app." |
+| Visual | Floating widget mockup with shadow |
+| Instructions | Step-by-step: Long press → Tap + → Find LifeLog |
+
+**Animations:**
+- Widget floats up/down (2s loop)
+- Spring entrance animation
+- Light haptic on appear
+
+**Rationale:** Streaks is praised specifically for widget excellence. Widgets drive daily engagement without requiring app opens. This screen is educational (many users don't know how to add widgets).
+
+**Note:** Can be disabled via `showWidgetStep = false` for faster flow.
+
+---
+
+### Screen 8: You're All Set!
 **Purpose:** Celebrate, summarize, launch into app
 
 | Element | Details |

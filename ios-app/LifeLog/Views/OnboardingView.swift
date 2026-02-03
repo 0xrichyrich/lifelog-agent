@@ -20,8 +20,9 @@ struct OnboardingView: View {
     @State private var selectedGoalTemplate: GoalTemplate? = nil
     @State private var showCheckInSuccess = false
     @State private var isSubmittingCheckIn = false
+    @State private var showWidgetStep = true  // Widget promo (Streaks benchmark)
     
-    private let totalPages = 7
+    private var totalPages: Int { showWidgetStep ? 8 : 7 }
     
     var body: some View {
         ZStack {
@@ -63,15 +64,27 @@ struct OnboardingView: View {
                     EnableCoachingScreen(onEnableNotifications: requestNotifications)
                         .tag(5)
                     
-                    AllSetScreen(
-                        checkInText: firstCheckInText,
-                        selectedGoal: selectedGoalTemplate,
-                        onStart: completeOnboarding
-                    )
-                    .tag(6)
+                    if showWidgetStep {
+                        WidgetPromoScreen()
+                            .tag(6)
+                        
+                        AllSetScreen(
+                            checkInText: firstCheckInText,
+                            selectedGoal: selectedGoalTemplate,
+                            onStart: completeOnboarding
+                        )
+                        .tag(7)
+                    } else {
+                        AllSetScreen(
+                            checkInText: firstCheckInText,
+                            selectedGoal: selectedGoalTemplate,
+                            onStart: completeOnboarding
+                        )
+                        .tag(6)
+                    }
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
-                .animation(.easeInOut, value: currentPage)
+                .animation(.spring(response: 0.4, dampingFraction: 0.8), value: currentPage)
                 
                 // Progress dots
                 HStack(spacing: 8) {
@@ -187,24 +200,43 @@ struct OnboardingView: View {
 }
 
 // MARK: - Screen 1: Welcome
+// Things 3 inspiration: buttery smooth, premium feel
 
 struct WelcomeScreen: View {
-    @State private var animate = false
+    @State private var showLogo = false
+    @State private var showTagline = false
+    @State private var pulseGlow = false
+    @State private var sparklePositions: [(CGFloat, CGFloat)] = (0..<8).map { _ in
+        (CGFloat.random(in: -90...90), CGFloat.random(in: -90...90))
+    }
     
     var body: some View {
         VStack(spacing: 32) {
             Spacer()
             
-            // Hero visual - animated brain
+            // Hero visual - premium animated brain
             ZStack {
-                // Outer glow
+                // Layered glow effect (Things 3 style depth)
                 Circle()
-                    .fill(Color.brandAccent.opacity(0.1))
-                    .frame(width: 220, height: 220)
-                    .blur(radius: 20)
-                    .scaleEffect(animate ? 1.1 : 1.0)
+                    .fill(
+                        RadialGradient(
+                            colors: [Color.brandAccent.opacity(0.3), Color.clear],
+                            center: .center,
+                            startRadius: 0,
+                            endRadius: 120
+                        )
+                    )
+                    .frame(width: 240, height: 240)
+                    .scaleEffect(pulseGlow ? 1.15 : 1.0)
+                    .blur(radius: 30)
                 
-                // Brain icon
+                Circle()
+                    .fill(Color.success.opacity(0.1))
+                    .frame(width: 160, height: 160)
+                    .blur(radius: 20)
+                    .offset(x: 20, y: 20)
+                
+                // Brain icon with entrance animation
                 Image(systemName: "brain.head.profile")
                     .font(.system(size: 100))
                     .foregroundStyle(
@@ -214,36 +246,56 @@ struct WelcomeScreen: View {
                             endPoint: .bottomTrailing
                         )
                     )
-                    .shadow(color: Color.brandAccent.opacity(0.5), radius: 20)
+                    .shadow(color: Color.brandAccent.opacity(0.6), radius: 30)
+                    .scaleEffect(showLogo ? 1 : 0.5)
+                    .opacity(showLogo ? 1 : 0)
                 
-                // Sparkles
-                ForEach(0..<6, id: \.self) { index in
+                // Floating sparkles
+                ForEach(0..<8, id: \.self) { index in
                     Image(systemName: "sparkle")
-                        .font(.system(size: 16))
-                        .foregroundStyle(Color.warning)
-                        .offset(
-                            x: CGFloat.random(in: -80...80),
-                            y: CGFloat.random(in: -80...80)
-                        )
-                        .opacity(animate ? 1 : 0.3)
+                        .font(.system(size: CGFloat.random(in: 10...18)))
+                        .foregroundStyle(index % 2 == 0 ? Color.warning : Color.brandAccent.opacity(0.7))
+                        .offset(x: sparklePositions[index].0, y: sparklePositions[index].1)
+                        .opacity(showLogo ? Double.random(in: 0.4...1.0) : 0)
+                        .scaleEffect(pulseGlow ? 1.2 : 0.8)
                 }
             }
             .onAppear {
-                withAnimation(.easeInOut(duration: 2).repeatForever(autoreverses: true)) {
-                    animate = true
+                // Staggered entrance (Things 3 style)
+                withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
+                    showLogo = true
+                }
+                
+                // Subtle pulse
+                withAnimation(.easeInOut(duration: 2.5).repeatForever(autoreverses: true).delay(0.5)) {
+                    pulseGlow = true
+                }
+                
+                // Haptic on logo appear
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    UIImpactFeedbackGenerator(style: .soft).impactOccurred()
                 }
             }
             
             VStack(spacing: 16) {
                 Text("LifeLog")
-                    .font(.system(size: 42, weight: .bold, design: .rounded))
+                    .font(.system(size: 44, weight: .bold, design: .rounded))
                     .foregroundStyle(Color.textPrimary)
+                    .opacity(showLogo ? 1 : 0)
+                    .offset(y: showLogo ? 0 : 20)
+                    .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.2), value: showLogo)
                 
-                Text("The AI life coach that pays you to improve")
+                Text("The AI life coach that\npays you to improve")
                     .font(.title3)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
-                    .padding(.horizontal, 32)
+                    .opacity(showTagline ? 1 : 0)
+                    .offset(y: showTagline ? 0 : 10)
+                    .onAppear {
+                        withAnimation(.easeOut(duration: 0.5).delay(0.4)) {
+                            showTagline = true
+                        }
+                    }
             }
             
             Spacer()
@@ -331,6 +383,7 @@ struct HowItWorksRow: View {
 }
 
 // MARK: - Screen 3: First Check-In (Interactive!)
+// Inspired by Day One (create during onboarding) + Streaks (one-tap speed)
 
 struct FirstCheckInScreen: View {
     @Binding var text: String
@@ -339,105 +392,217 @@ struct FirstCheckInScreen: View {
     let onSubmit: () -> Void
     
     @FocusState private var isFocused: Bool
+    @State private var checkmarkScale: CGFloat = 0
+    @State private var showSuccessGlow = false
     
     var body: some View {
         VStack(spacing: 24) {
             Spacer()
             
-            VStack(spacing: 12) {
-                Image(systemName: showSuccess ? "checkmark.circle.fill" : "lightbulb.fill")
-                    .font(.system(size: 48))
-                    .foregroundStyle(showSuccess ? Color.success : Color.warning)
+            // Header with animated transition
+            ZStack {
+                // Success state
+                if showSuccess {
+                    VStack(spacing: 16) {
+                        ZStack {
+                            // Glow effect (Things 3 style)
+                            Circle()
+                                .fill(Color.success.opacity(0.2))
+                                .frame(width: 100, height: 100)
+                                .blur(radius: 20)
+                                .scaleEffect(showSuccessGlow ? 1.3 : 0.8)
+                            
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.system(size: 64))
+                                .foregroundStyle(Color.success)
+                                .scaleEffect(checkmarkScale)
+                        }
+                        
+                        Text("Logged!")
+                            .font(.system(size: 32, weight: .bold, design: .rounded))
+                            .foregroundStyle(Color.textPrimary)
+                    }
+                    .transition(.scale.combined(with: .opacity))
+                }
                 
-                Text(showSuccess ? "Great Start!" : "Your First Check-In")
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
-                    .foregroundStyle(Color.textPrimary)
-                
-                Text(showSuccess ? "You just logged your first moment. This is how patterns emerge." : "What's on your mind right now?")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 32)
+                // Input state
+                if !showSuccess {
+                    VStack(spacing: 12) {
+                        Text("What's happening?")
+                            .font(.system(size: 28, weight: .bold, design: .rounded))
+                            .foregroundStyle(Color.textPrimary)
+                        
+                        Text("Tap a mood or type your own")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                    .transition(.scale.combined(with: .opacity))
+                }
             }
+            .animation(.spring(response: 0.4, dampingFraction: 0.7), value: showSuccess)
             
             if !showSuccess {
-                VStack(spacing: 16) {
-                    TextEditor(text: $text)
-                        .frame(height: 120)
-                        .padding()
-                        .background(Color.cardBackground)
-                        .clipShape(RoundedRectangle(cornerRadius: 16))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 16)
-                                .stroke(Color.brandAccent.opacity(0.5), lineWidth: 1)
-                        )
-                        .scrollContentBackground(.hidden)
-                        .foregroundStyle(Color.textPrimary)
-                        .focused($isFocused)
-                    
-                    // Quick prompts
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 8) {
-                            QuickPromptButton(text: "Feeling focused 🎯") { text = "Feeling focused and ready to work 🎯" }
-                            QuickPromptButton(text: "Just woke up ☀️") { text = "Just woke up, starting my day ☀️" }
-                            QuickPromptButton(text: "Taking a break 🧘") { text = "Taking a mindful break 🧘" }
-                            QuickPromptButton(text: "Deep in work 💻") { text = "Deep in focused work mode 💻" }
+                VStack(spacing: 20) {
+                    // ONE-TAP Quick Moods (Streaks-inspired: tap and DONE)
+                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                        OneTapMoodButton(emoji: "🎯", label: "Focused", color: .success) {
+                            text = "Feeling focused and productive 🎯"
+                            submitWithAnimation()
                         }
-                        .padding(.horizontal)
+                        OneTapMoodButton(emoji: "☀️", label: "Fresh Start", color: .warning) {
+                            text = "Starting my day fresh ☀️"
+                            submitWithAnimation()
+                        }
+                        OneTapMoodButton(emoji: "💻", label: "Deep Work", color: .brandAccent) {
+                            text = "Deep in work mode 💻"
+                            submitWithAnimation()
+                        }
+                        OneTapMoodButton(emoji: "🧘", label: "Taking Break", color: Color(hex: "8b5cf6")!) {
+                            text = "Taking a mindful break 🧘"
+                            submitWithAnimation()
+                        }
                     }
+                    .padding(.horizontal, 24)
                     
-                    Button {
-                        isFocused = false
-                        onSubmit()
-                    } label: {
-                        HStack {
-                            if isSubmitting {
-                                ProgressView()
-                                    .tint(.white)
-                            } else {
-                                Image(systemName: "paperplane.fill")
-                                Text("Log It")
-                                    .fontWeight(.semibold)
+                    // Divider
+                    HStack {
+                        Rectangle().fill(Color.gray.opacity(0.3)).frame(height: 1)
+                        Text("or type")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Rectangle().fill(Color.gray.opacity(0.3)).frame(height: 1)
+                    }
+                    .padding(.horizontal, 32)
+                    
+                    // Custom input (compact)
+                    HStack(spacing: 12) {
+                        TextField("What's on your mind?", text: $text)
+                            .textFieldStyle(.plain)
+                            .padding()
+                            .background(Color.cardBackground)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(isFocused ? Color.brandAccent : Color.clear, lineWidth: 1)
+                            )
+                            .foregroundStyle(Color.textPrimary)
+                            .focused($isFocused)
+                            .submitLabel(.send)
+                            .onSubmit {
+                                if !text.isEmpty {
+                                    submitWithAnimation()
+                                }
                             }
+                        
+                        // Send button
+                        Button {
+                            submitWithAnimation()
+                        } label: {
+                            Image(systemName: "arrow.up.circle.fill")
+                                .font(.system(size: 44))
+                                .foregroundStyle(text.isEmpty ? Color.gray.opacity(0.5) : Color.brandAccent)
                         }
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(text.isEmpty ? Color.brandAccent.opacity(0.5) : Color.brandAccent)
-                        .foregroundStyle(.white)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .disabled(text.isEmpty || isSubmitting)
                     }
-                    .disabled(text.isEmpty || isSubmitting)
                     .padding(.horizontal, 24)
                 }
             } else {
-                // Success state
-                VStack(spacing: 8) {
+                // Success: Show their check-in formatted beautifully (Day One style)
+                VStack(spacing: 12) {
                     Text(""\(text)"")
-                        .font(.body)
+                        .font(.system(size: 18, weight: .medium))
                         .foregroundStyle(Color.textPrimary)
                         .multilineTextAlignment(.center)
-                        .padding()
-                        .background(Color.cardBackground)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                        .padding(.horizontal, 32)
+                        .padding(.horizontal, 40)
                     
-                    Text("Logged just now")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                    HStack(spacing: 6) {
+                        Image(systemName: "clock")
+                            .font(.caption)
+                        Text("Just now")
+                            .font(.caption)
+                    }
+                    .foregroundStyle(.secondary)
                 }
+                .padding(.top, 20)
+                .transition(.move(edge: .bottom).combined(with: .opacity))
             }
             
             Spacer()
             Spacer()
         }
         .padding()
-        .onAppear {
-            if !showSuccess {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    isFocused = true
-                }
+    }
+    
+    private func submitWithAnimation() {
+        isFocused = false
+        isSubmitting = true
+        
+        // Haptic feedback (Things 3 style)
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        
+        // Quick submit (Streaks-fast)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
+                isSubmitting = false
+                showSuccess = true
             }
+            
+            // Animate checkmark (Things 3 polish)
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.5).delay(0.1)) {
+                checkmarkScale = 1.0
+            }
+            
+            // Glow pulse
+            withAnimation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true)) {
+                showSuccessGlow = true
+            }
+            
+            // Success haptic
+            UINotificationFeedbackGenerator().notificationOccurred(.success)
         }
+    }
+}
+
+// One-tap mood button (Streaks-inspired: tap = done)
+struct OneTapMoodButton: View {
+    let emoji: String
+    let label: String
+    let color: Color
+    let action: () -> Void
+    
+    @State private var isPressed = false
+    
+    var body: some View {
+        Button {
+            action()
+        } label: {
+            HStack(spacing: 12) {
+                Text(emoji)
+                    .font(.system(size: 28))
+                
+                Text(label)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .foregroundStyle(Color.textPrimary)
+                
+                Spacer()
+            }
+            .padding()
+            .background(color.opacity(0.15))
+            .clipShape(RoundedRectangle(cornerRadius: 14))
+            .overlay(
+                RoundedRectangle(cornerRadius: 14)
+                    .stroke(color.opacity(0.3), lineWidth: 1)
+            )
+            .scaleEffect(isPressed ? 0.96 : 1.0)
+        }
+        .buttonStyle(.plain)
+        .sensoryFeedback(.impact(flexibility: .soft), trigger: isPressed)
+        .onLongPressGesture(minimumDuration: 0, pressing: { pressing in
+            withAnimation(.easeInOut(duration: 0.15)) {
+                isPressed = pressing
+            }
+        }, perform: {})
     }
 }
 
@@ -459,10 +624,13 @@ struct QuickPromptButton: View {
 }
 
 // MARK: - Screen 4: Timeline Preview
+// Things 3 polish: buttery smooth animations, haptics on appearance
 
 struct TimelinePreviewScreen: View {
     let checkInText: String
     @State private var animateTimeline = false
+    @State private var showUserEntry = false
+    @State private var pulseRing = false
     
     var body: some View {
         VStack(spacing: 24) {
@@ -472,53 +640,116 @@ struct TimelinePreviewScreen: View {
                 Image(systemName: "calendar.day.timeline.left")
                     .font(.system(size: 48))
                     .foregroundStyle(Color.brandAccent)
+                    .symbolEffect(.pulse, options: .repeating, value: animateTimeline)
                 
                 Text("Your Timeline")
                     .font(.system(size: 28, weight: .bold, design: .rounded))
                     .foregroundStyle(Color.textPrimary)
                 
-                Text("This is what your day looks like.\nAs you log more, patterns emerge.")
+                Text("Watch your day come alive")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
             }
             
-            // Mini timeline preview
+            // Mini timeline preview with premium animation
             VStack(spacing: 0) {
-                ForEach(sampleTimeBlocks, id: \.0) { block in
+                // Past activities (fade in first)
+                ForEach(Array(pastBlocks.enumerated()), id: \.offset) { index, block in
                     TimelinePreviewRow(
                         time: block.0,
                         activity: block.1,
                         color: block.2,
-                        isHighlighted: block.3
+                        isHighlighted: false,
+                        showPulse: false
                     )
                     .opacity(animateTimeline ? 1 : 0)
-                    .offset(x: animateTimeline ? 0 : -20)
-                    .animation(.easeOut(duration: 0.4).delay(Double(sampleTimeBlocks.firstIndex(where: { $0.0 == block.0 }) ?? 0) * 0.1), value: animateTimeline)
+                    .offset(y: animateTimeline ? 0 : -10)
+                    .animation(
+                        .spring(response: 0.5, dampingFraction: 0.8)
+                        .delay(Double(index) * 0.15),
+                        value: animateTimeline
+                    )
                 }
+                
+                // User's check-in (dramatic entrance)
+                TimelinePreviewRow(
+                    time: currentTimeString,
+                    activity: displayText,
+                    color: Color.brandAccent,
+                    isHighlighted: true,
+                    showPulse: pulseRing
+                )
+                .opacity(showUserEntry ? 1 : 0)
+                .scaleEffect(showUserEntry ? 1 : 0.8)
+                .animation(.spring(response: 0.4, dampingFraction: 0.6), value: showUserEntry)
             }
             .padding()
             .background(Color.cardBackground)
             .clipShape(RoundedRectangle(cornerRadius: 16))
+            .shadow(color: showUserEntry ? Color.brandAccent.opacity(0.2) : .clear, radius: 20)
             .padding(.horizontal, 24)
+            .animation(.easeInOut(duration: 0.5), value: showUserEntry)
+            
+            // Insight text (appears after user entry)
+            if showUserEntry {
+                Text("As you log more, AI patterns emerge ✨")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
             
             Spacer()
             Spacer()
         }
         .onAppear {
-            animateTimeline = true
+            // Staggered animation sequence (Things 3 style)
+            withAnimation {
+                animateTimeline = true
+            }
+            
+            // User entry appears after past items
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                withAnimation {
+                    showUserEntry = true
+                }
+                // Haptic when their entry appears
+                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                
+                // Start pulse ring
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    withAnimation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true)) {
+                        pulseRing = true
+                    }
+                }
+            }
         }
     }
     
-    private var sampleTimeBlocks: [(String, String, Color, Bool)] {
-        let currentHour = Calendar.current.component(.hour, from: Date())
+    private var currentTimeString: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "h:mm a"
+        return formatter.string(from: Date())
+    }
+    
+    private var displayText: String {
+        if checkInText.isEmpty {
+            return "Your check-in"
+        }
+        // Extract emoji if present, otherwise truncate nicely
+        let text = checkInText.trimmingCharacters(in: .whitespaces)
+        if text.count <= 25 {
+            return text
+        }
+        return String(text.prefix(22)) + "..."
+    }
+    
+    private var pastBlocks: [(String, String, Color)] {
         let formatter = DateFormatter()
         formatter.dateFormat = "h:mm a"
         
         return [
-            (formatter.string(from: Date().addingTimeInterval(-7200)), "Focus time", Color.success, false),
-            (formatter.string(from: Date().addingTimeInterval(-3600)), "Meeting", Color.warning, false),
-            (formatter.string(from: Date()), checkInText.isEmpty ? "Check-in" : String(checkInText.prefix(30)) + "...", Color.brandAccent, true),
+            (formatter.string(from: Date().addingTimeInterval(-7200)), "Deep focus session", Color.success),
+            (formatter.string(from: Date().addingTimeInterval(-3600)), "Team standup", Color.warning),
         ]
     }
 }
@@ -528,44 +759,61 @@ struct TimelinePreviewRow: View {
     let activity: String
     let color: Color
     let isHighlighted: Bool
+    let showPulse: Bool
     
     var body: some View {
         HStack(spacing: 12) {
             Text(time)
-                .font(.caption)
+                .font(.system(size: 12, weight: .medium, design: .monospaced))
                 .foregroundStyle(.secondary)
                 .frame(width: 70, alignment: .trailing)
             
-            Circle()
-                .fill(color)
-                .frame(width: 12, height: 12)
-                .overlay(
+            // Timeline dot with pulse effect
+            ZStack {
+                if isHighlighted && showPulse {
                     Circle()
-                        .stroke(color.opacity(0.3), lineWidth: isHighlighted ? 4 : 0)
-                )
+                        .stroke(color.opacity(0.4), lineWidth: 2)
+                        .frame(width: 24, height: 24)
+                        .scaleEffect(showPulse ? 1.5 : 1.0)
+                        .opacity(showPulse ? 0 : 1)
+                }
+                
+                Circle()
+                    .fill(color)
+                    .frame(width: 12, height: 12)
+                    .shadow(color: isHighlighted ? color.opacity(0.5) : .clear, radius: 4)
+            }
+            .frame(width: 24, height: 24)
             
             Text(activity)
                 .font(.subheadline)
+                .fontWeight(isHighlighted ? .semibold : .regular)
                 .foregroundStyle(Color.textPrimary)
                 .lineLimit(1)
             
             Spacer()
             
             if isHighlighted {
-                Text("NEW")
+                Text("NOW")
                     .font(.caption2)
                     .fontWeight(.bold)
                     .foregroundStyle(.white)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
-                    .background(Color.brandAccent)
+                    .background(
+                        LinearGradient(
+                            colors: [Color.brandAccent, Color.brandAccent.opacity(0.8)],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
                     .clipShape(Capsule())
             }
         }
-        .padding(.vertical, 12)
-        .padding(.horizontal, 8)
-        .background(isHighlighted ? color.opacity(0.1) : Color.clear)
-        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .padding(.vertical, 14)
+        .padding(.horizontal, 12)
+        .background(isHighlighted ? color.opacity(0.08) : Color.clear)
+        .clipShape(RoundedRectangle(cornerRadius: 10))
     }
 }
 
@@ -858,6 +1106,117 @@ struct SummaryRow: View {
                 .font(.subheadline)
                 .foregroundStyle(Color.textPrimary)
             
+            Spacer()
+        }
+    }
+}
+
+// MARK: - Screen 8 (Optional): Widget Promo
+// Streaks is praised specifically for widget excellence
+
+struct WidgetPromoScreen: View {
+    @State private var showWidget = false
+    @State private var floatAnimation = false
+    
+    var body: some View {
+        VStack(spacing: 24) {
+            Spacer()
+            
+            VStack(spacing: 12) {
+                Image(systemName: "square.stack.3d.up.fill")
+                    .font(.system(size: 48))
+                    .foregroundStyle(Color.brandAccent)
+                    .symbolEffect(.bounce, value: showWidget)
+                
+                Text("Add a Widget")
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .foregroundStyle(Color.textPrimary)
+                
+                Text("See your goals at a glance.\nNo need to open the app.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+            
+            // Widget preview (floating)
+            ZStack {
+                // Shadow/glow
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(Color.brandAccent.opacity(0.1))
+                    .frame(width: 180, height: 180)
+                    .blur(radius: 20)
+                
+                // Widget mockup
+                VStack(spacing: 12) {
+                    HStack {
+                        Text("🎯")
+                            .font(.title2)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Today's Focus")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            Text("3h 24m")
+                                .font(.title3)
+                                .fontWeight(.bold)
+                                .foregroundStyle(Color.success)
+                        }
+                        Spacer()
+                    }
+                    
+                    ProgressView(value: 0.7)
+                        .progressViewStyle(CustomProgressStyle(color: .success))
+                    
+                    HStack {
+                        Text("🔥 7 day streak")
+                            .font(.caption)
+                            .foregroundStyle(Color.warning)
+                        Spacer()
+                    }
+                }
+                .padding()
+                .frame(width: 170, height: 170)
+                .background(Color.cardBackground)
+                .clipShape(RoundedRectangle(cornerRadius: 20))
+                .shadow(color: .black.opacity(0.3), radius: 15, y: 8)
+                .scaleEffect(showWidget ? 1 : 0.8)
+                .opacity(showWidget ? 1 : 0)
+                .offset(y: floatAnimation ? -5 : 5)
+            }
+            .onAppear {
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                    showWidget = true
+                }
+                withAnimation(.easeInOut(duration: 2).repeatForever(autoreverses: true).delay(0.5)) {
+                    floatAnimation = true
+                }
+                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            }
+            
+            // Instructions
+            VStack(spacing: 8) {
+                Text("To add a widget:")
+                    .font(.footnote)
+                    .fontWeight(.medium)
+                    .foregroundStyle(Color.textPrimary)
+                
+                HStack(spacing: 4) {
+                    Text("Long press home screen")
+                    Image(systemName: "arrow.right")
+                        .font(.caption2)
+                    Text("Tap +")
+                    Image(systemName: "arrow.right")
+                        .font(.caption2)
+                    Text("Find LifeLog")
+                }
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            }
+            .padding()
+            .background(Color.cardBackground)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .padding(.horizontal, 24)
+            
+            Spacer()
             Spacer()
         }
     }
