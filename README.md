@@ -2,7 +2,7 @@
 
 Multimodal AI life coach that records, analyzes, and coaches you through your daily activities — with on-chain token rewards for hitting your goals.
 
-**Status:** Phase 1 Complete (Foundation + Data Collection)
+**Status:** Phase 4 Complete (Dashboard UI)
 
 ## Features
 
@@ -75,12 +75,39 @@ Edit `config.json` to customize:
 
 All data stays on your local machine. No cloud sync, no external servers.
 
+## Dashboard UI
+
+The dashboard provides a beautiful visualization of your life data:
+
+```bash
+cd dashboard
+npm install
+npm run dev
+```
+
+Then visit **http://localhost:3000**
+
+### Pages
+
+- **/** — Today's Timeline (hour-by-hour color-coded activity blocks)
+- **/goals** — Goal progress with streaks and milestones
+- **/insights** — Charts, heatmaps, and productivity analytics
+- **/settings** — Configure goals, privacy, and export data
+
+### API Routes
+
+- `GET /api/activities?date=YYYY-MM-DD` — Fetch day's activities
+- `GET /api/goals` — Fetch all goals
+- `GET /api/insights?days=7` — Fetch analytics data
+- `GET /api/summaries?date=YYYY-MM-DD` — Fetch daily summary
+- `GET /api/export` — Export all data as JSON
+
 ## Roadmap
 
 - [x] Phase 1: Foundation + Data Collection
 - [ ] Phase 2: AI Analysis Engine
 - [ ] Phase 3: Coaching System
-- [ ] Phase 4: Dashboard UI
+- [x] Phase 4: Dashboard UI
 - [ ] Phase 5: $LIFE Token Integration
 - [ ] Phase 6: Demo + Marketing
 
