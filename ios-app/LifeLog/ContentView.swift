@@ -9,13 +9,24 @@ import SwiftUI
 
 struct ContentView: View {
     @Environment(AppState.self) private var appState
-    @State private var selectedTab: Tab = .checkIn
+    @State private var selectedTab: Tab = ContentView.initialTab()
     
-    enum Tab {
-        case checkIn
-        case timeline
-        case goals
-        case settings
+    enum Tab: String {
+        case checkIn = "checkin"
+        case timeline = "timeline"
+        case goals = "goals"
+        case settings = "settings"
+    }
+    
+    static func initialTab() -> Tab {
+        // Check for -tab argument in launch arguments
+        let args = ProcessInfo.processInfo.arguments
+        if let tabIndex = args.firstIndex(of: "-tab"),
+           tabIndex + 1 < args.count,
+           let tab = Tab(rawValue: args[tabIndex + 1]) {
+            return tab
+        }
+        return .checkIn
     }
     
     var body: some View {
@@ -46,9 +57,15 @@ struct ContentView: View {
         }
         .tint(Color.brandAccent)
         .onOpenURL { url in
-            // Handle deep links for notifications
-            if url.scheme == "lifelog" && url.host == "checkin" {
-                selectedTab = .checkIn
+            // Handle deep links for tab navigation
+            if url.scheme == "lifelog" {
+                switch url.host {
+                case "checkin": selectedTab = .checkIn
+                case "timeline": selectedTab = .timeline
+                case "goals": selectedTab = .goals
+                case "settings": selectedTab = .settings
+                default: break
+                }
             }
         }
     }

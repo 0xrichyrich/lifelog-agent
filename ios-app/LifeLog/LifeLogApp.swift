@@ -11,26 +11,18 @@ import UserNotifications
 @main
 struct LifeLogApp: App {
     @State private var appState = AppState()
-    
-    init() {
-        // Request notification permissions on first launch
-        requestNotificationPermissions()
-    }
+    @State private var hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
     
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environment(appState)
-                .preferredColorScheme(.dark)
-        }
-    }
-    
-    private func requestNotificationPermissions() {
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { granted, error in
-            if granted {
-                print("Notification permissions granted")
-            } else if let error = error {
-                print("Error requesting notifications: \(error)")
+            if hasCompletedOnboarding {
+                ContentView()
+                    .environment(appState)
+                    .preferredColorScheme(.dark)
+            } else {
+                OnboardingView(hasCompletedOnboarding: $hasCompletedOnboarding)
+                    .environment(appState)
+                    .preferredColorScheme(.dark)
             }
         }
     }
