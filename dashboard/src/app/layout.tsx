@@ -1,10 +1,9 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import Sidebar from '@/components/Sidebar';
 
 export const metadata: Metadata = {
-  title: 'LifeLog Dashboard',
-  description: 'Visualize your life data - timeline, goals, insights',
+  title: 'LifeLog - The AI Life Coach That Pays You to Improve',
+  description: 'Track your life, get AI insights, earn $LIFE tokens.',
 };
 
 export default function RootLayout({
@@ -14,13 +13,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="bg-background text-text min-h-screen">
-        <div className="flex min-h-screen">
-          <Sidebar />
-          <main className="flex-1 ml-64 p-8">
-            {children}
-          </main>
-        </div>
+      <body className="bg-background text-text min-h-screen antialiased">
+        {children}
       </body>
     </html>
   );
