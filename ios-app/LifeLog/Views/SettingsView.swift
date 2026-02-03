@@ -24,25 +24,8 @@ struct SettingsView: View {
         
         NavigationStack {
             List {
-                // API Configuration
+                // Connection Status (API endpoint hardcoded)
                 Section {
-                    HStack {
-                        Image(systemName: "server.rack")
-                            .foregroundStyle(Color.brandAccent)
-                        TextField("API Endpoint", text: $state.apiEndpoint)
-                            .textContentType(.URL)
-                            .autocapitalization(.none)
-                            .keyboardType(.URL)
-                    }
-                    
-                    HStack {
-                        Image(systemName: "key.fill")
-                            .foregroundStyle(Color.brandAccent)
-                        SecureField("API Key", text: $state.apiKey)
-                            .textContentType(.password)
-                            .autocapitalization(.none)
-                    }
-                    
                     Button {
                         Task {
                             await testConnection()
@@ -50,13 +33,51 @@ struct SettingsView: View {
                     } label: {
                         HStack {
                             Image(systemName: "antenna.radiowaves.left.and.right")
+                                .foregroundStyle(Color.brandAccent)
                             Text("Test Connection")
+                            Spacer()
+                            if connectionStatus == .connected {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundStyle(.green)
+                            }
                         }
                     }
                 } header: {
-                    Text("API Configuration")
+                    Text("Connection")
+                }
+                
+                // Wallet
+                Section {
+                    NavigationLink {
+                        WalletView()
+                            .environment(appState)
+                    } label: {
+                        HStack {
+                            Image(systemName: "wallet.bifold.fill")
+                                .foregroundStyle(Color.brandAccent)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Wallet")
+                                Text("Earn $LIFE tokens for check-ins")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                            if UserDefaults.standard.bool(forKey: "walletConnected") {
+                                HStack(spacing: 4) {
+                                    Circle()
+                                        .fill(Color.success)
+                                        .frame(width: 6, height: 6)
+                                    Text("Connected")
+                                        .font(.caption)
+                                        .foregroundStyle(Color.success)
+                                }
+                            }
+                        }
+                    }
+                } header: {
+                    Text("Rewards")
                 } footer: {
-                    Text("API key is stored securely in your device's Keychain.")
+                    Text("Connect your wallet to earn $LIFE tokens on Monad Testnet.")
                 }
                 
                 // Integrations

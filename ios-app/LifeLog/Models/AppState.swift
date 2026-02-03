@@ -57,7 +57,7 @@ final class AppState {
     var errorMessage: String?
     
     init() {
-        self.apiEndpoint = UserDefaults.standard.string(forKey: "apiEndpoint") ?? "http://localhost:3000"
+        self.apiEndpoint = "https://dashboard-flame-five-76.vercel.app"
         self.apiKey = KeychainHelper.load(key: "lifelogApiKey") ?? ""
         self.notificationsEnabled = UserDefaults.standard.bool(forKey: "notificationsEnabled")
         self.collectScreenshots = UserDefaults.standard.object(forKey: "collectScreenshots") as? Bool ?? true

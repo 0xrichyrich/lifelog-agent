@@ -12,6 +12,11 @@
 		A11111110000000000000003 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000003 /* AppState.swift */; };
 		A11111110000000000000004 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000004 /* Models.swift */; };
 		A11111110000000000000005 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000005 /* APIClient.swift */; };
+		A11111110000000000000060 /* WalletModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000060 /* WalletModels.swift */; };
+		A11111110000000000000061 /* PrivyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000061 /* PrivyService.swift */; };
+		A11111110000000000000062 /* WalletService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000062 /* WalletService.swift */; };
+		A11111110000000000000063 /* WalletView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000063 /* WalletView.swift */; };
+		A11111110000000000000070 /* PrivySDK in Frameworks */ = {isa = PBXBuildFile; productRef = A1C000000000000000000001 /* PrivySDK */; };
 		A11111110000000000000006 /* CheckInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000006 /* CheckInView.swift */; };
 		A11111110000000000000007 /* TimelineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000007 /* TimelineView.swift */; };
 		A11111110000000000000008 /* GoalsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000008 /* GoalsView.swift */; };
@@ -96,6 +101,10 @@
 		A10000000000000000000054 /* BalanceCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BalanceCard.swift; sourceTree = "<group>"; };
 		A10000000000000000000055 /* WellnessNudgeCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WellnessNudgeCard.swift; sourceTree = "<group>"; };
 		A10000000000000000000056 /* WellnessView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WellnessView.swift; sourceTree = "<group>"; };
+		A10000000000000000000060 /* WalletModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalletModels.swift; sourceTree = "<group>"; };
+		A10000000000000000000061 /* PrivyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivyService.swift; sourceTree = "<group>"; };
+		A10000000000000000000062 /* WalletService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalletService.swift; sourceTree = "<group>"; };
+		A10000000000000000000063 /* WalletView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalletView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -103,6 +112,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A11111110000000000000070 /* PrivySDK in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -179,6 +189,7 @@
 				A10000000000000000000003 /* AppState.swift */,
 				A10000000000000000000004 /* Models.swift */,
 				A10000000000000000000050 /* WellnessModels.swift */,
+				A10000000000000000000060 /* WalletModels.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -192,6 +203,7 @@
 				A10000000000000000000009 /* SettingsView.swift */,
 				A10000000000000000000040 /* OnboardingView.swift */,
 				A10000000000000000000056 /* WellnessView.swift */,
+				A10000000000000000000063 /* WalletView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -205,6 +217,8 @@
 				A10000000000000000000051 /* ScreenTimeService.swift */,
 				A10000000000000000000052 /* OutdoorActivityService.swift */,
 				A10000000000000000000053 /* WellnessNudgeService.swift */,
+				A10000000000000000000061 /* PrivyService.swift */,
+				A10000000000000000000062 /* WalletService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -247,6 +261,9 @@
 				A19000000000000000000001 /* PBXTargetDependency */,
 			);
 			name = LifeLog;
+			packageProductDependencies = (
+				A1C000000000000000000001 /* PrivySDK */,
+			);
 			productName = LifeLog;
 			productReference = A10000000000000000000015 /* LifeLog.app */;
 			productType = "com.apple.product-type.application";
@@ -295,6 +312,9 @@
 				Base,
 			);
 			mainGroup = A15000000000000000000001;
+			packageReferences = (
+				A1B000000000000000000001 /* XCRemoteSwiftPackageReference "privy-ios" */,
+			);
 			productRefGroup = A15000000000000000000005 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -352,6 +372,10 @@
 				A11111110000000000000054 /* BalanceCard.swift in Sources */,
 				A11111110000000000000055 /* WellnessNudgeCard.swift in Sources */,
 				A11111110000000000000056 /* WellnessView.swift in Sources */,
+				A11111110000000000000060 /* WalletModels.swift in Sources */,
+				A11111110000000000000061 /* PrivyService.swift in Sources */,
+				A11111110000000000000062 /* WalletService.swift in Sources */,
+				A11111110000000000000063 /* WalletView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -662,6 +686,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		A1B000000000000000000001 /* XCRemoteSwiftPackageReference "privy-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/privy-io/privy-ios";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A1C000000000000000000001 /* PrivySDK */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A1B000000000000000000001 /* XCRemoteSwiftPackageReference "privy-ios" */;
+			productName = PrivySDK;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = A10000000000000000000000 /* Project object */;
 }

@@ -147,6 +147,51 @@ The app uses a dark theme matching the web dashboard:
 - Camera captures save to check-in metadata but don't upload yet
 - Widget data shares via App Groups (requires both targets signed with same team)
 
+## 💰 Wallet Integration (Privy)
+
+The app includes Privy SDK integration for earning $LIFE tokens on Monad Testnet.
+
+### Features
+- **Connect Wallet**: Sign in with Apple or Email to create an embedded wallet
+- **$LIFE Token Balance**: View your token balance in real-time
+- **Claim Rewards**: Claim earned tokens from check-ins and streaks
+- **Transaction History**: View recent claims and rewards
+
+### Reward System
+- **Daily Check-in**: +10 LIFE
+- **7-Day Streak**: +50 LIFE bonus
+- **Goal Complete**: +25 LIFE
+
+### Setup Privy
+
+1. Create an account at [dashboard.privy.io](https://dashboard.privy.io)
+2. Create a new app and get your App ID and Client ID
+3. Update `PrivyService.swift`:
+   ```swift
+   private let appId = "YOUR_PRIVY_APP_ID"
+   private let appClientId = "YOUR_PRIVY_APP_CLIENT_ID"
+   ```
+
+### API Endpoints Required
+
+The wallet features require these backend endpoints:
+
+- `GET /api/wallet/balance?address=0x...` - Get $LIFE token balance
+- `POST /api/wallet/claim` - Claim pending rewards
+  - Body: `{ "address": "0x..." }`
+- `GET /api/wallet/history?address=0x...` - Transaction history
+- `POST /api/wallet/connect` - Register wallet with account
+  - Body: `{ "address": "0x...", "privy_user_id": "..." }`
+
+### Token Constants
+
+```swift
+// Monad Testnet Configuration
+static let contractAddress = "0x..." // $LIFE token address (TBD)
+static let chainId = 10143
+static let chainName = "Monad Testnet"
+```
+
 ## Future Enhancements
 
 - [ ] Whisper API key management in Settings
@@ -154,7 +199,9 @@ The app uses a dark theme matching the web dashboard:
 - [ ] Push notifications from coaching system
 - [ ] Apple Watch companion app
 - [ ] Offline queue for check-ins
-- [ ] Health kit integration
+- [x] Health kit integration
+- [x] Privy wallet integration
+- [ ] On-chain reward claiming transactions
 
 ## License
 
