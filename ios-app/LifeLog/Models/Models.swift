@@ -231,7 +231,7 @@ extension Color {
     static let background = Color(hex: "0a0a0a")!
     static let cardBackground = Color(hex: "1a1a1a")!
     static let textPrimary = Color(hex: "e5e5e5")!
-    static let accent = Color(hex: "3b82f6")!
+    static let brandAccent = Color(hex: "3b82f6")!
     static let success = Color(hex: "10b981")!
     static let warning = Color(hex: "f59e0b")!
     static let danger = Color(hex: "ef4444")!

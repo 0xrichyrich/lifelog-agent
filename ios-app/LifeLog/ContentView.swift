@@ -44,7 +44,7 @@ struct ContentView: View {
                 }
                 .tag(Tab.settings)
         }
-        .tint(Color.accent)
+        .tint(Color.brandAccent)
         .onOpenURL { url in
             // Handle deep links for notifications
             if url.scheme == "lifelog" && url.host == "checkin" {

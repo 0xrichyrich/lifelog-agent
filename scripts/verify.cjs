@@ -1,4 +1,4 @@
-import { run } from "hardhat";
+const hre = require("hardhat");
 
 async function main() {
   const contractAddress = process.env.LIFE_TOKEN_ADDRESS;
@@ -11,12 +11,12 @@ async function main() {
   console.log("🔍 Verifying LifeToken at:", contractAddress);
   
   try {
-    await run("verify:verify", {
+    await hre.run("verify:verify", {
       address: contractAddress,
       constructorArguments: [],
     });
     console.log("✅ Contract verified successfully!");
-  } catch (error: any) {
+  } catch (error) {
     if (error.message.includes("Already Verified")) {
       console.log("✅ Contract is already verified");
     } else {

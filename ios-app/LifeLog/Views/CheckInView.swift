@@ -73,7 +73,7 @@ struct CheckInView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .overlay(
                     RoundedRectangle(cornerRadius: 12)
-                        .stroke(Color.accent.opacity(0.3), lineWidth: 1)
+                        .stroke(Color.brandAccent.opacity(0.3), lineWidth: 1)
                 )
                 .scrollContentBackground(.hidden)
                 .foregroundStyle(Color.textPrimary)
@@ -123,7 +123,7 @@ struct CheckInView: View {
                 VStack(spacing: 8) {
                     Image(systemName: isRecording ? "stop.circle.fill" : "mic.circle.fill")
                         .font(.system(size: 40))
-                        .foregroundStyle(isRecording ? Color.danger : Color.accent)
+                        .foregroundStyle(isRecording ? Color.danger : Color.brandAccent)
                     Text(isRecording ? "Stop" : "Voice")
                         .font(.caption)
                         .foregroundStyle(Color.textPrimary)
@@ -140,7 +140,7 @@ struct CheckInView: View {
                 VStack(spacing: 8) {
                     Image(systemName: "camera.circle.fill")
                         .font(.system(size: 40))
-                        .foregroundStyle(Color.accent)
+                        .foregroundStyle(Color.brandAccent)
                     Text("Photo")
                         .font(.caption)
                         .foregroundStyle(Color.textPrimary)
@@ -181,7 +181,7 @@ struct CheckInView: View {
             }
             .frame(maxWidth: .infinity)
             .padding()
-            .background(messageText.isEmpty ? Color.accent.opacity(0.5) : Color.accent)
+            .background(messageText.isEmpty ? Color.brandAccent.opacity(0.5) : Color.brandAccent)
             .foregroundStyle(.white)
             .clipShape(RoundedRectangle(cornerRadius: 12))
         }

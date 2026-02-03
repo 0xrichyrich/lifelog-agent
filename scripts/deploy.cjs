@@ -1,14 +1,16 @@
-import { ethers } from "hardhat";
+const hre = require("hardhat");
 
 async function main() {
   console.log("🧠 Deploying LifeLog Token ($LIFE) to Monad...\n");
 
-  const [deployer] = await ethers.getSigners();
+  const [deployer] = await hre.ethers.getSigners();
   console.log("Deploying with account:", deployer.address);
-  console.log("Account balance:", ethers.formatEther(await ethers.provider.getBalance(deployer.address)), "MON\n");
+  
+  const balance = await hre.ethers.provider.getBalance(deployer.address);
+  console.log("Account balance:", hre.ethers.formatEther(balance), "MON\n");
 
   // Deploy LifeToken
-  const LifeToken = await ethers.getContractFactory("LifeToken");
+  const LifeToken = await hre.ethers.getContractFactory("LifeToken");
   const token = await LifeToken.deploy();
   
   await token.waitForDeployment();
@@ -19,17 +21,17 @@ async function main() {
   console.log("  Name:", await token.name());
   console.log("  Symbol:", await token.symbol());
   console.log("  Decimals:", await token.decimals());
-  console.log("  Max Supply:", ethers.formatEther(await token.MAX_SUPPLY()), "$LIFE");
+  console.log("  Max Supply:", hre.ethers.formatEther(await token.MAX_SUPPLY()), "$LIFE");
   
   console.log("\n💰 Reward Rates:");
-  console.log("  Daily Goal:", ethers.formatEther(await token.rewardRates(0)), "$LIFE");
-  console.log("  Weekly Goal:", ethers.formatEther(await token.rewardRates(1)), "$LIFE");
-  console.log("  Streak Bonus:", ethers.formatEther(await token.rewardRates(2)), "$LIFE");
+  console.log("  Daily Goal:", hre.ethers.formatEther(await token.rewardRates(0)), "$LIFE");
+  console.log("  Weekly Goal:", hre.ethers.formatEther(await token.rewardRates(1)), "$LIFE");
+  console.log("  Streak Bonus:", hre.ethers.formatEther(await token.rewardRates(2)), "$LIFE");
   
   console.log("\n🔓 Feature Costs:");
-  console.log("  Premium Insights:", ethers.formatEther(await token.featureCosts("premium_insights")), "$LIFE");
-  console.log("  AI Coach Call:", ethers.formatEther(await token.featureCosts("ai_coach_call")), "$LIFE");
-  console.log("  Agent Discount:", ethers.formatEther(await token.featureCosts("agent_discount")), "$LIFE");
+  console.log("  Premium Insights:", hre.ethers.formatEther(await token.featureCosts("premium_insights")), "$LIFE");
+  console.log("  AI Coach Call:", hre.ethers.formatEther(await token.featureCosts("ai_coach_call")), "$LIFE");
+  console.log("  Agent Discount:", hre.ethers.formatEther(await token.featureCosts("agent_discount")), "$LIFE");
   
   console.log("\n📝 Next steps:");
   console.log("1. Save contract address to .env: LIFE_TOKEN_ADDRESS=" + tokenAddress);
@@ -39,7 +41,7 @@ async function main() {
 
   // Save deployment info
   const deploymentInfo = {
-    network: "monadTestnet",
+    network: hre.network.name,
     contractAddress: tokenAddress,
     deployer: deployer.address,
     deployedAt: new Date().toISOString(),

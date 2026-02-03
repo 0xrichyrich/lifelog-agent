@@ -23,7 +23,7 @@ struct SettingsView: View {
                 Section("API Configuration") {
                     HStack {
                         Image(systemName: "server.rack")
-                            .foregroundStyle(Color.accent)
+                            .foregroundStyle(Color.brandAccent)
                         TextField("API Endpoint", text: $state.apiEndpoint)
                             .textContentType(.URL)
                             .autocapitalization(.none)
@@ -47,7 +47,7 @@ struct SettingsView: View {
                     Toggle(isOn: $state.notificationsEnabled) {
                         HStack {
                             Image(systemName: "bell.badge")
-                                .foregroundStyle(Color.accent)
+                                .foregroundStyle(Color.brandAccent)
                             Text("Enable Notifications")
                         }
                     }
@@ -75,7 +75,7 @@ struct SettingsView: View {
                     Toggle(isOn: $state.collectScreenshots) {
                         HStack {
                             Image(systemName: "camera.metering.spot")
-                                .foregroundStyle(Color.accent)
+                                .foregroundStyle(Color.brandAccent)
                             VStack(alignment: .leading) {
                                 Text("Screenshot Collection")
                                 Text("Capture workspace screenshots")
@@ -88,7 +88,7 @@ struct SettingsView: View {
                     Toggle(isOn: $state.collectAudio) {
                         HStack {
                             Image(systemName: "waveform")
-                                .foregroundStyle(Color.accent)
+                                .foregroundStyle(Color.brandAccent)
                             VStack(alignment: .leading) {
                                 Text("Audio Recording")
                                 Text("Record ambient audio")
@@ -101,7 +101,7 @@ struct SettingsView: View {
                     Toggle(isOn: $state.collectCamera) {
                         HStack {
                             Image(systemName: "camera")
-                                .foregroundStyle(Color.accent)
+                                .foregroundStyle(Color.brandAccent)
                             VStack(alignment: .leading) {
                                 Text("Camera Snapshots")
                                 Text("Periodic workspace photos")
@@ -119,7 +119,7 @@ struct SettingsView: View {
                     } label: {
                         HStack {
                             Image(systemName: "square.and.arrow.up")
-                                .foregroundStyle(Color.accent)
+                                .foregroundStyle(Color.brandAccent)
                             Text("Export Data")
                         }
                     }
@@ -141,7 +141,7 @@ struct SettingsView: View {
                     } label: {
                         HStack {
                             Image(systemName: "info.circle")
-                                .foregroundStyle(Color.accent)
+                                .foregroundStyle(Color.brandAccent)
                             Text("About LifeLog")
                         }
                     }
@@ -239,7 +239,7 @@ struct ExportSheet: View {
             VStack(spacing: 20) {
                 Image(systemName: "square.and.arrow.up.circle.fill")
                     .font(.system(size: 64))
-                    .foregroundStyle(Color.accent)
+                    .foregroundStyle(Color.brandAccent)
                 
                 Text("Export Your Data")
                     .font(.title2)
@@ -261,7 +261,7 @@ struct ExportSheet: View {
                         }
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(Color.accent)
+                        .background(Color.brandAccent)
                         .foregroundStyle(.white)
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
@@ -322,7 +322,7 @@ struct AboutSheet: View {
                 VStack(spacing: 24) {
                     Image(systemName: "brain.fill")
                         .font(.system(size: 80))
-                        .foregroundStyle(Color.accent)
+                        .foregroundStyle(Color.brandAccent)
                     
                     Text("LifeLog")
                         .font(.largeTitle)
@@ -370,7 +370,7 @@ struct FeatureRow: View {
         HStack(spacing: 12) {
             Image(systemName: icon)
                 .font(.title2)
-                .foregroundStyle(Color.accent)
+                .foregroundStyle(Color.brandAccent)
                 .frame(width: 40)
             
             VStack(alignment: .leading, spacing: 2) {

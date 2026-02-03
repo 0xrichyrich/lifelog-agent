@@ -62,7 +62,7 @@ struct TimelineView: View {
             } label: {
                 Image(systemName: "chevron.left")
                     .font(.title2)
-                    .foregroundStyle(Color.accent)
+                    .foregroundStyle(Color.brandAccent)
             }
             
             Spacer()
@@ -80,7 +80,7 @@ struct TimelineView: View {
             } label: {
                 Image(systemName: "chevron.right")
                     .font(.title2)
-                    .foregroundStyle(Calendar.current.isDateInToday(selectedDate) ? Color.gray : Color.accent)
+                    .foregroundStyle(Calendar.current.isDateInToday(selectedDate) ? Color.gray : Color.brandAccent)
             }
             .disabled(Calendar.current.isDateInToday(selectedDate))
         }

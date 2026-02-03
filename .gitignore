@@ -14,6 +14,9 @@ data/*.db
 data/*.db-journal
 logs/*.md
 
+# iOS build
+ios-app/build/
+
 # Media recordings (large files, stay local)
 data/recordings/
 data/snapshots/

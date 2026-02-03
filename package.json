@@ -14,9 +14,9 @@
     "cli": "node dist/cli/index.js",
     "migrate": "node dist/storage/migrate.js",
     "compile": "hardhat compile",
-    "deploy:testnet": "hardhat run scripts/deploy.ts --network monadTestnet",
-    "deploy:mainnet": "hardhat run scripts/deploy.ts --network monad",
-    "verify": "hardhat run scripts/verify.ts --network monadTestnet"
+    "deploy:testnet": "hardhat run scripts/deploy.cjs --network monadTestnet",
+    "deploy:mainnet": "hardhat run scripts/deploy.cjs --network monad",
+    "verify": "hardhat run scripts/verify.cjs --network monadTestnet"
   },
   "keywords": [
     "lifelog",
