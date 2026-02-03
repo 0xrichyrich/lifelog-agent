@@ -3,6 +3,7 @@
 //  LifeLog
 //
 //  Created by Joshua Rich on 2026-02-02.
+//  Security-hardened version with API key authentication
 //
 
 import Foundation
@@ -10,9 +11,11 @@ import Foundation
 actor APIClient {
     private let session: URLSession
     private var baseURL: String
+    private var apiKey: String?
     
-    init(baseURL: String = "https://dashboard-flame-five-76.vercel.app") {
+    init(baseURL: String = "https://dashboard-flame-five-76.vercel.app", apiKey: String? = nil) {
         self.baseURL = baseURL
+        self.apiKey = apiKey
         
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 30
@@ -24,16 +27,49 @@ actor APIClient {
         self.baseURL = url
     }
     
+    func updateApiKey(_ key: String?) {
+        self.apiKey = key
+    }
+    
+    /// Creates an authenticated request with API key header
+    private func authenticatedRequest(url: URL) -> URLRequest {
+        var request = URLRequest(url: url)
+        if let apiKey = apiKey, !apiKey.isEmpty {
+            request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        }
+        return request
+    }
+    
+    /// Creates an authenticated POST request
+    private func authenticatedPostRequest(url: URL, body: [String: Any]) throws -> URLRequest {
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        if let apiKey = apiKey, !apiKey.isEmpty {
+            request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        }
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+        return request
+    }
+    
     // MARK: - Activities
     func fetchActivities(for date: Date = Date()) async throws -> [Activity] {
         let dateString = formatDate(date)
         let url = URL(string: "\(baseURL)/api/activities?date=\(dateString)")!
+        let request = authenticatedRequest(url: url)
         
-        let (data, response) = try await session.data(from: url)
+        let (data, response) = try await session.data(for: request)
         
-        guard let httpResponse = response as? HTTPURLResponse,
-              httpResponse.statusCode == 200 else {
+        guard let httpResponse = response as? HTTPURLResponse else {
             throw APIError.invalidResponse
+        }
+        
+        if httpResponse.statusCode == 401 {
+            throw APIError.unauthorized
+        }
+        
+        guard httpResponse.statusCode == 200 else {
+            throw APIError.serverError(httpResponse.statusCode)
         }
         
         let decoder = JSONDecoder()
@@ -44,12 +80,20 @@ actor APIClient {
     // MARK: - Goals
     func fetchGoals() async throws -> [Goal] {
         let url = URL(string: "\(baseURL)/api/goals")!
+        let request = authenticatedRequest(url: url)
         
-        let (data, response) = try await session.data(from: url)
+        let (data, response) = try await session.data(for: request)
         
-        guard let httpResponse = response as? HTTPURLResponse,
-              httpResponse.statusCode == 200 else {
+        guard let httpResponse = response as? HTTPURLResponse else {
             throw APIError.invalidResponse
+        }
+        
+        if httpResponse.statusCode == 401 {
+            throw APIError.unauthorized
+        }
+        
+        guard httpResponse.statusCode == 200 else {
+            throw APIError.serverError(httpResponse.statusCode)
         }
         
         let decoder = JSONDecoder()
@@ -60,12 +104,20 @@ actor APIClient {
     // MARK: - Check-ins
     func fetchCheckIns(limit: Int = 20) async throws -> [CheckIn] {
         let url = URL(string: "\(baseURL)/api/checkins?limit=\(limit)")!
+        let request = authenticatedRequest(url: url)
         
-        let (data, response) = try await session.data(from: url)
+        let (data, response) = try await session.data(for: request)
         
-        guard let httpResponse = response as? HTTPURLResponse,
-              httpResponse.statusCode == 200 else {
+        guard let httpResponse = response as? HTTPURLResponse else {
             throw APIError.invalidResponse
+        }
+        
+        if httpResponse.statusCode == 401 {
+            throw APIError.unauthorized
+        }
+        
+        guard httpResponse.statusCode == 200 else {
+            throw APIError.serverError(httpResponse.statusCode)
         }
         
         let decoder = JSONDecoder()
@@ -75,21 +127,34 @@ actor APIClient {
     
     func createCheckIn(message: String) async throws -> CheckIn {
         let url = URL(string: "\(baseURL)/api/checkins")!
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        // Validate message length client-side
+        let trimmedMessage = message.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedMessage.isEmpty else {
+            throw APIError.validationError("Message cannot be empty")
+        }
+        guard trimmedMessage.count <= 5000 else {
+            throw APIError.validationError("Message too long (max 5000 characters)")
+        }
         
         let body: [String: Any] = [
-            "message": message,
+            "message": trimmedMessage,
             "timestamp": ISO8601DateFormatter().string(from: Date())
         ]
-        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+        let request = try authenticatedPostRequest(url: url, body: body)
         
         let (data, response) = try await session.data(for: request)
         
-        guard let httpResponse = response as? HTTPURLResponse,
-              httpResponse.statusCode == 200 else {
+        guard let httpResponse = response as? HTTPURLResponse else {
             throw APIError.invalidResponse
+        }
+        
+        if httpResponse.statusCode == 401 {
+            throw APIError.unauthorized
+        }
+        
+        guard httpResponse.statusCode == 200 else {
+            throw APIError.serverError(httpResponse.statusCode)
         }
         
         let decoder = JSONDecoder()
@@ -103,22 +168,21 @@ actor APIClient {
         )
     }
     
-    // MARK: - Whisper Transcription
-    func transcribeAudio(fileURL: URL, whisperAPIKey: String) async throws -> String {
-        let whisperURL = URL(string: "https://api.openai.com/v1/audio/transcriptions")!
-        var request = URLRequest(url: whisperURL)
+    // MARK: - Whisper Transcription (via backend proxy)
+    /// Transcribe audio via the backend proxy endpoint
+    /// This avoids exposing OpenAI API keys in the iOS app
+    func transcribeAudio(fileURL: URL) async throws -> String {
+        let transcribeURL = URL(string: "\(baseURL)/api/transcribe")!
+        var request = URLRequest(url: transcribeURL)
         request.httpMethod = "POST"
-        request.setValue("Bearer \(whisperAPIKey)", forHTTPHeaderField: "Authorization")
+        if let apiKey = apiKey, !apiKey.isEmpty {
+            request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        }
         
         let boundary = UUID().uuidString
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
         
         var body = Data()
-        
-        // Add model field
-        body.append("--\(boundary)\r\n".data(using: .utf8)!)
-        body.append("Content-Disposition: form-data; name=\"model\"\r\n\r\n".data(using: .utf8)!)
-        body.append("whisper-1\r\n".data(using: .utf8)!)
         
         // Add audio file
         let audioData = try Data(contentsOf: fileURL)
@@ -134,8 +198,15 @@ actor APIClient {
         
         let (data, response) = try await session.data(for: request)
         
-        guard let httpResponse = response as? HTTPURLResponse,
-              httpResponse.statusCode == 200 else {
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw APIError.invalidResponse
+        }
+        
+        if httpResponse.statusCode == 401 {
+            throw APIError.unauthorized
+        }
+        
+        guard httpResponse.statusCode == 200 else {
             throw APIError.transcriptionFailed
         }
         
@@ -161,6 +232,9 @@ enum APIError: Error, LocalizedError {
     case decodingError(Error)
     case transcriptionFailed
     case serverError(Int)
+    case unauthorized
+    case validationError(String)
+    case rateLimited(retryAfter: Int)
     
     var errorDescription: String? {
         switch self {
@@ -174,6 +248,12 @@ enum APIError: Error, LocalizedError {
             return "Failed to transcribe audio"
         case .serverError(let code):
             return "Server error: \(code)"
+        case .unauthorized:
+            return "Authentication required. Please check your API key in Settings."
+        case .validationError(let message):
+            return "Validation error: \(message)"
+        case .rateLimited(let retryAfter):
+            return "Rate limited. Please try again in \(retryAfter) seconds."
         }
     }
 }

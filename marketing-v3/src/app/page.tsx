@@ -50,11 +50,11 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 via-cyan-400 to-emerald-400 flex items-center justify-center">
-              <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-6 h-6 text-white -mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
               </svg>
             </div>
-            <span className="text-xl font-bold gradient-text">LifeLog</span>
+            <span className="text-xl font-bold gradient-text">Nudge</span>
           </div>
           <div className="hidden md:flex items-center gap-8">
             <a href="#features" className="text-gray-400 hover:text-white transition">Features</a>
@@ -86,14 +86,14 @@ export default function Home() {
             </div>
             
             <h1 className="text-5xl md:text-7xl font-bold leading-tight mb-6">
-              Your Life,
+              Sometimes you need
               <br />
-              <span className="gradient-text">Quantified & Rewarded</span>
+              <span className="gradient-text">a little nudge</span>
             </h1>
             
             <p className="text-xl text-gray-400 mb-8 max-w-lg">
-              Log your daily moments with AI-powered insights. Earn $LIFE tokens for building healthy habits. 
-              Your personal journal that pays you back.
+              Your gentle AI life coach. Get personalized insights, build better habits, 
+              and earn $LIFE tokens along the way.
             </p>
             
             <div className="flex flex-wrap gap-4">
@@ -137,12 +137,12 @@ export default function Home() {
             <div className="relative">
               <PhoneMockup 
                 src="/screenshots/01-checkin.png" 
-                alt="LifeLog Check-in Screen"
+                alt="Nudge Check-in Screen"
                 className="phone-float w-[260px] z-20"
               />
               <PhoneMockup 
                 src="/screenshots/02-timeline.png" 
-                alt="LifeLog Timeline Screen"
+                alt="Nudge Timeline Screen"
                 className="phone-float-delayed w-[260px] absolute -right-32 top-20 z-10 opacity-80"
               />
             </div>
@@ -166,10 +166,10 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-4">
-              Why <span className="gradient-text">LifeLog</span>?
+              Why <span className="gradient-text">Nudge</span>?
             </h2>
             <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-              More than a journal — it&apos;s your personal AI companion that understands, analyzes, and rewards your journey.
+              Your gentle AI companion that understands your patterns, celebrates your wins, and gives you that little nudge when you need it.
             </p>
           </div>
           
@@ -260,7 +260,7 @@ export default function Home() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-bold mb-2">Log Your Life</h3>
+              <h3 className="text-xl font-bold mb-2">Track Your Day</h3>
               <p className="text-gray-400">Check in daily with moods, activities, goals, and reflections. AI helps you understand patterns.</p>
             </div>
             
@@ -406,7 +406,7 @@ export default function Home() {
               Built for <span className="gradient-text">Moltiverse</span>
             </h2>
             <p className="text-xl text-gray-400 mb-8 max-w-2xl mx-auto">
-              LifeLog Agent is our submission for the Moltiverse Hackathon, 
+              Nudge is our submission for the Moltiverse Hackathon, 
               competing for the $200K prize pool. A fusion of AI, Web3, and personal wellness.
             </p>
             
@@ -465,7 +465,7 @@ export default function Home() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                 </svg>
               </div>
-              <span className="text-xl font-bold gradient-text">LifeLog Agent</span>
+              <span className="text-xl font-bold gradient-text">Nudge Agent</span>
             </div>
             
             <div className="flex items-center gap-6">
@@ -478,7 +478,7 @@ export default function Home() {
             </div>
             
             <div className="text-gray-500 text-sm">
-              © 2025 LifeLog Agent. Built for Moltiverse Hackathon.
+              © 2025 Nudge Agent. Built for Moltiverse Hackathon.
             </div>
           </div>
         </div>

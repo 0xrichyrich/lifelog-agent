@@ -8,19 +8,19 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "LifeLog Agent - Your Life, Quantified & Rewarded",
-  description: "Log your daily moments with AI-powered insights. Earn $LIFE tokens for building healthy habits. Your personal journal that pays you back.",
-  keywords: ["lifelog", "journal", "AI", "crypto", "wellness", "tokens", "web3", "monad", "solana"],
+  title: "Nudge - Sometimes You Need a Little Nudge",
+  description: "Your gentle AI life coach. Get personalized insights, build healthy habits, and earn $LIFE tokens. Sometimes you need a little nudge.",
+  keywords: ["nudge", "life coach", "AI", "wellness", "habits", "tokens", "web3", "monad", "solana"],
   openGraph: {
-    title: "LifeLog Agent - Your Life, Quantified & Rewarded",
-    description: "Log your daily moments with AI-powered insights. Earn $LIFE tokens for building healthy habits.",
+    title: "Nudge - Sometimes You Need a Little Nudge",
+    description: "Your gentle AI life coach. Get personalized insights and earn $LIFE tokens for building healthy habits.",
     type: "website",
     images: ["/og-image.png"],
   },
   twitter: {
     card: "summary_large_image",
-    title: "LifeLog Agent",
-    description: "Your Life, Quantified & Rewarded. Earn $LIFE tokens for journaling.",
+    title: "Nudge",
+    description: "Sometimes you need a little nudge. Your gentle AI life coach.",
     creator: "@SkynetSays",
   },
 };

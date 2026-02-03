@@ -25,7 +25,7 @@ struct SettingsView: View {
         NavigationStack {
             List {
                 // API Configuration
-                Section("API Configuration") {
+                Section {
                     HStack {
                         Image(systemName: "server.rack")
                             .foregroundStyle(Color.brandAccent)
@@ -33,6 +33,14 @@ struct SettingsView: View {
                             .textContentType(.URL)
                             .autocapitalization(.none)
                             .keyboardType(.URL)
+                    }
+                    
+                    HStack {
+                        Image(systemName: "key.fill")
+                            .foregroundStyle(Color.brandAccent)
+                        SecureField("API Key", text: $state.apiKey)
+                            .textContentType(.password)
+                            .autocapitalization(.none)
                     }
                     
                     Button {
@@ -45,6 +53,10 @@ struct SettingsView: View {
                             Text("Test Connection")
                         }
                     }
+                } header: {
+                    Text("API Configuration")
+                } footer: {
+                    Text("API key is stored securely in your device's Keychain.")
                 }
                 
                 // Integrations

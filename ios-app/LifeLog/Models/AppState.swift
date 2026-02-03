@@ -3,9 +3,11 @@
 //  LifeLog
 //
 //  Created by Joshua Rich on 2026-02-02.
+//  Updated with secure API key storage via Keychain
 //
 
 import SwiftUI
+import Security
 
 @Observable
 final class AppState {
@@ -13,6 +15,13 @@ final class AppState {
     var apiEndpoint: String {
         didSet {
             UserDefaults.standard.set(apiEndpoint, forKey: "apiEndpoint")
+        }
+    }
+    
+    /// API key stored securely in Keychain
+    var apiKey: String {
+        didSet {
+            KeychainHelper.save(key: "lifelogApiKey", value: apiKey)
         }
     }
     
@@ -49,6 +58,7 @@ final class AppState {
     
     init() {
         self.apiEndpoint = UserDefaults.standard.string(forKey: "apiEndpoint") ?? "http://localhost:3000"
+        self.apiKey = KeychainHelper.load(key: "lifelogApiKey") ?? ""
         self.notificationsEnabled = UserDefaults.standard.bool(forKey: "notificationsEnabled")
         self.collectScreenshots = UserDefaults.standard.object(forKey: "collectScreenshots") as? Bool ?? true
         self.collectAudio = UserDefaults.standard.object(forKey: "collectAudio") as? Bool ?? true
@@ -78,5 +88,67 @@ extension AppState {
             .filter { $0.category == .focus }
             .reduce(0) { $0 + ($1.duration ?? 0) } / 60
         Self.sharedDefaults?.set(focusMinutes, forKey: "focusMinutes")
+    }
+}
+
+// MARK: - Keychain Helper for Secure Storage
+/// Securely stores sensitive data in iOS Keychain
+enum KeychainHelper {
+    private static let service = "com.skynet.lifelog"
+    
+    static func save(key: String, value: String) {
+        guard let data = value.data(using: .utf8) else { return }
+        
+        // Delete existing item first
+        let deleteQuery: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: key,
+        ]
+        SecItemDelete(deleteQuery as CFDictionary)
+        
+        // Add new item
+        let addQuery: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: key,
+            kSecValueData as String: data,
+            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
+        ]
+        
+        let status = SecItemAdd(addQuery as CFDictionary, nil)
+        if status != errSecSuccess && status != errSecDuplicateItem {
+            print("Keychain save error: \(status)")
+        }
+    }
+    
+    static func load(key: String) -> String? {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: key,
+            kSecReturnData as String: true,
+            kSecMatchLimit as String: kSecMatchLimitOne,
+        ]
+        
+        var result: AnyObject?
+        let status = SecItemCopyMatching(query as CFDictionary, &result)
+        
+        guard status == errSecSuccess,
+              let data = result as? Data,
+              let value = String(data: data, encoding: .utf8) else {
+            return nil
+        }
+        
+        return value
+    }
+    
+    static func delete(key: String) {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: key,
+        ]
+        SecItemDelete(query as CFDictionary)
     }
 }

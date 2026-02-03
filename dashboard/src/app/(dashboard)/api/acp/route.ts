@@ -1,4 +1,7 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { validateApiKey } from '@/lib/auth';
+import { validateAction, validateQuery, validateMessage } from '@/lib/validation';
+import { checkRateLimit, RATE_LIMITS, addRateLimitHeaders } from '@/lib/rate-limit';
 
 // Mock ACP data (in production, use ACPClient)
 const WELLNESS_AGENTS = [
@@ -54,61 +57,126 @@ const WELLNESS_AGENTS = [
   },
 ];
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
+  // Authentication
+  const authError = validateApiKey(request);
+  if (authError) return authError;
+  
+  // Rate limiting
+  const rateLimitError = checkRateLimit(request, RATE_LIMITS.acp);
+  if (rateLimitError) return rateLimitError;
+  
   const { searchParams } = new URL(request.url);
   const action = searchParams.get('action');
   const query = searchParams.get('query');
 
   if (action === 'browse') {
+    // Validate search query
+    const queryResult = validateQuery(query);
+    if (!queryResult.valid) {
+      return NextResponse.json(
+        { error: queryResult.error },
+        { status: 400 }
+      );
+    }
+    
     let agents = [...WELLNESS_AGENTS];
-    if (query) {
-      const lowerQuery = query.toLowerCase();
+    if (queryResult.value) {
+      const lowerQuery = queryResult.value.toLowerCase();
       agents = agents.filter(a =>
         a.name.toLowerCase().includes(lowerQuery) ||
         a.description.toLowerCase().includes(lowerQuery) ||
         a.category.toLowerCase().includes(lowerQuery)
       );
     }
-    return NextResponse.json({ agents });
+    const response = NextResponse.json({ agents });
+    return addRateLimitHeaders(response, RATE_LIMITS.acp, request);
   }
 
   if (action === 'balance') {
-    return NextResponse.json({
+    // Don't expose wallet address - only return balance for authenticated users
+    const response = NextResponse.json({
       usdc: '50.00',
-      address: process.env.AGENT_WALLET_ADDRESS || '0xD95CA95467E0EfeDd027c7119E55C6BD5Ba2F6EA',
+      // Removed: address exposure was a security issue
     });
+    return addRateLimitHeaders(response, RATE_LIMITS.acp, request);
   }
 
   if (action === 'jobs') {
     // Return empty for now (would need persistent storage)
-    return NextResponse.json({ jobs: [] });
+    const response = NextResponse.json({ jobs: [] });
+    return addRateLimitHeaders(response, RATE_LIMITS.acp, request);
   }
 
-  return NextResponse.json({ agents: WELLNESS_AGENTS });
+  const response = NextResponse.json({ agents: WELLNESS_AGENTS });
+  return addRateLimitHeaders(response, RATE_LIMITS.acp, request);
 }
 
-export async function POST(request: Request) {
-  const body = await request.json();
-  const { action, agentId, taskDescription } = body;
+export async function POST(request: NextRequest) {
+  // Authentication
+  const authError = validateApiKey(request);
+  if (authError) return authError;
+  
+  // Rate limiting
+  const rateLimitError = checkRateLimit(request, RATE_LIMITS.acp);
+  if (rateLimitError) return rateLimitError;
+  
+  try {
+    const body = await request.json();
+    const { action, agentId, taskDescription } = body;
 
-  if (action === 'hire') {
-    const agent = WELLNESS_AGENTS.find(a => a.id === agentId);
-    if (!agent) {
-      return NextResponse.json({ error: 'Agent not found' }, { status: 404 });
+    // Validate action
+    const actionResult = validateAction(action, ['hire'] as const);
+    if (!actionResult.valid) {
+      return NextResponse.json(
+        { error: actionResult.error },
+        { status: 400 }
+      );
     }
 
-    // Mock job creation
-    const job = {
-      id: `job-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      agentId,
-      status: 'pending',
-      taskDescription,
-      createdAt: new Date().toISOString(),
-      cost: agent.priceUsd,
-    };
+    if (action === 'hire') {
+      // Validate agentId
+      if (!agentId || typeof agentId !== 'string' || agentId.length > 50) {
+        return NextResponse.json(
+          { error: 'Valid agent ID required' },
+          { status: 400 }
+        );
+      }
+      
+      const agent = WELLNESS_AGENTS.find(a => a.id === agentId);
+      if (!agent) {
+        return NextResponse.json({ error: 'Agent not found' }, { status: 404 });
+      }
 
-    return NextResponse.json({ success: true, job });
+      // Validate task description
+      const taskResult = validateMessage(taskDescription);
+      if (!taskResult.valid) {
+        return NextResponse.json(
+          { error: taskResult.error },
+          { status: 400 }
+        );
+      }
+
+      // Mock job creation
+      const job = {
+        id: `job-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        agentId,
+        status: 'pending',
+        taskDescription: taskResult.value,
+        createdAt: new Date().toISOString(),
+        cost: agent.priceUsd,
+      };
+
+      const response = NextResponse.json({ success: true, job });
+      return addRateLimitHeaders(response, RATE_LIMITS.acp, request);
+    }
+
+    return NextResponse.json({ error: 'Unknown action' }, { status: 400 });
+  } catch (error) {
+    console.error('ACP operation failed:', error);
+    return NextResponse.json(
+      { error: 'Operation failed' },
+      { status: 500 }
+    );
   }
-
-  return NextResponse.json({ error: 'Unknown action' }, { status: 400 });
 }

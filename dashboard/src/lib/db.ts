@@ -76,12 +76,17 @@ export function initializeDatabase() {
 
 export function getActivitiesByDate(date: string): Activity[] {
   try {
+    // Validate date format to prevent SQL injection
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      console.error('Invalid date format');
+      return [];
+    }
     const database = getDb();
     return database.prepare(`
       SELECT * FROM activities 
-      WHERE timestamp LIKE ? 
+      WHERE DATE(timestamp) = ? 
       ORDER BY timestamp ASC
-    `).all(`${date}%`) as Activity[];
+    `).all(date) as Activity[];
   } catch {
     console.error('Database not available, using mock data');
     return [];
@@ -90,12 +95,17 @@ export function getActivitiesByDate(date: string): Activity[] {
 
 export function getCheckInsByDate(date: string): CheckIn[] {
   try {
+    // Validate date format to prevent SQL injection
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      console.error('Invalid date format');
+      return [];
+    }
     const database = getDb();
     return database.prepare(`
       SELECT * FROM check_ins 
-      WHERE timestamp LIKE ? 
+      WHERE DATE(timestamp) = ? 
       ORDER BY timestamp ASC
-    `).all(`${date}%`) as CheckIn[];
+    `).all(date) as CheckIn[];
   } catch {
     return [];
   }
@@ -103,12 +113,17 @@ export function getCheckInsByDate(date: string): CheckIn[] {
 
 export function getMediaByDate(date: string): MediaRecord[] {
   try {
+    // Validate date format to prevent SQL injection
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      console.error('Invalid date format');
+      return [];
+    }
     const database = getDb();
     return database.prepare(`
       SELECT * FROM media 
-      WHERE timestamp LIKE ? 
+      WHERE DATE(timestamp) = ? 
       ORDER BY timestamp ASC
-    `).all(`${date}%`) as MediaRecord[];
+    `).all(date) as MediaRecord[];
   } catch {
     return [];
   }

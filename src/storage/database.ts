@@ -91,11 +91,15 @@ export class LifeLogDatabase {
   }
 
   getActivitiesByDate(date: string): Activity[] {
+    // Validate date format to prevent SQL injection
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      throw new Error('Invalid date format. Expected YYYY-MM-DD');
+    }
     return this.db.prepare(`
       SELECT * FROM activities 
-      WHERE timestamp LIKE ? 
+      WHERE DATE(timestamp) = ? 
       ORDER BY timestamp ASC
-    `).all(`${date}%`) as Activity[];
+    `).all(date) as Activity[];
   }
 
   // Check-ins
@@ -109,11 +113,15 @@ export class LifeLogDatabase {
   }
 
   getCheckInsByDate(date: string): CheckIn[] {
+    // Validate date format to prevent SQL injection
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      throw new Error('Invalid date format. Expected YYYY-MM-DD');
+    }
     return this.db.prepare(`
       SELECT * FROM check_ins 
-      WHERE timestamp LIKE ? 
+      WHERE DATE(timestamp) = ? 
       ORDER BY timestamp ASC
-    `).all(`${date}%`) as CheckIn[];
+    `).all(date) as CheckIn[];
   }
 
   // Media
@@ -132,11 +140,15 @@ export class LifeLogDatabase {
   }
 
   getMediaByDate(date: string): MediaRecord[] {
+    // Validate date format to prevent SQL injection
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      throw new Error('Invalid date format. Expected YYYY-MM-DD');
+    }
     return this.db.prepare(`
       SELECT * FROM media 
-      WHERE timestamp LIKE ? 
+      WHERE DATE(timestamp) = ? 
       ORDER BY timestamp ASC
-    `).all(`${date}%`) as MediaRecord[];
+    `).all(date) as MediaRecord[];
   }
 
   updateMediaAnalysis(id: number, analysis: string): void {

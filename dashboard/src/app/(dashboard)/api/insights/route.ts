@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getRecentActivities } from '@/lib/db-mock';
 import { mockInsightData, categorizeActivity } from '@/lib/mock-data';
 import { Activity, InsightData } from '@/lib/types';
+import { validateApiKey } from '@/lib/auth';
+import { validatePositiveInt } from '@/lib/validation';
+import { checkRateLimit, RATE_LIMITS, addRateLimitHeaders } from '@/lib/rate-limit';
 
 function generateInsights(activities: Activity[]): InsightData {
   // Group activities by date
@@ -90,34 +93,56 @@ function generateInsights(activities: Activity[]): InsightData {
 }
 
 export async function GET(request: NextRequest) {
+  // Authentication
+  const authError = validateApiKey(request);
+  if (authError) return authError;
+  
+  // Rate limiting
+  const rateLimitError = checkRateLimit(request, RATE_LIMITS.read);
+  if (rateLimitError) return rateLimitError;
+  
   const searchParams = request.nextUrl.searchParams;
-  const days = parseInt(searchParams.get('days') || '7', 10);
+  
+  // Validate days parameter
+  const daysResult = validatePositiveInt(searchParams.get('days'), {
+    min: 1,
+    max: 90,
+    defaultValue: 7
+  });
+  if (!daysResult.valid) {
+    return NextResponse.json(
+      { error: daysResult.error },
+      { status: 400 }
+    );
+  }
   
   try {
-    const activities = getRecentActivities(days);
+    const activities = getRecentActivities(daysResult.value!);
     
     if (activities.length === 0) {
-      return NextResponse.json({
-        days,
+      const response = NextResponse.json({
+        days: daysResult.value,
         insights: mockInsightData,
         source: 'mock',
       });
+      return addRateLimitHeaders(response, RATE_LIMITS.read, request);
     }
     
     const insights = generateInsights(activities);
     
-    return NextResponse.json({
-      days,
+    const response = NextResponse.json({
+      days: daysResult.value,
       insights,
       source: 'database',
     });
+    return addRateLimitHeaders(response, RATE_LIMITS.read, request);
   } catch (error) {
     console.error('Failed to generate insights:', error);
     return NextResponse.json({
-      days,
+      days: daysResult.value,
       insights: mockInsightData,
       source: 'mock',
-      error: 'Database unavailable',
+      error: 'Service temporarily unavailable',
     });
   }
 }

@@ -5,13 +5,14 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Pausable.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 /**
  * @title LifeLog Token ($LIFE)
  * @notice The AI life coach that pays you to improve. Earn $LIFE by hitting your daily goals.
  * @dev ERC-20 token on Monad with reward minting and burn mechanics
  */
-contract LifeToken is ERC20, ERC20Burnable, Ownable, Pausable {
+contract LifeToken is ERC20, ERC20Burnable, Ownable, Pausable, ReentrancyGuard {
     // ============ Events ============
     event GoalCompleted(address indexed user, uint256 goalId, uint256 reward);
     event RewardRateUpdated(uint256 indexed goalType, uint256 newRate);
@@ -84,7 +85,7 @@ contract LifeToken is ERC20, ERC20Burnable, Ownable, Pausable {
         address to,
         uint256 goalId,
         uint256 goalType
-    ) external onlyMinter whenNotPaused {
+    ) external onlyMinter whenNotPaused nonReentrant {
         bytes32 claimKey = keccak256(abi.encodePacked(to, goalId));
         require(!claimedGoals[claimKey], "LifeToken: goal already claimed");
         
@@ -110,7 +111,7 @@ contract LifeToken is ERC20, ERC20Burnable, Ownable, Pausable {
         address to,
         uint256[] calldata goalIds,
         uint256[] calldata goalTypes
-    ) external onlyMinter whenNotPaused {
+    ) external onlyMinter whenNotPaused nonReentrant {
         require(goalIds.length == goalTypes.length, "LifeToken: length mismatch");
         
         uint256 totalReward = 0;
@@ -139,7 +140,7 @@ contract LifeToken is ERC20, ERC20Burnable, Ownable, Pausable {
      * @notice Burn tokens to unlock a premium feature
      * @param feature Feature identifier
      */
-    function unlockFeature(string calldata feature) external whenNotPaused {
+    function unlockFeature(string calldata feature) external whenNotPaused nonReentrant {
         uint256 cost = featureCosts[feature];
         require(cost > 0, "LifeToken: unknown feature");
         require(balanceOf(msg.sender) >= cost, "LifeToken: insufficient balance");
