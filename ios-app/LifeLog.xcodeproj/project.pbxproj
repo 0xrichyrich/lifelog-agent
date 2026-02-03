@@ -508,7 +508,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = LifeLog/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = LifeLog;
+				INFOPLIST_KEY_CFBundleDisplayName = Nudge;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_NSCameraUsageDescription = "LifeLog uses the camera to capture workspace snapshots for your check-ins.";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "LifeLog uses Health data to track your activity and sleep for better insights.";
@@ -547,7 +547,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = LifeLog/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = LifeLog;
+				INFOPLIST_KEY_CFBundleDisplayName = Nudge;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_NSCameraUsageDescription = "LifeLog uses the camera to capture workspace snapshots for your check-ins.";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "LifeLog uses Health data to track your activity and sleep for better insights.";
@@ -584,7 +584,7 @@
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = LifeLogWidget/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "LifeLog Widget";
+				INFOPLIST_KEY_CFBundleDisplayName = "Nudge Widget";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -613,7 +613,7 @@
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = LifeLogWidget/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "LifeLog Widget";
+				INFOPLIST_KEY_CFBundleDisplayName = "Nudge Widget";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
