@@ -16,7 +16,7 @@
 		A11111110000000000000061 /* PrivyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000061 /* PrivyService.swift */; };
 		A11111110000000000000062 /* WalletService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000062 /* WalletService.swift */; };
 		A11111110000000000000063 /* WalletView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000063 /* WalletView.swift */; };
-		A11111110000000000000070 /* PrivySDK in Frameworks */ = {isa = PBXBuildFile; productRef = A1C000000000000000000001 /* PrivySDK */; };
+		A11111110000000000000070 /* Privy in Frameworks */ = {isa = PBXBuildFile; productRef = A1C000000000000000000001 /* Privy */; };
 		A11111110000000000000006 /* CheckInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000006 /* CheckInView.swift */; };
 		A11111110000000000000007 /* TimelineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000007 /* TimelineView.swift */; };
 		A11111110000000000000008 /* GoalsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000008 /* GoalsView.swift */; };
@@ -112,7 +112,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A11111110000000000000070 /* PrivySDK in Frameworks */,
+				A11111110000000000000070 /* Privy in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -262,7 +262,7 @@
 			);
 			name = LifeLog;
 			packageProductDependencies = (
-				A1C000000000000000000001 /* PrivySDK */,
+				A1C000000000000000000001 /* Privy */,
 			);
 			productName = LifeLog;
 			productReference = A10000000000000000000015 /* LifeLog.app */;
@@ -699,10 +699,10 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		A1C000000000000000000001 /* PrivySDK */ = {
+		A1C000000000000000000001 /* Privy */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = A1B000000000000000000001 /* XCRemoteSwiftPackageReference "privy-ios" */;
-			productName = PrivySDK;
+			productName = Privy;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

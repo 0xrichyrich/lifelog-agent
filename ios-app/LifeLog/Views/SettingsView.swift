@@ -24,8 +24,25 @@ struct SettingsView: View {
         
         NavigationStack {
             List {
-                // Connection Status (API endpoint hardcoded)
+                // API Configuration
                 Section {
+                    HStack {
+                        Image(systemName: "server.rack")
+                            .foregroundStyle(Color.brandAccent)
+                        TextField("API Endpoint", text: $state.apiEndpoint)
+                            .textContentType(.URL)
+                            .autocapitalization(.none)
+                            .keyboardType(.URL)
+                    }
+                    
+                    HStack {
+                        Image(systemName: "key.fill")
+                            .foregroundStyle(Color.brandAccent)
+                        SecureField("API Key", text: $state.apiKey)
+                            .textContentType(.password)
+                            .autocapitalization(.none)
+                    }
+                    
                     Button {
                         Task {
                             await testConnection()
@@ -33,17 +50,13 @@ struct SettingsView: View {
                     } label: {
                         HStack {
                             Image(systemName: "antenna.radiowaves.left.and.right")
-                                .foregroundStyle(Color.brandAccent)
                             Text("Test Connection")
-                            Spacer()
-                            if connectionStatus == .connected {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .foregroundStyle(.green)
-                            }
                         }
                     }
                 } header: {
-                    Text("Connection")
+                    Text("API Configuration")
+                } footer: {
+                    Text("API key is stored securely in your device's Keychain.")
                 }
                 
                 // Wallet
