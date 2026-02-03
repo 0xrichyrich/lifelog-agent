@@ -1,6 +1,6 @@
 /**
  * Token Rewards Module
- * Bridges LifeLog goal completion to on-chain $LIFE token rewards
+ * Bridges Nudge goal completion to on-chain $NUDGE token rewards
  */
 
 import { ethers, Contract, Wallet, JsonRpcProvider } from "ethers";
@@ -8,7 +8,7 @@ import { readFileSync, existsSync } from "fs";
 import { join } from "path";
 
 // Contract ABI (minimal interface for rewards)
-const LIFE_TOKEN_ABI = [
+const NUDGE_TOKEN_ABI = [
   "function balanceOf(address) view returns (uint256)",
   "function rewardGoalCompletion(address to, uint256 goalId, uint256 goalType) external",
   "function rewardGoalsBatch(address to, uint256[] goalIds, uint256[] goalTypes) external",
@@ -60,9 +60,9 @@ export class TokenRewards {
     
     if (config.privateKey) {
       this.wallet = new Wallet(config.privateKey, this.provider);
-      this.contract = new Contract(config.contractAddress, LIFE_TOKEN_ABI, this.wallet);
+      this.contract = new Contract(config.contractAddress, NUDGE_TOKEN_ABI, this.wallet);
     } else {
-      this.contract = new Contract(config.contractAddress, LIFE_TOKEN_ABI, this.provider);
+      this.contract = new Contract(config.contractAddress, NUDGE_TOKEN_ABI, this.provider);
     }
   }
 
@@ -225,11 +225,11 @@ export class TokenRewards {
 export function loadConfig(): RewardConfig {
   // Try to load from environment
   const rpcUrl = process.env.MONAD_RPC_URL || "https://testnet-rpc.monad.xyz";
-  const contractAddress = process.env.LIFE_TOKEN_ADDRESS || "";
+  const contractAddress = process.env.NUDGE_TOKEN_ADDRESS || "";
   const privateKey = process.env.WALLET_PRIVATE_KEY;
 
   if (!contractAddress) {
-    throw new Error("LIFE_TOKEN_ADDRESS not set");
+    throw new Error("NUDGE_TOKEN_ADDRESS not set");
   }
 
   return { rpcUrl, contractAddress, privateKey };

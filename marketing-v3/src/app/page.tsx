@@ -59,7 +59,7 @@ export default function Home() {
           <div className="hidden md:flex items-center gap-8">
             <a href="#features" className="text-gray-400 hover:text-white transition">Features</a>
             <a href="#screenshots" className="text-gray-400 hover:text-white transition">Screenshots</a>
-            <a href="#token" className="text-gray-400 hover:text-white transition">$LIFE Token</a>
+            <a href="#token" className="text-gray-400 hover:text-white transition">$NUDGE Token</a>
             <a href="https://github.com/0xrichyrich/lifelog-agent" target="_blank" className="px-5 py-2.5 rounded-full bg-gradient-to-r from-purple-500 to-cyan-400 text-white font-semibold hover:opacity-90 transition">
               Get Started
             </a>
@@ -93,7 +93,7 @@ export default function Home() {
             
             <p className="text-xl text-gray-400 mb-8 max-w-lg">
               Your gentle AI life coach. Get personalized insights, build better habits, 
-              and earn $LIFE tokens along the way.
+              and earn $NUDGE tokens along the way.
             </p>
             
             <div className="flex flex-wrap gap-4">
@@ -218,7 +218,7 @@ export default function Home() {
               </div>
               <h3 className="text-xl font-bold mb-3">Token Rewards</h3>
               <p className="text-gray-400">
-                Earn $LIFE tokens for consistent journaling. Real value for real habits. Your data stays yours.
+                Earn $NUDGE tokens for consistent journaling. Real value for real habits. Your data stays yours.
               </p>
             </motion.div>
           </div>
@@ -272,7 +272,7 @@ export default function Home() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-bold mb-2">Earn $LIFE</h3>
+              <h3 className="text-xl font-bold mb-2">Earn $NUDGE</h3>
               <p className="text-gray-400">Build streaks, hit goals, and earn tokens. Redeem for rewards or trade on DEXs.</p>
             </div>
           </div>
@@ -310,7 +310,7 @@ export default function Home() {
         </div>
       </Section>
 
-      {/* $LIFE Token Section */}
+      {/* $NUDGE Token Section */}
       <Section id="token" className="py-32 relative overflow-hidden">
         <div className="hero-glow top-0 right-0 opacity-40" />
         <div className="hero-glow-2 bottom-0 left-0 opacity-40" />
@@ -327,7 +327,7 @@ export default function Home() {
                 <div className="w-64 h-64 rounded-full token-glow bg-gradient-to-br from-purple-500 via-cyan-400 to-emerald-400 p-1">
                   <div className="w-full h-full rounded-full bg-black flex items-center justify-center">
                     <div className="text-center">
-                      <div className="text-5xl font-bold gradient-text">$LIFE</div>
+                      <div className="text-5xl font-bold gradient-text">$NUDGE</div>
                       <div className="text-gray-400 mt-2">Token</div>
                     </div>
                   </div>
@@ -338,7 +338,7 @@ export default function Home() {
             {/* Token Info */}
             <div>
               <h2 className="text-4xl md:text-5xl font-bold mb-6">
-                The <span className="gradient-text">$LIFE</span> Token
+                The <span className="gradient-text">$NUDGE</span> Token
               </h2>
               <p className="text-xl text-gray-400 mb-8">
                 Your daily check-ins aren&apos;t just data — they&apos;re earning you real value. 
@@ -352,7 +352,7 @@ export default function Home() {
                   </div>
                   <div>
                     <div className="font-semibold">Daily Check-in</div>
-                    <div className="text-gray-400 text-sm">10 $LIFE per check-in</div>
+                    <div className="text-gray-400 text-sm">10 $NUDGE per check-in</div>
                   </div>
                 </div>
                 
@@ -372,7 +372,7 @@ export default function Home() {
                   </div>
                   <div>
                     <div className="font-semibold">Goal Completion</div>
-                    <div className="text-gray-400 text-sm">50 $LIFE per goal achieved</div>
+                    <div className="text-gray-400 text-sm">50 $NUDGE per goal achieved</div>
                   </div>
                 </div>
               </div>

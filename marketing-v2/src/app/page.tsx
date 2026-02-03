@@ -26,7 +26,7 @@ export default function Home() {
           </h1>
 
           <p className="mb-10 text-xl text-gray-400">
-            Track your day, get AI insights, earn $LIFE tokens for hitting your goals
+            Track your day, get AI insights, earn $NUDGE tokens for hitting your goals
           </p>
 
           {/* CTA Buttons */}
@@ -51,7 +51,7 @@ export default function Home() {
           <div className="mt-10 flex flex-wrap justify-center gap-3">
             <span className="rounded-full bg-gray-900 px-4 py-2 text-sm">🔒 Privacy-First</span>
             <span className="rounded-full bg-gray-900 px-4 py-2 text-sm">📱 iOS App</span>
-            <span className="rounded-full bg-gray-900 px-4 py-2 text-sm">💰 Earn $LIFE</span>
+            <span className="rounded-full bg-gray-900 px-4 py-2 text-sm">💰 Earn $NUDGE</span>
           </div>
         </div>
       </section>
@@ -85,7 +85,7 @@ export default function Home() {
               <div className="mb-4 text-4xl">💰</div>
               <h3 className="mb-3 text-xl font-bold">Token Rewards</h3>
               <p className="text-gray-400">
-                Earn $LIFE tokens by completing goals. Crypto meets self-improvement.
+                Earn $NUDGE tokens by completing goals. Crypto meets self-improvement.
               </p>
             </div>
           </div>
@@ -121,7 +121,7 @@ export default function Home() {
       {/* Token */}
       <section className="px-6 py-20 bg-gray-950">
         <div className="mx-auto max-w-4xl text-center">
-          <h2 className="mb-6 text-4xl font-bold">$LIFE Token</h2>
+          <h2 className="mb-6 text-4xl font-bold">$NUDGE Token</h2>
           <p className="mb-12 text-xl text-gray-400">
             Built on Monad and Solana. Earn tokens by improving yourself.
           </p>
@@ -129,15 +129,15 @@ export default function Home() {
           <div className="grid gap-6 md:grid-cols-3 mb-12">
             <div>
               <div className="text-3xl font-bold text-blue-400">100</div>
-              <div className="text-sm text-gray-400">$LIFE per daily goal</div>
+              <div className="text-sm text-gray-400">$NUDGE per daily goal</div>
             </div>
             <div>
               <div className="text-3xl font-bold text-green-400">500</div>
-              <div className="text-sm text-gray-400">$LIFE per weekly goal</div>
+              <div className="text-sm text-gray-400">$NUDGE per weekly goal</div>
             </div>
             <div>
               <div className="text-3xl font-bold text-yellow-400">50</div>
-              <div className="text-sm text-gray-400">$LIFE per day streak</div>
+              <div className="text-sm text-gray-400">$NUDGE per day streak</div>
             </div>
           </div>
 

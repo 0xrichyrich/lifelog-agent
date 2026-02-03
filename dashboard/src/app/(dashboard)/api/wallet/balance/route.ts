@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
   // For now, return mock data
   
   // In production, this would:
-  // 1. Query the $LIFE token contract for balance
+  // 1. Query the $NUDGE token contract for balance
   // 2. Query the rewards database for pending rewards
   
   const mockBalance = {

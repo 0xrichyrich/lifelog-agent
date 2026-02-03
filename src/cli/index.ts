@@ -527,11 +527,11 @@ coachCommand
 
 const tokenCommand = program
   .command('token')
-  .description('$LIFE token management');
+  .description('$NUDGE token management');
 
 tokenCommand
   .command('balance [address]')
-  .description('Show $LIFE token balance and stats')
+  .description('Show $NUDGE token balance and stats')
   .action(async (address?: string) => {
     try {
       const tokenConfig = loadTokenConfig();
@@ -546,15 +546,15 @@ tokenCommand
       const stats = await rewards.getUserStats(userAddress);
       const rates = await rewards.getRewardRates();
       
-      console.log('\n💰 $LIFE Token Stats\n');
+      console.log('\n💰 $NUDGE Token Stats\n');
       console.log(`   Address: ${userAddress}`);
-      console.log(`   Balance: ${stats.balance} $LIFE`);
-      console.log(`   Total Earned: ${stats.earned} $LIFE`);
+      console.log(`   Balance: ${stats.balance} $NUDGE`);
+      console.log(`   Total Earned: ${stats.earned} $NUDGE`);
       console.log(`   Goals Completed: ${stats.goalsCompleted}`);
       console.log('\n📊 Reward Rates:');
-      console.log(`   Daily Goal: ${rates.daily} $LIFE`);
-      console.log(`   Weekly Goal: ${rates.weekly} $LIFE`);
-      console.log(`   Streak Bonus: ${rates.streak} $LIFE`);
+      console.log(`   Daily Goal: ${rates.daily} $NUDGE`);
+      console.log(`   Weekly Goal: ${rates.weekly} $NUDGE`);
+      console.log(`   Streak Bonus: ${rates.streak} $NUDGE`);
       console.log(`\n🔗 Contract: ${rewards.getContractAddress()}\n`);
     } catch (error: any) {
       console.error('❌ Error fetching balance:', error?.message || error);
@@ -589,10 +589,10 @@ tokenCommand
       } else {
         let totalReward = 0;
         for (const goal of unclaimed) {
-          console.log(`   ○ ${goal.name}: ${goal.reward} $LIFE`);
+          console.log(`   ○ ${goal.name}: ${goal.reward} $NUDGE`);
           totalReward += parseFloat(goal.reward);
         }
-        console.log(`\n   Total Claimable: ${totalReward} $LIFE\n`);
+        console.log(`\n   Total Claimable: ${totalReward} $NUDGE\n`);
         console.log('   Run "lifelog token claim" to claim all rewards.\n');
       }
       
@@ -643,7 +643,7 @@ tokenCommand
       const result = await rewards.rewardGoalsBatch(userAddress, goals);
       
       console.log('✅ Rewards claimed!');
-      console.log(`   Amount: ${result.totalReward} $LIFE`);
+      console.log(`   Amount: ${result.totalReward} $NUDGE`);
       console.log(`   Transaction: ${result.txHash}\n`);
     } catch (error: any) {
       console.error('❌ Claim failed:', error?.message || error);
@@ -654,7 +654,7 @@ tokenCommand
 
 tokenCommand
   .command('features')
-  .description('Show premium features you can unlock with $LIFE')
+  .description('Show premium features you can unlock with $NUDGE')
   .action(async () => {
     try {
       const tokenConfig = loadTokenConfig();
@@ -673,7 +673,7 @@ tokenCommand
       for (const feature of features) {
         const cost = await rewards.getFeatureCost(feature);
         const displayName = feature.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-        console.log(`   ${displayName}: ${cost} $LIFE`);
+        console.log(`   ${displayName}: ${cost} $NUDGE`);
       }
       
       console.log('\n   Burn tokens with: lifelog token unlock <feature>\n');
@@ -686,7 +686,7 @@ tokenCommand
 
 tokenCommand
   .command('unlock <feature>')
-  .description('Unlock a premium feature by burning $LIFE tokens')
+  .description('Unlock a premium feature by burning $NUDGE tokens')
   .action(async (feature: string) => {
     try {
       const tokenConfig = loadTokenConfig();
@@ -697,7 +697,7 @@ tokenCommand
       const result = await rewards.unlockFeature(feature);
       
       console.log('✅ Feature unlocked!');
-      console.log(`   Cost: ${result.cost} $LIFE (burned)`);
+      console.log(`   Cost: ${result.cost} $NUDGE (burned)`);
       console.log(`   Transaction: ${result.txHash}\n`);
     } catch (error: any) {
       console.error('❌ Unlock failed:', error?.message || error);

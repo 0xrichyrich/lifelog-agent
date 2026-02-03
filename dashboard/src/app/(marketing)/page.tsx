@@ -236,7 +236,7 @@ export default function LandingPage() {
             <div className="space-y-8">
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-accent/20 rounded-full text-accent text-sm">
                 <Sparkles className="w-4 h-4" />
-                Now with $LIFE Token Rewards
+                Now with $NUDGE Token Rewards
               </div>
               
               <h1 className="text-5xl lg:text-6xl font-bold leading-tight">
@@ -274,7 +274,7 @@ export default function LandingPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Coins className="w-5 h-5 text-yellow-500" />
-                  Earn $LIFE
+                  Earn $NUDGE
                 </div>
               </div>
             </div>
@@ -323,7 +323,7 @@ export default function LandingPage() {
               title="Token Rewards"
               description="Get paid for building better habits."
               items={[
-                'Earn $LIFE for goals',
+                'Earn $NUDGE for goals',
                 'Daily & weekly bonuses',
                 'Streak multipliers',
                 'On-chain rewards'
@@ -386,7 +386,7 @@ export default function LandingPage() {
               number={3}
               icon={Award}
               title="Earn Rewards"
-              description="Hit your goals, build streaks, and earn $LIFE tokens. Real crypto for real progress."
+              description="Hit your goals, build streaks, and earn $NUDGE tokens. Real crypto for real progress."
             />
           </div>
         </div>
@@ -399,7 +399,7 @@ export default function LandingPage() {
             <div>
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-500/20 rounded-full text-yellow-500 text-sm mb-6">
                 <Coins className="w-4 h-4" />
-                $LIFE Token
+                $NUDGE Token
               </div>
               
               <h2 className="text-4xl font-bold mb-6">
@@ -409,7 +409,7 @@ export default function LandingPage() {
               
               <p className="text-xl text-text-muted mb-8">
                 The first life-tracking app that puts your wellness on-chain. 
-                Earn $LIFE tokens for hitting goals, maintaining streaks, and building healthy habits.
+                Earn $NUDGE tokens for hitting goals, maintaining streaks, and building healthy habits.
               </p>
               
               <div className="space-y-4">
@@ -454,7 +454,7 @@ export default function LandingPage() {
                   <div className="w-24 h-24 mx-auto bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mb-4">
                     <Coins className="w-12 h-12 text-white" />
                   </div>
-                  <h3 className="text-2xl font-bold">$LIFE Token</h3>
+                  <h3 className="text-2xl font-bold">$NUDGE Token</h3>
                   <p className="text-text-muted">Your wellness, on-chain</p>
                 </div>
                 
@@ -521,7 +521,7 @@ export default function LandingPage() {
             <TrendingUp className="w-16 h-16 text-accent mx-auto mb-6" />
             <h2 className="text-3xl font-bold mb-4">Ready to Transform Your Life?</h2>
             <p className="text-text-muted mb-8">
-              Join the waitlist for early access. Be among the first to earn $LIFE tokens.
+              Join the waitlist for early access. Be among the first to earn $NUDGE tokens.
             </p>
             
             <form className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
@@ -586,7 +586,7 @@ export default function LandingPage() {
               <h4 className="font-bold mb-4">Product</h4>
               <ul className="space-y-2 text-text-muted">
                 <li><a href="#features" className="hover:text-text transition">Features</a></li>
-                <li><a href="#token" className="hover:text-text transition">$LIFE Token</a></li>
+                <li><a href="#token" className="hover:text-text transition">$NUDGE Token</a></li>
                 <li><a href="#demo" className="hover:text-text transition">Demo</a></li>
                 <li><a href="/dashboard" className="hover:text-text transition">Dashboard</a></li>
               </ul>

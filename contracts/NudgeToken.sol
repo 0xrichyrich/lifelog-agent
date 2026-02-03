@@ -8,11 +8,11 @@ import "@openzeppelin/contracts/utils/Pausable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 /**
- * @title LifeLog Token ($LIFE)
- * @notice The AI life coach that pays you to improve. Earn $LIFE by hitting your daily goals.
+ * @title Nudge Token ($NUDGE)
+ * @notice The AI life coach that pays you to improve. Earn $NUDGE by hitting your daily goals.
  * @dev ERC-20 token on Monad with reward minting and burn mechanics
  */
-contract LifeToken is ERC20, ERC20Burnable, Ownable, Pausable, ReentrancyGuard {
+contract NudgeToken is ERC20, ERC20Burnable, Ownable, Pausable, ReentrancyGuard {
     // ============ Events ============
     event GoalCompleted(address indexed user, uint256 goalId, uint256 reward);
     event RewardRateUpdated(uint256 indexed goalType, uint256 newRate);
@@ -42,24 +42,24 @@ contract LifeToken is ERC20, ERC20Burnable, Ownable, Pausable, ReentrancyGuard {
     uint256 public constant MAX_SUPPLY = 1_000_000_000 * 10**18;
     
     // Initial reward rates
-    uint256 public constant DEFAULT_DAILY_REWARD = 100 * 10**18;    // 100 $LIFE per daily goal
-    uint256 public constant DEFAULT_WEEKLY_REWARD = 500 * 10**18;   // 500 $LIFE per weekly goal
-    uint256 public constant DEFAULT_STREAK_REWARD = 50 * 10**18;    // 50 $LIFE per streak day
+    uint256 public constant DEFAULT_DAILY_REWARD = 100 * 10**18;    // 100 $NUDGE per daily goal
+    uint256 public constant DEFAULT_WEEKLY_REWARD = 500 * 10**18;   // 500 $NUDGE per weekly goal
+    uint256 public constant DEFAULT_STREAK_REWARD = 50 * 10**18;    // 50 $NUDGE per streak day
 
     // ============ Constructor ============
     
-    constructor() ERC20("LifeLog", "LIFE") Ownable(msg.sender) {
+    constructor() ERC20("Nudge", "NUDGE") Ownable(msg.sender) {
         // Set default reward rates
         rewardRates[0] = DEFAULT_DAILY_REWARD;   // daily
         rewardRates[1] = DEFAULT_WEEKLY_REWARD;  // weekly
         rewardRates[2] = DEFAULT_STREAK_REWARD;  // streak
         
         // Set default feature costs
-        featureCosts["premium_insights"] = 1000 * 10**18;     // 1000 $LIFE
-        featureCosts["ai_coach_call"] = 500 * 10**18;         // 500 $LIFE
-        featureCosts["custom_goals"] = 250 * 10**18;          // 250 $LIFE
-        featureCosts["export_reports"] = 100 * 10**18;        // 100 $LIFE
-        featureCosts["agent_discount"] = 2000 * 10**18;       // 2000 $LIFE (discounted ACP services)
+        featureCosts["premium_insights"] = 1000 * 10**18;     // 1000 $NUDGE
+        featureCosts["ai_coach_call"] = 500 * 10**18;         // 500 $NUDGE
+        featureCosts["custom_goals"] = 250 * 10**18;          // 250 $NUDGE
+        featureCosts["export_reports"] = 100 * 10**18;        // 100 $NUDGE
+        featureCosts["agent_discount"] = 2000 * 10**18;       // 2000 $NUDGE (discounted ACP services)
         
         // Owner is initial minter
         minters[msg.sender] = true;
@@ -69,7 +69,7 @@ contract LifeToken is ERC20, ERC20Burnable, Ownable, Pausable, ReentrancyGuard {
     // ============ Modifiers ============
     
     modifier onlyMinter() {
-        require(minters[msg.sender], "LifeToken: not authorized minter");
+        require(minters[msg.sender], "NudgeToken: not authorized minter");
         _;
     }
 
@@ -87,11 +87,11 @@ contract LifeToken is ERC20, ERC20Burnable, Ownable, Pausable, ReentrancyGuard {
         uint256 goalType
     ) external onlyMinter whenNotPaused nonReentrant {
         bytes32 claimKey = keccak256(abi.encodePacked(to, goalId));
-        require(!claimedGoals[claimKey], "LifeToken: goal already claimed");
+        require(!claimedGoals[claimKey], "NudgeToken: goal already claimed");
         
         uint256 reward = rewardRates[goalType];
-        require(reward > 0, "LifeToken: invalid goal type");
-        require(totalSupply() + reward <= MAX_SUPPLY, "LifeToken: max supply exceeded");
+        require(reward > 0, "NudgeToken: invalid goal type");
+        require(totalSupply() + reward <= MAX_SUPPLY, "NudgeToken: max supply exceeded");
         
         claimedGoals[claimKey] = true;
         totalRewardsEarned[to] += reward;
@@ -112,7 +112,7 @@ contract LifeToken is ERC20, ERC20Burnable, Ownable, Pausable, ReentrancyGuard {
         uint256[] calldata goalIds,
         uint256[] calldata goalTypes
     ) external onlyMinter whenNotPaused nonReentrant {
-        require(goalIds.length == goalTypes.length, "LifeToken: length mismatch");
+        require(goalIds.length == goalTypes.length, "NudgeToken: length mismatch");
         
         uint256 totalReward = 0;
         
@@ -129,7 +129,7 @@ contract LifeToken is ERC20, ERC20Burnable, Ownable, Pausable, ReentrancyGuard {
             }
         }
         
-        require(totalSupply() + totalReward <= MAX_SUPPLY, "LifeToken: max supply exceeded");
+        require(totalSupply() + totalReward <= MAX_SUPPLY, "NudgeToken: max supply exceeded");
         totalRewardsEarned[to] += totalReward;
         _mint(to, totalReward);
     }
@@ -142,8 +142,8 @@ contract LifeToken is ERC20, ERC20Burnable, Ownable, Pausable, ReentrancyGuard {
      */
     function unlockFeature(string calldata feature) external whenNotPaused nonReentrant {
         uint256 cost = featureCosts[feature];
-        require(cost > 0, "LifeToken: unknown feature");
-        require(balanceOf(msg.sender) >= cost, "LifeToken: insufficient balance");
+        require(cost > 0, "NudgeToken: unknown feature");
+        require(balanceOf(msg.sender) >= cost, "NudgeToken: insufficient balance");
         
         _burn(msg.sender, cost);
         emit FeatureUnlocked(msg.sender, feature, cost);

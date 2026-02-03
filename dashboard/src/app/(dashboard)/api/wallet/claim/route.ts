@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     
     // In production, this would:
     // 1. Verify the user has pending rewards in the database
-    // 2. Call the $LIFE token contract to mint/transfer tokens
+    // 2. Call the $NUDGE token contract to mint/transfer tokens
     // 3. Update the database to mark rewards as claimed
     // 4. Return the transaction hash
     

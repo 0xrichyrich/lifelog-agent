@@ -4,7 +4,7 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: 'Nudge - Sometimes You Need a Little Nudge',
-  description: 'Your gentle AI life coach. Track your habits, get insights, earn $LIFE tokens.',
+  description: 'Your gentle AI life coach. Track your habits, get insights, earn $NUDGE tokens.',
 };
 
 export default function RootLayout({

@@ -3,7 +3,7 @@ import './globals.css'
 
 export const metadata: Metadata = {
   title: 'LifeLog - AI Life Coach That Pays You',
-  description: 'Track your day, get AI insights, earn $LIFE tokens',
+  description: 'Track your day, get AI insights, earn $NUDGE tokens',
 }
 
 export default function RootLayout({

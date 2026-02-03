@@ -105,7 +105,7 @@ export default function WalletPage() {
       const data = await res.json();
       
       if (res.ok && data.success) {
-        setClaimSuccess(`Successfully claimed ${data.amount} $LIFE!`);
+        setClaimSuccess(`Successfully claimed ${data.amount} $NUDGE!`);
         await fetchWalletData();
       } else {
         setError(data.error || 'Failed to claim rewards');
@@ -150,7 +150,7 @@ export default function WalletPage() {
           
           <h2 className="text-2xl font-bold mb-3">Connect Your Wallet</h2>
           <p className="text-text-muted mb-8 max-w-md mx-auto">
-            Connect to earn $LIFE tokens for your check-ins and streaks
+            Connect to earn $NUDGE tokens for your check-ins and streaks
           </p>
 
           <div className="space-y-4 max-w-sm mx-auto mb-8">
@@ -241,7 +241,7 @@ export default function WalletPage() {
 
         {/* Balance Card */}
         <div className="card text-center">
-          <p className="text-sm text-text-muted mb-2">$LIFE Balance</p>
+          <p className="text-sm text-text-muted mb-2">$NUDGE Balance</p>
           <div className="flex items-baseline justify-center gap-2">
             {isLoading ? (
               <Loader2 className="w-6 h-6 animate-spin text-accent" />
@@ -260,7 +260,7 @@ export default function WalletPage() {
             </div>
             <div>
               <p className="text-sm text-text-muted">Token</p>
-              <p className="font-medium">$LIFE</p>
+              <p className="font-medium">$NUDGE</p>
             </div>
           </div>
         </div>
@@ -299,7 +299,7 @@ export default function WalletPage() {
           </button>
 
           <div className="mt-6 pt-4 border-t border-surface-light">
-            <p className="text-sm text-text-muted font-medium mb-3">How to earn $LIFE</p>
+            <p className="text-sm text-text-muted font-medium mb-3">How to earn $NUDGE</p>
             <div className="grid grid-cols-3 gap-4 text-center">
               <EarningItem icon="✓" label="Daily Check-in" amount="+10" />
               <EarningItem icon="🔥" label="7-Day Streak" amount="+50" />
