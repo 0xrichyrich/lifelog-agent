@@ -11,7 +11,7 @@ actor APIClient {
     private let session: URLSession
     private var baseURL: String
     
-    init(baseURL: String = "http://localhost:3000") {
+    init(baseURL: String = "http://100.115.31.5:3000") {
         self.baseURL = baseURL
         
         let config = URLSessionConfiguration.default
