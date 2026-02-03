@@ -17,6 +17,10 @@
 	</array>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>NSHealthShareUsageDescription</key>
+	<string>Nudge reads your health data like steps, sleep, and workouts to provide personalized wellness insights and track your progress over time.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>Nudge saves your mood check-ins and wellness metrics to Apple Health so you can see a complete picture of your wellbeing in one place.</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
