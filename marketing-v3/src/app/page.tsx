@@ -303,8 +303,8 @@ export default function Home() {
               <p className="text-center mt-4 text-gray-400">Goal Tracking</p>
             </motion.div>
             <motion.div whileHover={{ scale: 1.05, y: -10 }} transition={{ type: "spring" }}>
-              <PhoneMockup src="/screenshots/04-settings.png" alt="Settings" className="w-[220px]" />
-              <p className="text-center mt-4 text-gray-400">Settings & Wallet</p>
+              <PhoneMockup src="/screenshots/04-wellness.png" alt="Wellness" className="w-[220px]" />
+              <p className="text-center mt-4 text-gray-400">Wellness & Balance</p>
             </motion.div>
           </div>
         </div>

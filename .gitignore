@@ -22,9 +22,12 @@ data/recordings/
 data/snapshots/
 data/audio/
 
-# Environment
+# Environment (CRITICAL - never commit secrets)
 .env
 .env.local
+.env.*.local
+.env.production
+.env.development
 
 # OS
 .DS_Store
