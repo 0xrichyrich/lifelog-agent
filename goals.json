@@ -1,0 +1,35 @@
+[
+  {
+    "id": "ml5vpxhoiqv5l",
+    "name": "Deep Work 4hrs/day",
+    "type": "daily",
+    "target": 240,
+    "frequency": "daily",
+    "created": "2026-02-02",
+    "lastHit": null,
+    "currentStreak": 0,
+    "longestStreak": 0
+  },
+  {
+    "id": "ml5vpxtvc9llx",
+    "name": "Exercise 3x/week",
+    "type": "weekly",
+    "target": 3,
+    "frequency": "weekly",
+    "created": "2026-02-02",
+    "lastHit": null,
+    "currentStreak": 0,
+    "longestStreak": 0
+  },
+  {
+    "id": "ml5vpy63l9adj",
+    "name": "Daily check-in streak",
+    "type": "streak",
+    "target": 1,
+    "frequency": "daily",
+    "created": "2026-02-02",
+    "lastHit": null,
+    "currentStreak": 0,
+    "longestStreak": 0
+  }
+]

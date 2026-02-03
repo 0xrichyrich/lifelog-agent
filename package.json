@@ -1,6 +1,6 @@
 {
   "name": "lifelog-agent",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Multimodal AI life coach - data collection and analysis",
   "type": "module",
   "main": "dist/index.js",

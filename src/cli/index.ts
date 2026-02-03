@@ -5,12 +5,14 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { format, subDays } from 'date-fns';
-import { Config } from '../types/index.js';
+import { Config, ActivityCategory } from '../types/index.js';
 import { LifeLogDatabase } from '../storage/database.js';
 import { MarkdownLogger } from '../storage/markdown-logger.js';
 import { SessionManager } from '../services/session-manager.js';
 import { Exporter } from '../services/exporter.js';
 import { Analyzer, Summarizer, PatternDetector } from '../analysis/index.js';
+import { GoalManager, GoalType } from '../goals/index.js';
+import { Coach, Scheduler, Nudger } from '../coaching/index.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -61,6 +63,10 @@ const exporter = new Exporter(config, db);
 const analyzer = new Analyzer(config, db);
 const summarizer = new Summarizer(config, db);
 const patterns = new PatternDetector(config, db);
+const goalManager = new GoalManager(config, db);
+const coach = new Coach(config, db);
+const scheduler = new Scheduler(config);
+const nudger = new Nudger(config, db);
 
 // CLI Program
 const program = new Command();
@@ -305,6 +311,213 @@ program
       console.log('   No data found for this date.\n');
     }
     
+    process.exit(0);
+  });
+
+// ===== GOALS COMMANDS =====
+
+const goalsCommand = program
+  .command('goals')
+  .description('Manage your goals');
+
+goalsCommand
+  .command('list')
+  .description('List all goals with progress')
+  .option('-p, --progress', 'Show detailed progress for today')
+  .action(async (options: { progress?: boolean }) => {
+    if (options.progress) {
+      const output = await goalManager.formatProgressForCLI();
+      console.log(output);
+    } else {
+      console.log(goalManager.formatGoalsForCLI());
+    }
+    process.exit(0);
+  });
+
+goalsCommand
+  .command('add <name>')
+  .description('Add a new goal')
+  .option('-t, --type <type>', 'Goal type: daily, weekly, or streak', 'daily')
+  .option('--target <number>', 'Target value (minutes for time, count for frequency)', '240')
+  .option('-c, --category <category>', 'Activity category to track (coding, meetings, etc.)')
+  .action((name: string, options: { type: string; target: string; category?: string }) => {
+    const validTypes: GoalType[] = ['daily', 'weekly', 'streak'];
+    const goalType = options.type as GoalType;
+    
+    if (!validTypes.includes(goalType)) {
+      console.error('❌ Invalid goal type. Must be: daily, weekly, or streak');
+      process.exit(1);
+    }
+
+    const target = parseInt(options.target);
+    if (isNaN(target) || target <= 0) {
+      console.error('❌ Target must be a positive number');
+      process.exit(1);
+    }
+
+    const validCategories: ActivityCategory[] = ['coding', 'meetings', 'browsing', 'social', 'email', 'breaks', 'other'];
+    if (options.category && !validCategories.includes(options.category as ActivityCategory)) {
+      console.error(`❌ Invalid category. Must be one of: ${validCategories.join(', ')}`);
+      process.exit(1);
+    }
+
+    const goal = goalManager.createGoal(
+      name, 
+      goalType, 
+      target, 
+      options.category as ActivityCategory | undefined
+    );
+    
+    console.log(`\n✅ Goal created!`);
+    console.log(`   ID: ${goal.id}`);
+    console.log(`   Name: ${goal.name}`);
+    console.log(`   Type: ${goal.type}`);
+    console.log(`   Target: ${goal.target}${goal.category ? ` (${goal.category})` : ''}\n`);
+    
+    process.exit(0);
+  });
+
+goalsCommand
+  .command('remove <id>')
+  .description('Remove a goal by ID')
+  .action((id: string) => {
+    const success = goalManager.deleteGoal(id);
+    
+    if (success) {
+      console.log(`\n✅ Goal removed: ${id}\n`);
+    } else {
+      console.error(`\n❌ Goal not found: ${id}\n`);
+      process.exit(1);
+    }
+    
+    process.exit(0);
+  });
+
+goalsCommand
+  .command('progress [date]')
+  .description('Show goal progress for a specific date')
+  .action(async (date?: string) => {
+    const targetDate = date || format(new Date(), 'yyyy-MM-dd');
+    const output = await goalManager.formatProgressForCLI(targetDate);
+    console.log(output);
+    process.exit(0);
+  });
+
+// ===== COACHING COMMANDS =====
+
+const coachCommand = program
+  .command('coach')
+  .description('AI coaching system');
+
+coachCommand
+  .command('briefing')
+  .description('Generate morning briefing')
+  .action(async () => {
+    try {
+      console.log('\n🌅 Generating morning briefing...\n');
+      const message = await coach.generateMorningBriefing();
+      console.log(message);
+      console.log('');
+    } catch (error: any) {
+      console.error('❌ Failed to generate briefing:', error?.message || error);
+      process.exit(1);
+    }
+    process.exit(0);
+  });
+
+coachCommand
+  .command('review')
+  .description('Generate evening review')
+  .action(async () => {
+    try {
+      console.log('\n🌙 Generating evening review...\n');
+      const message = await coach.generateEveningReview();
+      console.log(message);
+      console.log('');
+    } catch (error: any) {
+      console.error('❌ Failed to generate review:', error?.message || error);
+      process.exit(1);
+    }
+    process.exit(0);
+  });
+
+coachCommand
+  .command('weekly')
+  .description('Generate weekly insights')
+  .action(async () => {
+    try {
+      console.log('\n📊 Generating weekly insights...\n');
+      const message = await coach.generateWeeklyInsights();
+      console.log(message);
+      console.log('');
+    } catch (error: any) {
+      console.error('❌ Failed to generate weekly insights:', error?.message || error);
+      process.exit(1);
+    }
+    process.exit(0);
+  });
+
+coachCommand
+  .command('nudge')
+  .description('Check for and generate nudges (used by heartbeat)')
+  .action(async () => {
+    try {
+      const result = await nudger.checkForNudge();
+      
+      if (result.shouldNudge && result.message) {
+        // Output the nudge message - OpenClaw will route to Telegram
+        console.log(result.message);
+      } else {
+        // No nudge needed
+        console.log('HEARTBEAT_OK');
+      }
+    } catch (error: any) {
+      console.error('❌ Nudge check failed:', error?.message || error);
+      console.log('HEARTBEAT_OK'); // Don't break heartbeat on error
+    }
+    process.exit(0);
+  });
+
+coachCommand
+  .command('setup-cron')
+  .description('Setup scheduled coaching cron jobs')
+  .action(async () => {
+    try {
+      await scheduler.setupCronJobs();
+    } catch (error: any) {
+      console.error('❌ Cron setup failed:', error?.message || error);
+      process.exit(1);
+    }
+    process.exit(0);
+  });
+
+coachCommand
+  .command('teardown-cron')
+  .description('Remove all coaching cron jobs')
+  .action(async () => {
+    try {
+      await scheduler.teardownCronJobs();
+    } catch (error: any) {
+      console.error('❌ Cron teardown failed:', error?.message || error);
+      process.exit(1);
+    }
+    process.exit(0);
+  });
+
+coachCommand
+  .command('cron-status')
+  .description('Show status of coaching cron jobs')
+  .action(() => {
+    scheduler.listCronJobs();
+    process.exit(0);
+  });
+
+coachCommand
+  .command('heartbeat-config')
+  .description('Generate HEARTBEAT.md config for nudge integration')
+  .action(() => {
+    const config = nudger.generateHeartbeatConfig();
+    console.log(config);
     process.exit(0);
   });
 
