@@ -3,16 +3,21 @@
 //  LifeLog
 //
 //  Created by Joshua Rich on 2026-02-02.
+//  Updated with Health integration and Shortcuts settings
 //
 
 import SwiftUI
 import UserNotifications
+import HealthKit
 
 struct SettingsView: View {
     @Environment(AppState.self) private var appState
     @State private var showingExportSheet = false
     @State private var showingAboutSheet = false
     @State private var notificationStatus: UNAuthorizationStatus = .notDetermined
+    @State private var healthAuthorized = false
+    @State private var showingHealthAlert = false
+    @StateObject private var healthService = HealthKitService()
     
     var body: some View {
         @Bindable var state = appState
@@ -40,6 +45,57 @@ struct SettingsView: View {
                             Text("Test Connection")
                         }
                     }
+                }
+                
+                // Integrations
+                Section {
+                    // Apple Health
+                    HStack {
+                        Image(systemName: "heart.fill")
+                            .foregroundStyle(.red)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Apple Health")
+                            Text("Steps, sleep, and activity data")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        if healthService.isAuthorized {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundStyle(.green)
+                        } else {
+                            Button("Connect") {
+                                connectHealth()
+                            }
+                            .buttonStyle(.bordered)
+                            .controlSize(.small)
+                        }
+                    }
+                    
+                    // Siri & Shortcuts
+                    Button {
+                        openShortcutsSettings()
+                    } label: {
+                        HStack {
+                            Image(systemName: "wand.and.stars")
+                                .foregroundStyle(Color.brandAccent)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Siri & Shortcuts")
+                                Text("\"Hey Siri, log focus in LifeLog\"")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .foregroundStyle(Color.textPrimary)
+                } header: {
+                    Text("Integrations")
+                } footer: {
+                    Text("Connect services to automatically track your activities.")
                 }
                 
                 // Notifications
@@ -71,7 +127,7 @@ struct SettingsView: View {
                 }
                 
                 // Privacy
-                Section("Privacy & Data Collection") {
+                Section {
                     Toggle(isOn: $state.collectScreenshots) {
                         HStack {
                             Image(systemName: "camera.metering.spot")
@@ -110,6 +166,37 @@ struct SettingsView: View {
                             }
                         }
                     }
+                } header: {
+                    Text("Privacy & Data Collection")
+                } footer: {
+                    Text("All data is processed locally. Nothing is shared without your consent.")
+                }
+                
+                // Widgets
+                Section {
+                    Button {
+                        openWidgetGallery()
+                    } label: {
+                        HStack {
+                            Image(systemName: "square.grid.2x2")
+                                .foregroundStyle(Color.brandAccent)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Add Widgets")
+                                Text("Home Screen & Lock Screen widgets")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .foregroundStyle(Color.textPrimary)
+                } header: {
+                    Text("Widgets")
+                } footer: {
+                    Text("Log activities and track progress without opening the app.")
                 }
                 
                 // Data
@@ -152,12 +239,26 @@ struct SettingsView: View {
                         Text("1.0.0")
                             .foregroundStyle(.secondary)
                     }
+                    
+                    Link(destination: URL(string: "https://github.com/0xrichyrich/lifelog-agent")!) {
+                        HStack {
+                            Image(systemName: "link")
+                                .foregroundStyle(Color.brandAccent)
+                            Text("GitHub Repository")
+                            Spacer()
+                            Image(systemName: "arrow.up.right")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .foregroundStyle(Color.textPrimary)
                 }
             }
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.large)
             .onAppear {
                 checkNotificationStatus()
+                healthService.checkAuthorizationStatus()
             }
             .sheet(isPresented: $showingExportSheet) {
                 ExportSheet()
@@ -165,12 +266,46 @@ struct SettingsView: View {
             .sheet(isPresented: $showingAboutSheet) {
                 AboutSheet()
             }
+            .alert("Apple Health", isPresented: $showingHealthAlert) {
+                Button("Open Settings", role: .none) {
+                    openSettings()
+                }
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text("Health data access was denied. Please enable it in Settings > Privacy > Health.")
+            }
         }
     }
     
     // MARK: - Actions
+    private func connectHealth() {
+        Task {
+            do {
+                try await healthService.requestAuthorization()
+                try await healthService.fetchTodayData()
+                UINotificationFeedbackGenerator().notificationOccurred(.success)
+            } catch {
+                await MainActor.run {
+                    showingHealthAlert = true
+                    UINotificationFeedbackGenerator().notificationOccurred(.error)
+                }
+            }
+        }
+    }
+    
+    private func openShortcutsSettings() {
+        if let url = URL(string: "shortcuts://") {
+            UIApplication.shared.open(url)
+        }
+    }
+    
+    private func openWidgetGallery() {
+        // iOS doesn't have a direct URL to widget gallery, guide user
+        // Show a tip instead
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+    }
+    
     private func testConnection() async {
-        // Simple connectivity test
         guard let url = URL(string: "\(appState.apiEndpoint)/api/goals") else {
             return
         }
@@ -221,7 +356,6 @@ struct SettingsView: View {
     }
     
     private func clearLocalCache() {
-        // Clear UserDefaults cache (except settings)
         appState.activities = []
         appState.goals = []
         appState.checkIns = []
@@ -337,6 +471,8 @@ struct AboutSheet: View {
                         FeatureRow(icon: "calendar.day.timeline.left", title: "Visual Timeline", description: "See your day at a glance")
                         FeatureRow(icon: "target", title: "Goal Tracking", description: "Build streaks and hit your targets")
                         FeatureRow(icon: "bell.badge", title: "Smart Nudges", description: "Get coached to stay on track")
+                        FeatureRow(icon: "heart.fill", title: "Health Integration", description: "Sync with Apple Health")
+                        FeatureRow(icon: "wand.and.stars", title: "Siri Shortcuts", description: "Log activities with your voice")
                     }
                     .padding()
                     .background(Color.cardBackground)

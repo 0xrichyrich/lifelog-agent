@@ -23,6 +23,12 @@
 		A11111110000000000000012 /* LifeLogWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000012 /* LifeLogWidget.swift */; };
 		A11111110000000000000013 /* WidgetAssets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000013 /* WidgetAssets.xcassets */; };
 		A11111110000000000000014 /* LifeLogWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = A10000000000000000000020 /* LifeLogWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		A11111110000000000000040 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000040 /* OnboardingView.swift */; };
+		A11111110000000000000041 /* QuickLogButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000041 /* QuickLogButton.swift */; };
+		A11111110000000000000042 /* Animations.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000042 /* Animations.swift */; };
+		A11111110000000000000043 /* LoadingStates.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000043 /* LoadingStates.swift */; };
+		A11111110000000000000044 /* HealthKitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000044 /* HealthKitService.swift */; };
+		A11111110000000000000045 /* AppIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000045 /* AppIntents.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -70,6 +76,12 @@
 		A10000000000000000000030 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A10000000000000000000031 /* LifeLog.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = LifeLog.entitlements; sourceTree = "<group>"; };
 		A10000000000000000000032 /* LifeLogWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = LifeLogWidgetExtension.entitlements; sourceTree = "<group>"; };
+		A10000000000000000000040 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		A10000000000000000000041 /* QuickLogButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickLogButton.swift; sourceTree = "<group>"; };
+		A10000000000000000000042 /* Animations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Animations.swift; sourceTree = "<group>"; };
+		A10000000000000000000043 /* LoadingStates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingStates.swift; sourceTree = "<group>"; };
+		A10000000000000000000044 /* HealthKitService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitService.swift; sourceTree = "<group>"; };
+		A10000000000000000000045 /* AppIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppIntents.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -110,6 +122,7 @@
 				A15000000000000000000006 /* Models */,
 				A15000000000000000000007 /* Views */,
 				A15000000000000000000008 /* Services */,
+				A1500000000000000000000A /* Components */,
 				A1000000000000000000000A /* Assets.xcassets */,
 				A10000000000000000000030 /* Info.plist */,
 				A10000000000000000000031 /* LifeLog.entitlements */,
@@ -162,6 +175,7 @@
 				A10000000000000000000007 /* TimelineView.swift */,
 				A10000000000000000000008 /* GoalsView.swift */,
 				A10000000000000000000009 /* SettingsView.swift */,
+				A10000000000000000000040 /* OnboardingView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -170,6 +184,8 @@
 			isa = PBXGroup;
 			children = (
 				A10000000000000000000005 /* APIClient.swift */,
+				A10000000000000000000044 /* HealthKitService.swift */,
+				A10000000000000000000045 /* AppIntents.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -180,6 +196,16 @@
 				A1000000000000000000000B /* Preview Assets.xcassets */,
 			);
 			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		A1500000000000000000000A /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				A10000000000000000000041 /* QuickLogButton.swift */,
+				A10000000000000000000042 /* Animations.swift */,
+				A10000000000000000000043 /* LoadingStates.swift */,
+			);
+			path = Components;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -292,6 +318,12 @@
 				A11111110000000000000007 /* TimelineView.swift in Sources */,
 				A11111110000000000000008 /* GoalsView.swift in Sources */,
 				A11111110000000000000009 /* SettingsView.swift in Sources */,
+				A11111110000000000000040 /* OnboardingView.swift in Sources */,
+				A11111110000000000000041 /* QuickLogButton.swift in Sources */,
+				A11111110000000000000042 /* Animations.swift in Sources */,
+				A11111110000000000000043 /* LoadingStates.swift in Sources */,
+				A11111110000000000000044 /* HealthKitService.swift in Sources */,
+				A11111110000000000000045 /* AppIntents.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -451,6 +483,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = LifeLog;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_NSCameraUsageDescription = "LifeLog uses the camera to capture workspace snapshots for your check-ins.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "LifeLog uses Health data to track your activity and sleep for better insights.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "LifeLog uses the microphone to record voice notes for your check-ins.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -487,6 +520,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = LifeLog;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_NSCameraUsageDescription = "LifeLog uses the camera to capture workspace snapshots for your check-ins.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "LifeLog uses Health data to track your activity and sleep for better insights.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "LifeLog uses the microphone to record voice notes for your check-ins.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;

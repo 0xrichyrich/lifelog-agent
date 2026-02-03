@@ -509,7 +509,7 @@ struct FirstCheckInScreen: View {
             } else {
                 // Success: Show their check-in formatted beautifully (Day One style)
                 VStack(spacing: 12) {
-                    Text(""\(text)"")
+                    Text("\"\(text)\"")
                         .font(.system(size: 18, weight: .medium))
                         .foregroundStyle(Color.textPrimary)
                         .multilineTextAlignment(.center)
@@ -1164,7 +1164,7 @@ struct WidgetPromoScreen: View {
                     }
                     
                     ProgressView(value: 0.7)
-                        .progressViewStyle(CustomProgressStyle(color: .success))
+                        .tint(Color.success)
                     
                     HStack {
                         Text("🔥 7 day streak")

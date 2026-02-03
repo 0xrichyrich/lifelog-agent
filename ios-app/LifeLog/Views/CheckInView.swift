@@ -3,6 +3,7 @@
 //  LifeLog
 //
 //  Created by Joshua Rich on 2026-02-02.
+//  Updated with competitive polish recommendations
 //
 
 import SwiftUI
@@ -22,6 +23,8 @@ struct CheckInView: View {
     @State private var errorMessage = ""
     @State private var recentCheckIns: [CheckIn] = []
     @State private var isLoadingCheckIns = true
+    @State private var showCompletionAnimation = false
+    @State private var loadError: Error?
     
     private let apiClient = APIClient()
     
@@ -29,6 +32,27 @@ struct CheckInView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 24) {
+                    // Quick Log Grid (2-tap flow)
+                    QuickLogGrid { type in
+                        await quickLog(type: type)
+                    }
+                    
+                    // Divider with "or"
+                    HStack {
+                        Rectangle()
+                            .fill(Color.gray.opacity(0.3))
+                            .frame(height: 1)
+                        
+                        Text("or write something")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .padding(.horizontal, 12)
+                        
+                        Rectangle()
+                            .fill(Color.gray.opacity(0.3))
+                            .frame(height: 1)
+                    }
+                    
                     // Input Section
                     inputSection
                     
@@ -46,6 +70,9 @@ struct CheckInView: View {
             .background(Color.background)
             .navigationTitle("Check In")
             .navigationBarTitleDisplayMode(.large)
+            .refreshable {
+                await loadCheckIns()
+            }
             .onAppear {
                 Task {
                     await loadCheckIns()
@@ -55,6 +82,16 @@ struct CheckInView: View {
                 Button("OK") { }
             } message: {
                 Text(errorMessage)
+            }
+            .overlay {
+                if showCompletionAnimation {
+                    Color.black.opacity(0.3)
+                        .ignoresSafeArea()
+                        .transition(.opacity)
+                    
+                    CompletionAnimation(isAnimating: $showCompletionAnimation, color: .success)
+                        .transition(.scale)
+                }
             }
         }
     }
@@ -67,7 +104,7 @@ struct CheckInView: View {
                 .foregroundStyle(Color.textPrimary)
             
             TextEditor(text: $messageText)
-                .frame(minHeight: 120)
+                .frame(minHeight: 100)
                 .padding()
                 .background(Color.cardBackground)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
@@ -80,15 +117,18 @@ struct CheckInView: View {
             
             // Voice recording indicator
             if isRecording {
-                HStack {
+                HStack(spacing: 8) {
                     Circle()
                         .fill(Color.danger)
                         .frame(width: 12, height: 12)
+                        .pulseAnimation(isAnimating: true)
+                    
                     Text("Recording...")
                         .foregroundStyle(Color.danger)
                         .font(.caption)
                 }
                 .padding(.horizontal)
+                .transition(.scale.combined(with: .opacity))
             }
             
             // Captured image preview
@@ -100,7 +140,10 @@ struct CheckInView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                     .overlay(alignment: .topTrailing) {
                         Button {
-                            capturedImage = nil
+                            withAnimation(.quickBounce) {
+                                capturedImage = nil
+                            }
+                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
                         } label: {
                             Image(systemName: "xmark.circle.fill")
                                 .font(.title2)
@@ -109,8 +152,11 @@ struct CheckInView: View {
                         }
                         .padding(8)
                     }
+                    .transition(.scale.combined(with: .opacity))
             }
         }
+        .animation(.smoothBounce, value: isRecording)
+        .animation(.smoothBounce, value: capturedImage != nil)
     }
     
     // MARK: - Action Buttons
@@ -121,9 +167,16 @@ struct CheckInView: View {
                 toggleRecording()
             } label: {
                 VStack(spacing: 8) {
-                    Image(systemName: isRecording ? "stop.circle.fill" : "mic.circle.fill")
-                        .font(.system(size: 40))
-                        .foregroundStyle(isRecording ? Color.danger : Color.brandAccent)
+                    ZStack {
+                        Circle()
+                            .fill(isRecording ? Color.danger.opacity(0.2) : Color.brandAccent.opacity(0.2))
+                            .frame(width: 56, height: 56)
+                        
+                        Image(systemName: isRecording ? "stop.circle.fill" : "mic.circle.fill")
+                            .font(.system(size: 32))
+                            .foregroundStyle(isRecording ? Color.danger : Color.brandAccent)
+                    }
+                    
                     Text(isRecording ? "Stop" : "Voice")
                         .font(.caption)
                         .foregroundStyle(Color.textPrimary)
@@ -133,14 +186,21 @@ struct CheckInView: View {
                 .background(Color.cardBackground)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
             }
-            .sensoryFeedback(.impact, trigger: isRecording)
+            .sensoryFeedback(.impact(weight: .medium), trigger: isRecording)
             
             // Camera Button
             PhotosPicker(selection: $selectedPhoto, matching: .images) {
                 VStack(spacing: 8) {
-                    Image(systemName: "camera.circle.fill")
-                        .font(.system(size: 40))
-                        .foregroundStyle(Color.brandAccent)
+                    ZStack {
+                        Circle()
+                            .fill(Color.brandAccent.opacity(0.2))
+                            .frame(width: 56, height: 56)
+                        
+                        Image(systemName: "camera.circle.fill")
+                            .font(.system(size: 32))
+                            .foregroundStyle(Color.brandAccent)
+                    }
+                    
                     Text("Photo")
                         .font(.caption)
                         .foregroundStyle(Color.textPrimary)
@@ -154,8 +214,10 @@ struct CheckInView: View {
                 Task {
                     if let data = try? await newValue?.loadTransferable(type: Data.self),
                        let image = UIImage(data: data) {
-                        capturedImage = image
-                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        withAnimation(.smoothBounce) {
+                            capturedImage = image
+                        }
+                        UINotificationFeedbackGenerator().notificationOccurred(.success)
                     }
                 }
             }
@@ -169,7 +231,7 @@ struct CheckInView: View {
                 await submitCheckIn()
             }
         } label: {
-            HStack {
+            HStack(spacing: 8) {
                 if isSubmitting {
                     ProgressView()
                         .tint(.white)
@@ -184,9 +246,11 @@ struct CheckInView: View {
             .background(messageText.isEmpty ? Color.brandAccent.opacity(0.5) : Color.brandAccent)
             .foregroundStyle(.white)
             .clipShape(RoundedRectangle(cornerRadius: 12))
+            .scaleEffect(isSubmitting ? 0.98 : 1.0)
+            .animation(.quickBounce, value: isSubmitting)
         }
         .disabled(messageText.isEmpty || isSubmitting)
-        .sensoryFeedback(.success, trigger: !isSubmitting && !messageText.isEmpty)
+        .sensoryFeedback(.impact(weight: .medium), trigger: isSubmitting)
     }
     
     // MARK: - Recent Section
@@ -197,20 +261,50 @@ struct CheckInView: View {
                 .foregroundStyle(Color.textPrimary)
             
             if isLoadingCheckIns {
-                ProgressView()
-                    .frame(maxWidth: .infinity)
-                    .padding()
-            } else if recentCheckIns.isEmpty {
-                Text("No check-ins yet. Start logging!")
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-            } else {
-                LazyVStack(spacing: 12) {
-                    ForEach(recentCheckIns) { checkIn in
-                        CheckInCard(checkIn: checkIn)
+                VStack(spacing: 12) {
+                    ForEach(0..<3, id: \.self) { _ in
+                        SkeletonCard(height: 70)
                     }
                 }
+            } else if let error = loadError {
+                NetworkErrorView(retryAction: {
+                    Task { await loadCheckIns() }
+                }, onOfflineMode: {
+                    loadError = nil
+                })
+            } else if recentCheckIns.isEmpty {
+                EmptyCheckInsView()
+            } else {
+                LazyVStack(spacing: 12) {
+                    ForEach(Array(recentCheckIns.enumerated()), id: \.element.id) { index, checkIn in
+                        CheckInCard(checkIn: checkIn)
+                            .transition(.asymmetric(
+                                insertion: .push(from: .top).combined(with: .opacity),
+                                removal: .push(from: .bottom).combined(with: .opacity)
+                            ))
+                            .animation(.smoothBounce.delay(Double(index) * 0.05), value: recentCheckIns.count)
+                    }
+                }
+            }
+        }
+    }
+    
+    // MARK: - Quick Log Action
+    private func quickLog(type: QuickLogType) async {
+        do {
+            await apiClient.updateBaseURL(appState.apiEndpoint)
+            let newCheckIn = try await apiClient.createCheckIn(message: type.message)
+            
+            await MainActor.run {
+                withAnimation(.smoothBounce) {
+                    recentCheckIns.insert(newCheckIn, at: 0)
+                }
+            }
+        } catch {
+            await MainActor.run {
+                errorMessage = "Failed to log: \(error.localizedDescription)"
+                showingError = true
+                UINotificationFeedbackGenerator().notificationOccurred(.error)
             }
         }
     }
@@ -244,44 +338,72 @@ struct CheckInView: View {
             audioRecorder = try AVAudioRecorder(url: audioFilename, settings: settings)
             audioRecorder?.record()
             audioURL = audioFilename
-            isRecording = true
+            
+            withAnimation(.quickBounce) {
+                isRecording = true
+            }
             
         } catch {
             errorMessage = "Failed to start recording: \(error.localizedDescription)"
             showingError = true
+            UINotificationFeedbackGenerator().notificationOccurred(.error)
         }
     }
     
     private func stopRecording() {
         audioRecorder?.stop()
-        isRecording = false
+        
+        withAnimation(.quickBounce) {
+            isRecording = false
+        }
         
         // TODO: Transcribe audio with Whisper API
-        // For now, just indicate that audio was recorded
         if let url = audioURL {
             messageText += "\n[Voice note recorded: \(url.lastPathComponent)]"
         }
+        
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
     }
     
     private func submitCheckIn() async {
         guard !messageText.isEmpty else { return }
         
         isSubmitting = true
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
         
         do {
             await apiClient.updateBaseURL(appState.apiEndpoint)
             let newCheckIn = try await apiClient.createCheckIn(message: messageText)
             
             await MainActor.run {
-                recentCheckIns.insert(newCheckIn, at: 0)
-                messageText = ""
-                capturedImage = nil
+                // Show completion animation
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                    showCompletionAnimation = true
+                }
+                
                 UINotificationFeedbackGenerator().notificationOccurred(.success)
+                
+                // Add to list after short delay
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    withAnimation(.smoothBounce) {
+                        recentCheckIns.insert(newCheckIn, at: 0)
+                        messageText = ""
+                        capturedImage = nil
+                    }
+                }
+                
+                // Hide animation
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                    withAnimation(.easeOut(duration: 0.2)) {
+                        showCompletionAnimation = false
+                    }
+                }
             }
         } catch {
             await MainActor.run {
                 errorMessage = error.localizedDescription
                 showingError = true
+                UINotificationFeedbackGenerator().notificationOccurred(.error)
             }
         }
         
@@ -292,6 +414,7 @@ struct CheckInView: View {
     
     private func loadCheckIns() async {
         isLoadingCheckIns = true
+        loadError = nil
         
         do {
             await apiClient.updateBaseURL(appState.apiEndpoint)
@@ -301,7 +424,9 @@ struct CheckInView: View {
                 recentCheckIns = checkIns
             }
         } catch {
-            // Silently fail - offline mode
+            await MainActor.run {
+                loadError = error
+            }
             print("Failed to load check-ins: \(error)")
         }
         
@@ -314,6 +439,7 @@ struct CheckInView: View {
 // MARK: - CheckIn Card
 struct CheckInCard: View {
     let checkIn: CheckIn
+    @State private var appeared = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -321,14 +447,25 @@ struct CheckInCard: View {
                 .foregroundStyle(Color.textPrimary)
                 .multilineTextAlignment(.leading)
             
-            Text(checkIn.formattedTime)
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            HStack {
+                Image(systemName: "clock")
+                    .font(.caption2)
+                Text(checkIn.formattedTime)
+                    .font(.caption)
+            }
+            .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding()
         .background(Color.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: 12))
+        .scaleEffect(appeared ? 1.0 : 0.95)
+        .opacity(appeared ? 1.0 : 0)
+        .onAppear {
+            withAnimation(.smoothBounce) {
+                appeared = true
+            }
+        }
     }
 }
 

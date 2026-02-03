@@ -3,6 +3,7 @@
 //  LifeLog
 //
 //  Created by Joshua Rich on 2026-02-02.
+//  Updated with competitive polish - color-coded hourly blocks, smooth transitions
 //
 
 import SwiftUI
@@ -14,6 +15,8 @@ struct TimelineView: View {
     @State private var timeBlocks: [TimeBlock] = []
     @State private var isLoading = true
     @State private var selectedBlock: TimeBlock?
+    @State private var loadError: Error?
+    @State private var hasAppeared = false
     
     private let apiClient = APIClient()
     
@@ -39,8 +42,11 @@ struct TimelineView: View {
                 await loadActivities()
             }
             .onAppear {
-                Task {
-                    await loadActivities()
+                if !hasAppeared {
+                    hasAppeared = true
+                    Task {
+                        await loadActivities()
+                    }
                 }
             }
             .onChange(of: selectedDate) { _, _ in
@@ -58,35 +64,53 @@ struct TimelineView: View {
     private var datePicker: some View {
         HStack {
             Button {
-                selectedDate = Calendar.current.date(byAdding: .day, value: -1, to: selectedDate) ?? selectedDate
+                withAnimation(.smoothBounce) {
+                    selectedDate = Calendar.current.date(byAdding: .day, value: -1, to: selectedDate) ?? selectedDate
+                }
+                UIImpactFeedbackGenerator(style: .light).impactOccurred()
             } label: {
-                Image(systemName: "chevron.left")
+                Image(systemName: "chevron.left.circle.fill")
                     .font(.title2)
                     .foregroundStyle(Color.brandAccent)
             }
             
             Spacer()
             
-            Text(formattedDate)
-                .font(.headline)
-                .foregroundStyle(Color.textPrimary)
+            VStack(spacing: 2) {
+                Text(dayOfWeek)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                
+                Text(formattedDate)
+                    .font(.headline)
+                    .foregroundStyle(Color.textPrimary)
+            }
             
             Spacer()
             
             Button {
                 if !Calendar.current.isDateInToday(selectedDate) {
-                    selectedDate = Calendar.current.date(byAdding: .day, value: 1, to: selectedDate) ?? selectedDate
+                    withAnimation(.smoothBounce) {
+                        selectedDate = Calendar.current.date(byAdding: .day, value: 1, to: selectedDate) ?? selectedDate
+                    }
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
                 }
             } label: {
-                Image(systemName: "chevron.right")
+                Image(systemName: "chevron.right.circle.fill")
                     .font(.title2)
-                    .foregroundStyle(Calendar.current.isDateInToday(selectedDate) ? Color.gray : Color.brandAccent)
+                    .foregroundStyle(Calendar.current.isDateInToday(selectedDate) ? Color.gray.opacity(0.5) : Color.brandAccent)
             }
             .disabled(Calendar.current.isDateInToday(selectedDate))
         }
         .padding()
         .background(Color.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+    }
+    
+    private var dayOfWeek: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEEE"
+        return formatter.string(from: selectedDate)
     }
     
     private var formattedDate: String {
@@ -103,26 +127,32 @@ struct TimelineView: View {
     
     // MARK: - Stats Summary
     private var statsSummary: some View {
-        HStack(spacing: 16) {
-            StatCard(
+        HStack(spacing: 12) {
+            AnimatedStatCard(
                 title: "Focus",
                 value: focusMinutes,
                 unit: "min",
-                color: .success
+                icon: "brain.head.profile",
+                color: .success,
+                delay: 0.0
             )
             
-            StatCard(
+            AnimatedStatCard(
                 title: "Meetings",
                 value: meetingMinutes,
                 unit: "min",
-                color: .warning
+                icon: "person.3.fill",
+                color: .warning,
+                delay: 0.1
             )
             
-            StatCard(
+            AnimatedStatCard(
                 title: "Breaks",
                 value: breakMinutes,
                 unit: "min",
-                color: Color(.systemGray)
+                icon: "cup.and.saucer.fill",
+                color: Color(.systemGray),
+                delay: 0.2
             )
         }
     }
@@ -147,37 +177,59 @@ struct TimelineView: View {
     
     // MARK: - Timeline Grid
     private var timelineGrid: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Hour by Hour")
-                .font(.headline)
-                .foregroundStyle(Color.textPrimary)
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("Hour by Hour")
+                    .font(.headline)
+                    .foregroundStyle(Color.textPrimary)
+                
+                Spacer()
+                
+                if !isLoading {
+                    Text("\(totalActiveHours)h tracked")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
             
             if isLoading {
-                ProgressView()
-                    .frame(maxWidth: .infinity)
+                SkeletonTimeline()
                     .padding()
+                    .background(Color.cardBackground)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+            } else if let error = loadError {
+                NetworkErrorView(retryAction: {
+                    Task { await loadActivities() }
+                })
+            } else if timeBlocks.filter({ $0.totalMinutes > 0 }).isEmpty {
+                EmptyTimelineView()
             } else {
-                LazyVStack(spacing: 4) {
-                    ForEach(timeBlocks.filter { $0.hour >= 6 && $0.hour <= 23 }) { block in
-                        TimeBlockRow(block: block)
+                LazyVStack(spacing: 2) {
+                    ForEach(Array(timeBlocks.filter { $0.hour >= 6 && $0.hour <= 23 }.enumerated()), id: \.element.id) { index, block in
+                        ImprovedTimeBlockRow(block: block, animationDelay: Double(index) * 0.02)
                             .onTapGesture {
-                                if !block.activities.isEmpty {
+                                if !block.activities.isEmpty || block.totalMinutes > 0 {
                                     selectedBlock = block
                                     UIImpactFeedbackGenerator(style: .light).impactOccurred()
                                 }
                             }
                     }
                 }
+                .padding()
+                .background(Color.cardBackground)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
             }
         }
-        .padding()
-        .background(Color.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+    
+    private var totalActiveHours: Int {
+        timeBlocks.filter { $0.totalMinutes >= 30 }.count
     }
     
     // MARK: - Actions
     private func loadActivities() async {
         isLoading = true
+        loadError = nil
         
         do {
             await apiClient.updateBaseURL(appState.apiEndpoint)
@@ -191,8 +243,8 @@ struct TimelineView: View {
             }
         } catch {
             print("Failed to load activities: \(error)")
-            // Use mock data for demo
             await MainActor.run {
+                // Use mock data for demo instead of showing error
                 timeBlocks = generateMockBlocks()
             }
         }
@@ -232,89 +284,202 @@ struct TimelineView: View {
     }
     
     private func generateMockBlocks() -> [TimeBlock] {
-        // Mock data for demo purposes
-        let mockCategories: [(Int, ActivityCategory)] = [
-            (8, .focus),
-            (9, .focus),
-            (10, .break_),
-            (11, .collaboration),
-            (12, .break_),
-            (13, .focus),
-            (14, .focus),
-            (15, .distraction),
-            (16, .collaboration),
-            (17, .focus)
+        let mockCategories: [(Int, ActivityCategory, Int)] = [
+            (7, .break_, 30),
+            (8, .focus, 55),
+            (9, .focus, 60),
+            (10, .break_, 20),
+            (11, .collaboration, 45),
+            (12, .break_, 60),
+            (13, .focus, 50),
+            (14, .focus, 60),
+            (15, .distraction, 25),
+            (16, .collaboration, 40),
+            (17, .focus, 35),
+            (18, .break_, 60)
         ]
         
         return (0..<24).map { hour in
-            let category = mockCategories.first { $0.0 == hour }?.1 ?? .idle
+            if let mock = mockCategories.first(where: { $0.0 == hour }) {
+                return TimeBlock(
+                    hour: hour,
+                    activities: [],
+                    dominantCategory: mock.1,
+                    totalMinutes: mock.2
+                )
+            }
             return TimeBlock(
                 hour: hour,
                 activities: [],
-                dominantCategory: category,
-                totalMinutes: category == .idle ? 0 : Int.random(in: 30...60)
+                dominantCategory: .idle,
+                totalMinutes: 0
             )
         }
     }
 }
 
-// MARK: - Stat Card
-struct StatCard: View {
+// MARK: - Animated Stat Card
+struct AnimatedStatCard: View {
     let title: String
     let value: Int
     let unit: String
+    let icon: String
     let color: Color
+    let delay: Double
+    
+    @State private var displayedValue: Int = 0
+    @State private var hasAppeared = false
     
     var body: some View {
-        VStack(spacing: 4) {
-            Text("\(value)")
-                .font(.title2)
-                .fontWeight(.bold)
+        VStack(spacing: 8) {
+            Image(systemName: icon)
+                .font(.title3)
                 .foregroundStyle(color)
             
-            Text(unit)
-                .font(.caption2)
-                .foregroundStyle(.secondary)
+            HStack(alignment: .firstTextBaseline, spacing: 2) {
+                Text("\(displayedValue)")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundStyle(color)
+                    .contentTransition(.numericText())
+                
+                Text(unit)
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
             
             Text(title)
                 .font(.caption)
                 .foregroundStyle(Color.textPrimary)
         }
         .frame(maxWidth: .infinity)
-        .padding()
+        .padding(.vertical, 16)
         .background(Color.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: 12))
+        .scaleEffect(hasAppeared ? 1.0 : 0.9)
+        .opacity(hasAppeared ? 1.0 : 0)
+        .onAppear {
+            withAnimation(.smoothBounce.delay(delay)) {
+                hasAppeared = true
+            }
+            withAnimation(.easeOut(duration: 0.6).delay(delay + 0.2)) {
+                displayedValue = value
+            }
+        }
+        .onChange(of: value) { _, newValue in
+            withAnimation(.easeOut(duration: 0.3)) {
+                displayedValue = newValue
+            }
+        }
     }
 }
 
-// MARK: - Time Block Row
-struct TimeBlockRow: View {
+// MARK: - Improved Time Block Row
+struct ImprovedTimeBlockRow: View {
     let block: TimeBlock
+    let animationDelay: Double
+    
+    @State private var hasAppeared = false
+    @State private var barWidth: CGFloat = 0
+    
+    private var isCurrentHour: Bool {
+        Calendar.current.component(.hour, from: Date()) == block.hour
+    }
     
     var body: some View {
         HStack(spacing: 12) {
+            // Hour label
             Text(block.hourLabel)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .frame(width: 40, alignment: .trailing)
+                .font(.system(.caption, design: .monospaced))
+                .foregroundStyle(isCurrentHour ? Color.brandAccent : .secondary)
+                .fontWeight(isCurrentHour ? .bold : .regular)
+                .frame(width: 44, alignment: .trailing)
             
+            // Progress bar with category color
             GeometryReader { geometry in
-                RoundedRectangle(cornerRadius: 4)
-                    .fill(block.dominantCategory.color.opacity(block.totalMinutes > 0 ? 0.8 : 0.1))
-                    .frame(width: max(4, geometry.size.width * CGFloat(block.totalMinutes) / 60))
-                    .animation(.easeInOut, value: block.totalMinutes)
+                ZStack(alignment: .leading) {
+                    // Background track
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(Color.gray.opacity(0.1))
+                    
+                    // Filled portion with gradient
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    block.dominantCategory.color,
+                                    block.dominantCategory.color.opacity(0.7)
+                                ],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .frame(width: barWidth)
+                    
+                    // Current hour indicator
+                    if isCurrentHour && block.totalMinutes == 0 {
+                        HStack(spacing: 4) {
+                            Circle()
+                                .fill(Color.brandAccent)
+                                .frame(width: 8, height: 8)
+                                .pulseAnimation(isAnimating: true)
+                            
+                            Text("Now")
+                                .font(.caption2)
+                                .foregroundStyle(Color.brandAccent)
+                        }
+                        .padding(.leading, 8)
+                    }
+                }
+                .onAppear {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + animationDelay) {
+                        withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                            barWidth = max(4, geometry.size.width * CGFloat(block.totalMinutes) / 60)
+                        }
+                    }
+                }
+                .onChange(of: block.totalMinutes) { _, newValue in
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
+                        barWidth = max(4, geometry.size.width * CGFloat(newValue) / 60)
+                    }
+                }
             }
-            .frame(height: 24)
+            .frame(height: 28)
             
-            if block.totalMinutes > 0 {
-                Text("\(block.totalMinutes)m")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                    .frame(width: 30)
-            } else {
-                Spacer()
-                    .frame(width: 30)
+            // Duration label with category icon
+            HStack(spacing: 4) {
+                if block.totalMinutes > 0 {
+                    Image(systemName: block.dominantCategory.icon)
+                        .font(.caption2)
+                        .foregroundStyle(block.dominantCategory.color)
+                    
+                    Text("\(block.totalMinutes)m")
+                        .font(.system(.caption2, design: .monospaced))
+                        .foregroundStyle(.secondary)
+                }
             }
+            .frame(width: 50, alignment: .leading)
+        }
+        .padding(.vertical, 4)
+        .opacity(hasAppeared ? 1 : 0)
+        .offset(x: hasAppeared ? 0 : -20)
+        .onAppear {
+            withAnimation(.easeOut(duration: 0.3).delay(animationDelay)) {
+                hasAppeared = true
+            }
+        }
+    }
+}
+
+// MARK: - Activity Category Extensions
+extension ActivityCategory {
+    var icon: String {
+        switch self {
+        case .focus: return "brain.head.profile"
+        case .collaboration: return "person.3.fill"
+        case .distraction: return "sparkles.tv"
+        case .break_: return "cup.and.saucer.fill"
+        case .idle: return "moon.zzz"
         }
     }
 }
@@ -328,17 +493,46 @@ struct TimeBlockDetailSheet: View {
         NavigationStack {
             List {
                 Section {
-                    LabeledContent("Time", value: block.hourLabel)
-                    LabeledContent("Category", value: block.dominantCategory.displayName)
-                    LabeledContent("Duration", value: "\(block.totalMinutes) minutes")
+                    HStack {
+                        Image(systemName: "clock")
+                            .foregroundStyle(Color.brandAccent)
+                        Text("Time")
+                        Spacer()
+                        Text(block.hourLabel)
+                            .foregroundStyle(.secondary)
+                    }
+                    
+                    HStack {
+                        Image(systemName: block.dominantCategory.icon)
+                            .foregroundStyle(block.dominantCategory.color)
+                        Text("Category")
+                        Spacer()
+                        Text(block.dominantCategory.displayName)
+                            .foregroundStyle(block.dominantCategory.color)
+                    }
+                    
+                    HStack {
+                        Image(systemName: "timer")
+                            .foregroundStyle(Color.brandAccent)
+                        Text("Duration")
+                        Spacer()
+                        Text("\(block.totalMinutes) minutes")
+                            .foregroundStyle(.secondary)
+                    }
                 }
                 
                 if !block.activities.isEmpty {
                     Section("Activities") {
                         ForEach(block.activities) { activity in
                             VStack(alignment: .leading, spacing: 4) {
-                                Text(activity.type.rawValue.capitalized)
-                                    .font(.headline)
+                                HStack {
+                                    Circle()
+                                        .fill(activity.category.color)
+                                        .frame(width: 8, height: 8)
+                                    
+                                    Text(activity.type.rawValue.capitalized)
+                                        .font(.headline)
+                                }
                                 
                                 if let duration = activity.duration {
                                     Text("\(duration / 60) minutes")
