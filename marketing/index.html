@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LifeLog - AI Life Coach That Pays You to Improve</title>
+    <meta name="description" content="The first AI life coach with crypto rewards. Track your day, get AI insights, earn $LIFE tokens for hitting your goals.">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="LifeLog - AI Life Coach That Pays You to Improve">
+    <meta property="og:description" content="Track your day, get AI insights, earn $LIFE tokens for hitting your goals.">
+    <meta property="og:type" content="website">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        background: '#0a0a0a',
+                        surface: '#1a1a1a',
+                        brandAccent: '#3b82f6',
+                        success: '#10b981',
+                        warning: '#fbbf24',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        .float { animation: float 3s ease-in-out infinite; }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .fade-in-up {
+            animation: fadeInUp 0.8s ease-out;
+        }
+        
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(59, 130, 246, 0.6); }
+        }
+        .glow { animation: glow 2s ease-in-out infinite; }
+    </style>
+</head>
+<body class="bg-background text-white">
+    <!-- Hero Section -->
+    <section class="min-h-screen flex items-center justify-center px-4 py-20">
+        <div class="max-w-6xl mx-auto text-center">
+            <!-- Brain Icon -->
+            <div class="mb-8 flex justify-center">
+                <div class="relative">
+                    <div class="w-32 h-32 rounded-full bg-gradient-to-br from-brandAccent to-success glow flex items-center justify-center float">
+                        <svg class="w-20 h-20 text-white" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/>
+                        </svg>
+                    </div>
+                    <!-- Sparkles -->
+                    <div class="absolute -top-2 -right-2 text-warning text-2xl">✨</div>
+                    <div class="absolute -bottom-2 -left-2 text-brandAccent text-xl">✨</div>
+                </div>
+            </div>
+            
+            <h1 class="text-5xl md:text-7xl font-bold mb-6 fade-in-up">
+                The AI Life Coach<br/>
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-brandAccent to-success">
+                    That Pays You to Improve
+                </span>
+            </h1>
+            
+            <p class="text-xl md:text-2xl text-gray-400 mb-12 fade-in-up" style="animation-delay: 0.2s">
+                Track your day, get AI insights, earn $LIFE tokens for hitting your goals
+            </p>
+            
+            <div class="flex flex-col sm:flex-row gap-4 justify-center fade-in-up" style="animation-delay: 0.4s">
+                <a href="#features" class="px-8 py-4 bg-brandAccent hover:bg-blue-600 rounded-lg font-semibold text-lg transition-colors">
+                    Learn More
+                </a>
+                <a href="https://github.com/0xrichyrich/lifelog-agent" target="_blank" class="px-8 py-4 bg-surface hover:bg-gray-800 rounded-lg font-semibold text-lg transition-colors border border-gray-700">
+                    View on GitHub
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-20 px-4 bg-surface">
+        <div class="max-w-6xl mx-auto">
+            <h2 class="text-4xl md:text-5xl font-bold text-center mb-16">
+                Three Features, One App
+            </h2>
+            
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Feature 1 -->
+                <div class="bg-background rounded-xl p-8 hover:transform hover:scale-105 transition-transform">
+                    <div class="text-5xl mb-4">📝</div>
+                    <h3 class="text-2xl font-bold mb-4 text-brandAccent">Quick Logging</h3>
+                    <p class="text-gray-400 mb-4">
+                        2-tap check-ins with 8 preset buttons. Voice notes, photos, timeline view. 
+                        Interactive widgets let you log without opening the app.
+                    </p>
+                    <ul class="text-sm text-gray-500 space-y-2">
+                        <li>✓ Sub-5 second check-ins</li>
+                        <li>✓ Apple Health integration</li>
+                        <li>✓ Lock Screen widgets</li>
+                        <li>✓ Shortcuts & Siri support</li>
+                    </ul>
+                </div>
+                
+                <!-- Feature 2 -->
+                <div class="bg-background rounded-xl p-8 hover:transform hover:scale-105 transition-transform">
+                    <div class="text-5xl mb-4">🧠</div>
+                    <h3 class="text-2xl font-bold mb-4 text-success">AI Insights</h3>
+                    <p class="text-gray-400 mb-4">
+                        Claude analyzes your patterns and provides personalized coaching. 
+                        Morning briefings, evening reviews, smart nudges.
+                    </p>
+                    <ul class="text-sm text-gray-500 space-y-2">
+                        <li>✓ Pattern detection</li>
+                        <li>✓ Daily summaries</li>
+                        <li>✓ Goal tracking & streaks</li>
+                        <li>✓ Privacy-first (local storage)</li>
+                    </ul>
+                </div>
+                
+                <!-- Feature 3 -->
+                <div class="bg-background rounded-xl p-8 hover:transform hover:scale-105 transition-transform">
+                    <div class="text-5xl mb-4">💰</div>
+                    <h3 class="text-2xl font-bold mb-4 text-warning">Token Rewards</h3>
+                    <p class="text-gray-400 mb-4">
+                        Earn $LIFE tokens for hitting your goals. Daily, weekly, and streak bonuses. 
+                        Launched on Monad + Solana.
+                    </p>
+                    <ul class="text-sm text-gray-500 space-y-2">
+                        <li>✓ 100 $LIFE per daily goal</li>
+                        <li>✓ 500 $LIFE per weekly goal</li>
+                        <li>✓ 50 $LIFE per streak day</li>
+                        <li>✓ Unlock premium features</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="py-20 px-4">
+        <div class="max-w-4xl mx-auto">
+            <h2 class="text-4xl md:text-5xl font-bold text-center mb-16">
+                How It Works
+            </h2>
+            
+            <div class="space-y-12">
+                <div class="flex items-start gap-6">
+                    <div class="w-12 h-12 rounded-full bg-brandAccent flex items-center justify-center flex-shrink-0 text-xl font-bold">
+                        1
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-bold mb-2">Log Your Activities</h3>
+                        <p class="text-gray-400">
+                            Quick 2-tap check-ins throughout your day. Focus session, coffee break, lunch, walk - all tracked in seconds.
+                            Voice notes and photos supported.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="flex items-start gap-6">
+                    <div class="w-12 h-12 rounded-full bg-success flex items-center justify-center flex-shrink-0 text-xl font-bold">
+                        2
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-bold mb-2">AI Analyzes Patterns</h3>
+                        <p class="text-gray-400">
+                            Claude identifies when you're most productive, how long you maintain focus, and what activities make you happiest.
+                            Get daily summaries and weekly insights.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="flex items-start gap-6">
+                    <div class="w-12 h-12 rounded-full bg-warning flex items-center justify-center flex-shrink-0 text-xl font-bold">
+                        3
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-bold mb-2">Earn Rewards for Goals</h3>
+                        <p class="text-gray-400">
+                            Hit your daily goals? Get 100 $LIFE tokens minted to your wallet. Complete weekly goals for 500 $LIFE.
+                            Maintain streaks for 50 $LIFE per day bonus.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Screenshots -->
+    <section class="py-20 px-4 bg-surface">
+        <div class="max-w-6xl mx-auto">
+            <h2 class="text-4xl md:text-5xl font-bold text-center mb-16">
+                Beautiful iOS App
+            </h2>
+            
+            <div class="grid md:grid-cols-4 gap-8">
+                <div class="bg-background rounded-xl overflow-hidden">
+                    <img src="../screenshots/01-checkin.png" alt="Check In" class="w-full">
+                    <p class="text-center py-4 text-sm text-gray-400">Quick Check-In</p>
+                </div>
+                <div class="bg-background rounded-xl overflow-hidden">
+                    <img src="../screenshots/02-timeline.png" alt="Timeline" class="w-full">
+                    <p class="text-center py-4 text-sm text-gray-400">Timeline View</p>
+                </div>
+                <div class="bg-background rounded-xl overflow-hidden">
+                    <img src="../screenshots/03-goals.png" alt="Goals" class="w-full">
+                    <p class="text-center py-4 text-sm text-gray-400">Goals & Streaks</p>
+                </div>
+                <div class="bg-background rounded-xl overflow-hidden">
+                    <img src="../screenshots/04-settings.png" alt="Settings" class="w-full">
+                    <p class="text-center py-4 text-sm text-gray-400">Settings</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Token Info -->
+    <section class="py-20 px-4">
+        <div class="max-w-4xl mx-auto text-center">
+            <h2 class="text-4xl md:text-5xl font-bold mb-8">
+                $LIFE Token
+            </h2>
+            
+            <p class="text-xl text-gray-400 mb-12">
+                Built on Monad and Solana. Earn tokens by improving yourself.
+            </p>
+            
+            <div class="bg-surface rounded-xl p-8 mb-8">
+                <h3 class="text-2xl font-bold mb-6">Reward Structure</h3>
+                <div class="grid md:grid-cols-3 gap-8 text-left">
+                    <div>
+                        <div class="text-3xl font-bold text-brandAccent mb-2">100</div>
+                        <p class="text-gray-400">$LIFE per daily goal completed</p>
+                    </div>
+                    <div>
+                        <div class="text-3xl font-bold text-success mb-2">500</div>
+                        <p class="text-gray-400">$LIFE per weekly goal completed</p>
+                    </div>
+                    <div>
+                        <div class="text-3xl font-bold text-warning mb-2">50</div>
+                        <p class="text-gray-400">$LIFE per day streak bonus</p>
+                    </div>
+                </div>
+            </div>
+            
+            <p class="text-sm text-gray-500">
+                Token launches on Monad testnet (nad.fun) and Solana (pump.fun) in Feb 2026
+            </p>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="py-20 px-4 bg-surface">
+        <div class="max-w-4xl mx-auto text-center">
+            <h2 class="text-4xl md:text-5xl font-bold mb-8">
+                Ready to Start?
+            </h2>
+            
+            <p class="text-xl text-gray-400 mb-12">
+                Open source, privacy-first, launching February 2026
+            </p>
+            
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="https://github.com/0xrichyrich/lifelog-agent" target="_blank" class="px-8 py-4 bg-brandAccent hover:bg-blue-600 rounded-lg font-semibold text-lg transition-colors">
+                    Get Early Access
+                </a>
+                <a href="#features" class="px-8 py-4 bg-background hover:bg-gray-900 rounded-lg font-semibold text-lg transition-colors border border-gray-700">
+                    Learn More
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-12 px-4 border-t border-gray-800">
+        <div class="max-w-6xl mx-auto">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-8">
+                <div>
+                    <div class="text-2xl font-bold mb-2">LifeLog</div>
+                    <p class="text-gray-500 text-sm">The AI life coach that pays you to improve</p>
+                </div>
+                
+                <div class="flex gap-6">
+                    <a href="https://github.com/0xrichyrich/lifelog-agent" target="_blank" class="text-gray-400 hover:text-white transition-colors">
+                        GitHub
+                    </a>
+                    <a href="https://x.com/SkynetSays" target="_blank" class="text-gray-400 hover:text-white transition-colors">
+                        Twitter
+                    </a>
+                </div>
+            </div>
+            
+            <div class="mt-8 text-center text-sm text-gray-600">
+                <p>Built for Moltiverse Hackathon 2026</p>
+                <p class="mt-2">Open source • Privacy-first • Crypto-native</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
