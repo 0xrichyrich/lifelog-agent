@@ -276,7 +276,7 @@ struct CheckInView: View {
                 recentCheckIns.insert(newCheckIn, at: 0)
                 messageText = ""
                 capturedImage = nil
-                UIImpactFeedbackGenerator(style: .success).impactOccurred()
+                UINotificationFeedbackGenerator().notificationOccurred(.success)
             }
         } catch {
             await MainActor.run {

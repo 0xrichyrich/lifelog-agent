@@ -207,8 +207,9 @@ struct SettingsView: View {
     
     private func checkNotificationStatus() {
         UNUserNotificationCenter.current().getNotificationSettings { settings in
+            let status = settings.authorizationStatus
             DispatchQueue.main.async {
-                notificationStatus = settings.authorizationStatus
+                notificationStatus = status
             }
         }
     }
