@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import PrivyProvider from '@/components/PrivyProvider';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -14,7 +15,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="bg-background text-text min-h-screen antialiased">
-        {children}
+        <PrivyProvider>
+          {children}
+        </PrivyProvider>
       </body>
     </html>
   );

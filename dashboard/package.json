@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@privy-io/react-auth": "^3.13.0",
     "better-sqlite3": "^11.7.0",
     "date-fns": "^4.1.0",
     "lucide-react": "^0.469.0",
