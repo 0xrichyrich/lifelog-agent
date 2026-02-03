@@ -203,7 +203,7 @@ export class LifeLog {
         throw new Error(`API error: ${response.statusText}`);
       }
 
-      const data = await response.json();
+      const data = await response.json() as { id: string };
       return { success: true, id: data.id };
     } catch (error) {
       if (this.config.debug) {
@@ -249,7 +249,7 @@ export class LifeLog {
         throw new Error(`API error: ${response.statusText}`);
       }
 
-      const data = await response.json();
+      const data = await response.json() as { completed: boolean; reward?: number };
       return { success: true, completed: data.completed, reward: data.reward };
     } catch (error) {
       if (this.config.debug) {
@@ -298,7 +298,7 @@ export class LifeLog {
         throw new Error(`API error: ${response.statusText}`);
       }
 
-      const data = await response.json();
+      const data = await response.json() as { lifeEarned?: number };
       return { success: true, lifeEarned: data.lifeEarned };
     } catch (error) {
       if (this.config.debug) {
@@ -333,7 +333,7 @@ export class LifeLog {
         throw new Error(`API error: ${response.statusText}`);
       }
 
-      return await response.json();
+      return await response.json() as StreakInfo[];
     } catch (error) {
       if (this.config.debug) {
         console.error('[LifeLog] Streak fetch failed:', error);
@@ -378,7 +378,7 @@ export class LifeLog {
         throw new Error(`API error: ${response.statusText}`);
       }
 
-      return await response.json();
+      return await response.json() as TokenBalance;
     } catch (error) {
       if (this.config.debug) {
         console.error('[LifeLog] Balance fetch failed:', error);
@@ -436,7 +436,7 @@ export class LifeLog {
         return null;
       }
 
-      return await response.json();
+      return await response.json() as InsightSummary;
     } catch (error) {
       if (this.config.debug) {
         console.error('[LifeLog] Insight fetch failed:', error);

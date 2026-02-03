@@ -82,10 +82,10 @@ const EXCLUDE_KEYWORDS = [
   'diary', 'personal journal',
 ];
 
-function runGitHubSearch(query: string, limit: number = 15): string[] {
+function runGitHubSearch(query: string, limit: number = 15): any[] {
   try {
     const result = execSync(
-      `gh search repos "${query}" --sort=updated --limit=${limit} --json fullName,description,stargazersCount,primaryLanguage,updatedAt,repositoryTopics`,
+      `gh search repos "${query}" --sort=updated --limit=${limit} --json fullName,description,stargazersCount,language,updatedAt`,
       { encoding: 'utf-8', timeout: 30000 }
     );
     return JSON.parse(result);
@@ -222,8 +222,8 @@ async function scanForCandidates(): Promise<ScanResult> {
 
       const [owner, name] = fullName.split('/');
       const description = repo.description || '';
-      const language = repo.primaryLanguage?.name || 'Unknown';
-      const topics = (repo.repositoryTopics || []).map((t: any) => t.name);
+      const language = repo.language || 'Unknown';
+      const topics: string[] = []; // Topics require separate API call, skip for efficiency
       
       // Get additional details
       const details = getRepoDetails(fullName);
