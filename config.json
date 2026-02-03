@@ -1,0 +1,18 @@
+{
+  "dataDir": "./data",
+  "logsDir": "./logs",
+  "database": "./data/lifelog.db",
+  "recordings": {
+    "screenDir": "./data/recordings",
+    "snapshotDir": "./data/snapshots",
+    "audioDir": "./data/audio"
+  },
+  "intervals": {
+    "screenRecordDurationMs": 60000,
+    "screenRecordIntervalMs": 300000,
+    "cameraSnapshotIntervalMs": 300000
+  },
+  "whisper": {
+    "model": "whisper-1"
+  }
+}
