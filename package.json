@@ -1,6 +1,6 @@
 {
   "name": "lifelog-agent",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Multimodal AI life coach - data collection and analysis",
   "type": "module",
   "main": "dist/index.js",
@@ -14,14 +14,20 @@
     "cli": "node dist/cli/index.js",
     "migrate": "node dist/storage/migrate.js"
   },
-  "keywords": ["lifelog", "ai", "multimodal", "life-coach"],
+  "keywords": [
+    "lifelog",
+    "ai",
+    "multimodal",
+    "life-coach"
+  ],
   "author": "0xrichyrich",
   "license": "MIT",
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.72.1",
     "better-sqlite3": "^11.7.0",
     "commander": "^13.0.0",
-    "openai": "^4.77.0",
-    "date-fns": "^4.1.0"
+    "date-fns": "^4.1.0",
+    "openai": "^4.77.0"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.12",

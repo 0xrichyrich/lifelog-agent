@@ -1,6 +1,7 @@
 {
   "dataDir": "./data",
   "logsDir": "./logs",
+  "summariesDir": "./summaries",
   "database": "./data/lifelog.db",
   "recordings": {
     "screenDir": "./data/recordings",
@@ -14,5 +15,8 @@
   },
   "whisper": {
     "model": "whisper-1"
+  },
+  "analysis": {
+    "model": "claude-sonnet-4-20250514"
   }
 }

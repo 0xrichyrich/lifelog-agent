@@ -4,6 +4,7 @@ export interface Config {
   dataDir: string;
   logsDir: string;
   database: string;
+  summariesDir: string;
   recordings: {
     screenDir: string;
     snapshotDir: string;
@@ -17,6 +18,117 @@ export interface Config {
   whisper: {
     model: string;
   };
+  analysis: {
+    anthropicApiKey?: string;
+    model: string;
+  };
+}
+
+// Activity categories for classification
+export type ActivityCategory = 
+  | 'coding' 
+  | 'meetings' 
+  | 'browsing' 
+  | 'social' 
+  | 'email' 
+  | 'breaks' 
+  | 'other';
+
+// Analysis result for a single media item
+export interface MediaAnalysis {
+  category: ActivityCategory;
+  confidence: number;
+  description: string;
+  applications?: string[];
+  focusScore?: number; // 0-100, how focused the activity appears
+  context?: string;
+}
+
+// Camera/workspace analysis
+export interface WorkspaceAnalysis {
+  postureScore?: number; // 0-100
+  workspaceQuality?: number; // 0-100
+  lighting?: 'good' | 'moderate' | 'poor';
+  distractions?: string[];
+  environment?: string;
+}
+
+// Audio/meeting analysis
+export interface AudioAnalysis {
+  transcript?: string;
+  summary?: string;
+  keyDecisions?: string[];
+  actionItems?: string[];
+  participants?: number;
+  duration?: number;
+}
+
+// Time block for pattern detection
+export interface TimeBlock {
+  startTime: string;
+  endTime: string;
+  category: ActivityCategory;
+  durationMinutes: number;
+  focusScore?: number;
+  isDeepWork: boolean;
+}
+
+// Daily patterns
+export interface DailyPatterns {
+  date: string;
+  timeBlocks: TimeBlock[];
+  categoryBreakdown: Record<ActivityCategory, number>; // minutes per category
+  peakProductivityHours: string[]; // e.g., ["09:00-11:00", "14:00-16:00"]
+  deepWorkSessions: number;
+  deepWorkMinutes: number;
+  contextSwitches: number;
+  focusScore: number; // average across day
+}
+
+// Weekly/monthly trends
+export interface TrendData {
+  period: string;
+  avgDailyFocusScore: number;
+  avgDeepWorkMinutes: number;
+  categoryTrends: Record<ActivityCategory, number>;
+  productivityByDayOfWeek: Record<string, number>;
+  productivityByHour: Record<number, number>;
+  improvements: string[];
+  concerns: string[];
+}
+
+// Daily summary content
+export interface DailySummaryContent {
+  date: string;
+  generatedAt: string;
+  
+  // Time breakdown
+  totalTrackedMinutes: number;
+  categoryBreakdown: Record<ActivityCategory, number>;
+  
+  // Productivity metrics
+  focusScore: number;
+  deepWorkSessions: number;
+  deepWorkMinutes: number;
+  contextSwitches: number;
+  
+  // Insights
+  peakProductivityHours: string[];
+  insights: string[];
+  recommendations: string[];
+  
+  // Comparison to previous day
+  comparison?: {
+    focusScoreChange: number;
+    deepWorkChange: number;
+    productivityChange: string;
+  };
+  
+  // Check-ins
+  checkIns: string[];
+  
+  // Goals (if any)
+  goalsProgress?: Record<string, { target: number; actual: number; met: boolean }>;
 }
 
 export interface Activity {
