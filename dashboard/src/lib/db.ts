@@ -6,16 +6,72 @@ import { Activity, CheckIn, MediaRecord, Summary } from './types';
 // Path to the SQLite database (relative to dashboard folder)
 const DB_PATH = path.join(process.cwd(), '..', 'data', 'lifelog.db');
 
-let db: Database.Database | null = null;
+let _db: Database.Database | null = null;
+let initialized = false;
 
-function getDb(): Database.Database {
-  if (!db) {
+function getDb(readonly = true): Database.Database {
+  if (!_db) {
     if (!fs.existsSync(DB_PATH)) {
-      throw new Error(`Database not found at ${DB_PATH}`);
+      // Create database if it doesn't exist
+      const dataDir = path.dirname(DB_PATH);
+      if (!fs.existsSync(dataDir)) {
+        fs.mkdirSync(dataDir, { recursive: true });
+      }
+      _db = new Database(DB_PATH);
+    } else {
+      _db = new Database(DB_PATH, { readonly });
     }
-    db = new Database(DB_PATH, { readonly: true });
   }
-  return db;
+  return _db;
+}
+
+// Export db for direct access
+export const db = {
+  prepare: (sql: string) => {
+    initializeDatabase();
+    const database = getDb(false);
+    return database.prepare(sql);
+  }
+};
+
+// Initialize database tables
+export function initializeDatabase() {
+  if (initialized) return;
+  
+  const database = getDb(false);
+  initialized = true;  // Set first to prevent recursion
+  
+  // Create check_ins table if it doesn't exist
+  database.exec(`
+    CREATE TABLE IF NOT EXISTS check_ins (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      timestamp TEXT NOT NULL,
+      message TEXT NOT NULL,
+      source TEXT DEFAULT 'api'
+    );
+    
+    CREATE TABLE IF NOT EXISTS activities (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      timestamp TEXT NOT NULL,
+      type TEXT NOT NULL,
+      duration INTEGER,
+      metadata_json TEXT
+    );
+    
+    CREATE TABLE IF NOT EXISTS media (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      timestamp TEXT NOT NULL,
+      type TEXT NOT NULL,
+      file_path TEXT NOT NULL,
+      analysis_json TEXT
+    );
+    
+    CREATE TABLE IF NOT EXISTS summaries (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      date TEXT UNIQUE NOT NULL,
+      content_json TEXT NOT NULL
+    );
+  `);
 }
 
 export function getActivitiesByDate(date: string): Activity[] {

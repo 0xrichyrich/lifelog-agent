@@ -1,8 +1,10 @@
-# LifeLog Agent
+# LifeLog Agent 🧠
 
-Multimodal AI life coach that records, analyzes, and coaches you through your daily activities — with on-chain token rewards for hitting your goals.
+Multimodal AI life coach that records, analyzes, and coaches you through your daily activities — with **on-chain $LIFE token rewards** for hitting your goals and an **AI agent marketplace** to hire wellness specialists.
 
-**Status:** Phase 3 Complete (Coaching System)
+**Status:** Phase 5 Complete (Token + ACP Integration)
+
+> *The AI that hires other AIs to help you improve.*
 
 ## Features
 
@@ -16,6 +18,8 @@ Multimodal AI life coach that records, analyzes, and coaches you through your da
 - 🎯 **Goal Tracking** — Daily, weekly, and streak goals
 - 🏋️ **AI Coaching** — Morning briefings, evening reviews, weekly insights
 - 🔔 **Smart Nudges** — Context-aware productivity reminders
+- 💰 **$LIFE Token** — Earn rewards for completing goals (Monad blockchain)
+- 🤖 **Agent Marketplace** — Hire wellness AI agents via Virtuals ACP
 
 ## Installation
 
@@ -116,6 +120,47 @@ lifelog coach cron-status
 lifelog coach heartbeat-config
 ```
 
+### $LIFE Token
+
+```bash
+# Check your token balance and stats
+lifelog token balance 0xYourAddress
+
+# View unclaimed goal rewards
+lifelog token claimable 0xYourAddress
+
+# Claim all pending rewards (mints $LIFE to your wallet)
+lifelog token claim 0xYourAddress
+
+# View premium features you can unlock
+lifelog token features
+
+# Burn tokens to unlock a feature
+lifelog token unlock premium_insights
+```
+
+### Agent Marketplace (ACP)
+
+```bash
+# Browse wellness agents
+lifelog acp browse
+lifelog acp browse "fitness coach"
+lifelog acp browse "meditation"
+
+# Hire an agent to perform a task
+lifelog acp hire fitbot-pro "Create a 4-week workout plan for desk workers"
+lifelog acp hire zenmaster "Design a 5-minute stress relief meditation"
+
+# Check your jobs
+lifelog acp jobs
+
+# Check ACP wallet balance (USDC)
+lifelog acp balance
+
+# Get AI recommendation based on your patterns
+lifelog acp recommend
+```
+
 ## Configuration
 
 Edit `config.json` to customize:
@@ -214,13 +259,65 @@ Then visit **http://localhost:3000**
 
 All data stays on your local machine. No cloud sync, no external servers.
 
+## $LIFE Token
+
+Earn $LIFE tokens for completing your wellness goals!
+
+| Goal Type | Reward |
+|-----------|--------|
+| Daily Goal | 100 $LIFE |
+| Weekly Goal | 500 $LIFE |
+| Streak Bonus | 50 $LIFE/day |
+
+**Spend tokens on:**
+- Premium AI Insights (1,000 $LIFE)
+- AI Coach Session (500 $LIFE)
+- Custom Goals (250 $LIFE)
+- Agent Discount (2,000 $LIFE for permanent 20% off)
+
+See [Token Economics](docs/tokenomics.md) for details.
+
+## Agent Marketplace
+
+Hire specialized AI agents via Virtuals Protocol ACP:
+
+| Agent | Specialty | Price |
+|-------|-----------|-------|
+| 💪 FitBot Pro | Workout planning | $0.50 |
+| 🥗 NutriAI | Nutrition & meals | $0.30 |
+| 🧘 ZenMaster | Meditation & stress | $0.25 |
+| 😴 SleepWise | Sleep optimization | $0.35 |
+| ⚡ HabitForge | Habit formation | $0.40 |
+
+See [ACP Guide](docs/acp-guide.md) for details.
+
+## Smart Contract
+
+Deploy the $LIFE token to Monad:
+
+```bash
+# Install Hardhat dependencies
+npm install
+
+# Compile contract
+npm run compile
+
+# Deploy to testnet
+npm run deploy:testnet
+
+# Verify on explorer
+npm run verify
+```
+
+Contract address will be saved to `.env` after deployment.
+
 ## Roadmap
 
 - [x] Phase 1: Foundation + Data Collection
 - [x] Phase 2: AI Analysis Engine
 - [x] Phase 3: Coaching System
-- [x] Phase 4: Dashboard UI (in progress)
-- [ ] Phase 5: $LIFE Token Integration
+- [x] Phase 4: Dashboard UI
+- [x] Phase 5: $LIFE Token + ACP Integration
 - [ ] Phase 6: Demo + Marketing
 
 ## License

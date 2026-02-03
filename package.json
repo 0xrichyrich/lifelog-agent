@@ -1,7 +1,7 @@
 {
   "name": "lifelog-agent",
-  "version": "0.3.0",
-  "description": "Multimodal AI life coach - data collection and analysis",
+  "version": "0.5.0",
+  "description": "Multimodal AI life coach with on-chain token rewards and agent marketplace",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
@@ -12,13 +12,22 @@
     "dev": "tsc --watch",
     "start": "node dist/index.js",
     "cli": "node dist/cli/index.js",
-    "migrate": "node dist/storage/migrate.js"
+    "migrate": "node dist/storage/migrate.js",
+    "compile": "hardhat compile",
+    "deploy:testnet": "hardhat run scripts/deploy.ts --network monadTestnet",
+    "deploy:mainnet": "hardhat run scripts/deploy.ts --network monad",
+    "verify": "hardhat run scripts/verify.ts --network monadTestnet"
   },
   "keywords": [
     "lifelog",
     "ai",
     "multimodal",
-    "life-coach"
+    "life-coach",
+    "web3",
+    "monad",
+    "token",
+    "acp",
+    "virtuals"
   ],
   "author": "0xrichyrich",
   "license": "MIT",
@@ -27,11 +36,16 @@
     "better-sqlite3": "^11.7.0",
     "commander": "^13.0.0",
     "date-fns": "^4.1.0",
+    "ethers": "^6.13.0",
     "openai": "^4.77.0"
   },
   "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "@openzeppelin/contracts": "^5.0.0",
     "@types/better-sqlite3": "^7.6.12",
     "@types/node": "^22.10.5",
+    "dotenv": "^16.4.0",
+    "hardhat": "^2.22.0",
     "typescript": "^5.7.2"
   },
   "engines": {

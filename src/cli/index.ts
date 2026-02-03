@@ -13,6 +13,8 @@ import { Exporter } from '../services/exporter.js';
 import { Analyzer, Summarizer, PatternDetector } from '../analysis/index.js';
 import { GoalManager, GoalType } from '../goals/index.js';
 import { Coach, Scheduler, Nudger } from '../coaching/index.js';
+import { TokenRewards, loadConfig as loadTokenConfig, GoalType as TokenGoalType, getClaimableGoals } from '../token/index.js';
+import { ACPClient, getACPClient } from '../acp/index.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -518,6 +520,349 @@ coachCommand
   .action(() => {
     const config = nudger.generateHeartbeatConfig();
     console.log(config);
+    process.exit(0);
+  });
+
+// ===== TOKEN COMMANDS =====
+
+const tokenCommand = program
+  .command('token')
+  .description('$LIFE token management');
+
+tokenCommand
+  .command('balance [address]')
+  .description('Show $LIFE token balance and stats')
+  .action(async (address?: string) => {
+    try {
+      const tokenConfig = loadTokenConfig();
+      const rewards = new TokenRewards(tokenConfig);
+      const userAddress = address || process.env.USER_WALLET_ADDRESS;
+      
+      if (!userAddress) {
+        console.error('❌ No address provided. Set USER_WALLET_ADDRESS or pass as argument.');
+        process.exit(1);
+      }
+      
+      const stats = await rewards.getUserStats(userAddress);
+      const rates = await rewards.getRewardRates();
+      
+      console.log('\n💰 $LIFE Token Stats\n');
+      console.log(`   Address: ${userAddress}`);
+      console.log(`   Balance: ${stats.balance} $LIFE`);
+      console.log(`   Total Earned: ${stats.earned} $LIFE`);
+      console.log(`   Goals Completed: ${stats.goalsCompleted}`);
+      console.log('\n📊 Reward Rates:');
+      console.log(`   Daily Goal: ${rates.daily} $LIFE`);
+      console.log(`   Weekly Goal: ${rates.weekly} $LIFE`);
+      console.log(`   Streak Bonus: ${rates.streak} $LIFE`);
+      console.log(`\n🔗 Contract: ${rewards.getContractAddress()}\n`);
+    } catch (error: any) {
+      console.error('❌ Error fetching balance:', error?.message || error);
+      process.exit(1);
+    }
+    process.exit(0);
+  });
+
+tokenCommand
+  .command('claimable [address]')
+  .description('Show unclaimed goal rewards')
+  .action(async (address?: string) => {
+    try {
+      const tokenConfig = loadTokenConfig();
+      const rewards = new TokenRewards(tokenConfig);
+      const userAddress = address || process.env.USER_WALLET_ADDRESS;
+      
+      if (!userAddress) {
+        console.error('❌ No address provided. Set USER_WALLET_ADDRESS or pass as argument.');
+        process.exit(1);
+      }
+      
+      const claimable = await getClaimableGoals(rewards, userAddress);
+      
+      console.log('\n🎯 Claimable Rewards\n');
+      
+      const unclaimed = claimable.filter(g => !g.claimed);
+      const claimed = claimable.filter(g => g.claimed);
+      
+      if (unclaimed.length === 0) {
+        console.log('   No unclaimed rewards.\n');
+      } else {
+        let totalReward = 0;
+        for (const goal of unclaimed) {
+          console.log(`   ○ ${goal.name}: ${goal.reward} $LIFE`);
+          totalReward += parseFloat(goal.reward);
+        }
+        console.log(`\n   Total Claimable: ${totalReward} $LIFE\n`);
+        console.log('   Run "lifelog token claim" to claim all rewards.\n');
+      }
+      
+      if (claimed.length > 0) {
+        console.log(`   ✓ ${claimed.length} goals already claimed\n`);
+      }
+    } catch (error: any) {
+      console.error('❌ Error:', error?.message || error);
+      process.exit(1);
+    }
+    process.exit(0);
+  });
+
+tokenCommand
+  .command('claim [address]')
+  .description('Claim all pending goal rewards')
+  .action(async (address?: string) => {
+    try {
+      const tokenConfig = loadTokenConfig();
+      const rewards = new TokenRewards(tokenConfig);
+      const userAddress = address || process.env.USER_WALLET_ADDRESS;
+      
+      if (!userAddress) {
+        console.error('❌ No address provided. Set USER_WALLET_ADDRESS or pass as argument.');
+        process.exit(1);
+      }
+      
+      if (!tokenConfig.privateKey) {
+        console.error('❌ WALLET_PRIVATE_KEY not set. Cannot mint tokens.');
+        process.exit(1);
+      }
+      
+      const claimable = await getClaimableGoals(rewards, userAddress);
+      const unclaimed = claimable.filter(g => !g.claimed);
+      
+      if (unclaimed.length === 0) {
+        console.log('\n✅ No rewards to claim.\n');
+        process.exit(0);
+      }
+      
+      console.log(`\n🚀 Claiming ${unclaimed.length} goal rewards...\n`);
+      
+      const goals = unclaimed.map(g => ({
+        id: g.id,
+        type: g.type as TokenGoalType,
+      }));
+      
+      const result = await rewards.rewardGoalsBatch(userAddress, goals);
+      
+      console.log('✅ Rewards claimed!');
+      console.log(`   Amount: ${result.totalReward} $LIFE`);
+      console.log(`   Transaction: ${result.txHash}\n`);
+    } catch (error: any) {
+      console.error('❌ Claim failed:', error?.message || error);
+      process.exit(1);
+    }
+    process.exit(0);
+  });
+
+tokenCommand
+  .command('features')
+  .description('Show premium features you can unlock with $LIFE')
+  .action(async () => {
+    try {
+      const tokenConfig = loadTokenConfig();
+      const rewards = new TokenRewards(tokenConfig);
+      
+      const features = [
+        'premium_insights',
+        'ai_coach_call',
+        'custom_goals',
+        'export_reports',
+        'agent_discount',
+      ];
+      
+      console.log('\n🔓 Premium Features\n');
+      
+      for (const feature of features) {
+        const cost = await rewards.getFeatureCost(feature);
+        const displayName = feature.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        console.log(`   ${displayName}: ${cost} $LIFE`);
+      }
+      
+      console.log('\n   Burn tokens with: lifelog token unlock <feature>\n');
+    } catch (error: any) {
+      console.error('❌ Error:', error?.message || error);
+      process.exit(1);
+    }
+    process.exit(0);
+  });
+
+tokenCommand
+  .command('unlock <feature>')
+  .description('Unlock a premium feature by burning $LIFE tokens')
+  .action(async (feature: string) => {
+    try {
+      const tokenConfig = loadTokenConfig();
+      const rewards = new TokenRewards(tokenConfig);
+      
+      console.log(`\n🔥 Unlocking ${feature}...`);
+      
+      const result = await rewards.unlockFeature(feature);
+      
+      console.log('✅ Feature unlocked!');
+      console.log(`   Cost: ${result.cost} $LIFE (burned)`);
+      console.log(`   Transaction: ${result.txHash}\n`);
+    } catch (error: any) {
+      console.error('❌ Unlock failed:', error?.message || error);
+      process.exit(1);
+    }
+    process.exit(0);
+  });
+
+// ===== ACP (AGENT COMMERCE PROTOCOL) COMMANDS =====
+
+const acpCommand = program
+  .command('acp')
+  .description('Agent marketplace (Virtuals ACP)');
+
+acpCommand
+  .command('browse [query]')
+  .description('Browse wellness agents on the marketplace')
+  .action(async (query?: string) => {
+    try {
+      const acp = getACPClient();
+      const agents = await acp.browseWellnessAgents(query);
+      
+      console.log('\n🤖 Wellness Agents Marketplace\n');
+      
+      if (query) {
+        console.log(`   Searching for: "${query}"\n`);
+      }
+      
+      if (agents.length === 0) {
+        console.log('   No agents found.\n');
+        process.exit(0);
+      }
+      
+      for (const agent of agents) {
+        const stars = '⭐'.repeat(Math.round(agent.rating));
+        console.log(`   📦 ${agent.name} (${agent.id})`);
+        console.log(`      ${agent.description}`);
+        console.log(`      💰 $${agent.priceUsd.toFixed(2)} USDC | ${stars} ${agent.rating} | ${agent.completedJobs} jobs`);
+        console.log(`      🏷️  ${agent.category} | ${agent.capabilities.join(', ')}`);
+        console.log('');
+      }
+      
+      console.log('   Hire with: lifelog acp hire <agent-id> "<task description>"\n');
+    } catch (error: any) {
+      console.error('❌ Browse failed:', error?.message || error);
+      process.exit(1);
+    }
+    process.exit(0);
+  });
+
+acpCommand
+  .command('hire <agent-id> <task>')
+  .description('Hire an agent to perform a task')
+  .action(async (agentId: string, task: string) => {
+    try {
+      const acp = getACPClient();
+      
+      console.log('\n🤝 Creating ACP Job...\n');
+      
+      const job = await acp.hireAgent(agentId, task);
+      
+      console.log('\n✅ Job Created!');
+      console.log(`   Job ID: ${job.id}`);
+      console.log(`   Agent: ${job.agentId}`);
+      console.log(`   Task: ${job.taskDescription}`);
+      console.log(`   Cost: $${job.cost.toFixed(2)} USDC`);
+      console.log(`   Status: ${job.status}`);
+      console.log('\n   Check status: lifelog acp jobs\n');
+    } catch (error: any) {
+      console.error('❌ Hire failed:', error?.message || error);
+      process.exit(1);
+    }
+    process.exit(0);
+  });
+
+acpCommand
+  .command('jobs')
+  .description('List your ACP jobs')
+  .action(async () => {
+    try {
+      const acp = getACPClient();
+      const jobs = await acp.listJobs();
+      
+      console.log('\n📋 Your ACP Jobs\n');
+      
+      if (jobs.length === 0) {
+        console.log('   No jobs found. Hire an agent with: lifelog acp hire <agent-id> "<task>"\n');
+        process.exit(0);
+      }
+      
+      for (const job of jobs) {
+        const statusEmoji = job.status === 'completed' ? '✅' : job.status === 'in_progress' ? '🔄' : '⏳';
+        console.log(`   ${statusEmoji} ${job.id}`);
+        console.log(`      Agent: ${job.agentId}`);
+        console.log(`      Task: ${job.taskDescription}`);
+        console.log(`      Status: ${job.status}`);
+        console.log(`      Cost: $${job.cost.toFixed(2)} USDC`);
+        if (job.result) {
+          console.log(`      Result: ${job.result.substring(0, 100)}...`);
+        }
+        console.log('');
+      }
+    } catch (error: any) {
+      console.error('❌ Error:', error?.message || error);
+      process.exit(1);
+    }
+    process.exit(0);
+  });
+
+acpCommand
+  .command('balance')
+  .description('Check ACP wallet balance (USDC)')
+  .action(async () => {
+    try {
+      const acp = getACPClient();
+      const balance = await acp.getWalletBalance();
+      
+      console.log('\n💰 ACP Wallet\n');
+      console.log(`   Address: ${balance.address}`);
+      console.log(`   USDC Balance: $${balance.usdc}\n`);
+    } catch (error: any) {
+      console.error('❌ Error:', error?.message || error);
+      process.exit(1);
+    }
+    process.exit(0);
+  });
+
+acpCommand
+  .command('recommend')
+  .description('Get AI-powered agent recommendation based on your patterns')
+  .action(async () => {
+    try {
+      const acp = getACPClient();
+      
+      console.log('\n🧠 Analyzing your patterns...\n');
+      
+      // Get patterns from LifeLog data
+      const patternReport = await patterns.getPatternReport(7);
+      
+      // Mock pattern data for demo (in production, parse from patternReport)
+      const mockPatterns = {
+        exerciseConsistency: 0.4,
+        sleepQuality: 0.7,
+        stressLevel: 0.5,
+        goalStreak: 2,
+      };
+      
+      const recommendation = await acp.getRecommendation(mockPatterns);
+      
+      if (!recommendation) {
+        console.log('   ✅ No recommendations right now. You\'re doing great!\n');
+        process.exit(0);
+      }
+      
+      console.log('   💡 Recommendation:\n');
+      console.log(`   📦 ${recommendation.agent.name}`);
+      console.log(`      ${recommendation.agent.description}`);
+      console.log(`\n   Why: ${recommendation.reason}`);
+      console.log(`\n   Suggested task: "${recommendation.suggestedTask}"`);
+      console.log(`   Cost: $${recommendation.agent.priceUsd.toFixed(2)} USDC`);
+      console.log(`\n   Hire now: lifelog acp hire ${recommendation.agent.id} "${recommendation.suggestedTask}"\n`);
+    } catch (error: any) {
+      console.error('❌ Error:', error?.message || error);
+      process.exit(1);
+    }
     process.exit(0);
   });
 

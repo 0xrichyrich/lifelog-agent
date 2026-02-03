@@ -7,13 +7,16 @@ import {
   Target, 
   BarChart3, 
   Settings, 
-  Activity 
+  Activity,
+  Users,
+  Coins
 } from 'lucide-react';
 
 const navItems = [
   { href: '/', label: 'Timeline', icon: Calendar },
   { href: '/goals', label: 'Goals', icon: Target },
   { href: '/insights', label: 'Insights', icon: BarChart3 },
+  { href: '/wellness', label: 'Wellness Agents', icon: Users },
   { href: '/settings', label: 'Settings', icon: Settings },
 ];
 
