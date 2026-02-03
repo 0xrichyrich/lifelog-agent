@@ -200,78 +200,67 @@ struct OnboardingView: View {
 }
 
 // MARK: - Screen 1: Welcome
-// Things 3 inspiration: buttery smooth, premium feel
+// Things 3 inspiration: buttery smooth, premium feel with mint green mascot
 
 struct WelcomeScreen: View {
-    @State private var showLogo = false
+    @State private var showMascot = false
     @State private var showTagline = false
-    @State private var pulseGlow = false
-    @State private var sparklePositions: [(CGFloat, CGFloat)] = (0..<8).map { _ in
-        (CGFloat.random(in: -90...90), CGFloat.random(in: -90...90))
+    @State private var floatOffset: CGFloat = 0
+    @State private var sparklePositions: [(CGFloat, CGFloat)] = (0..<6).map { _ in
+        (CGFloat.random(in: -100...100), CGFloat.random(in: -100...100))
     }
     
     var body: some View {
         VStack(spacing: 32) {
             Spacer()
             
-            // Hero visual - premium animated brain
+            // Hero visual - kawaii mint green squircle mascot
             ZStack {
-                // Layered glow effect (Things 3 style depth)
+                // Soft mint glow background
                 Circle()
                     .fill(
                         RadialGradient(
-                            colors: [Color.brandAccent.opacity(0.3), Color.clear],
+                            colors: [Color.mintLight, Color.clear],
                             center: .center,
                             startRadius: 0,
-                            endRadius: 120
+                            endRadius: 140
                         )
                     )
-                    .frame(width: 240, height: 240)
-                    .scaleEffect(pulseGlow ? 1.15 : 1.0)
-                    .blur(radius: 30)
-                
-                Circle()
-                    .fill(Color.success.opacity(0.1))
-                    .frame(width: 160, height: 160)
-                    .blur(radius: 20)
-                    .offset(x: 20, y: 20)
-                
-                // Brain icon with entrance animation
-                Image(systemName: "brain.head.profile")
-                    .font(.system(size: 100))
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [Color.brandAccent, Color.success],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .shadow(color: Color.brandAccent.opacity(0.6), radius: 30)
-                    .scaleEffect(showLogo ? 1 : 0.5)
-                    .opacity(showLogo ? 1 : 0)
+                    .frame(width: 280, height: 280)
+                    .blur(radius: 40)
                 
                 // Floating sparkles
-                ForEach(0..<8, id: \.self) { index in
+                ForEach(0..<6, id: \.self) { index in
                     Image(systemName: "sparkle")
-                        .font(.system(size: CGFloat.random(in: 10...18)))
-                        .foregroundStyle(index % 2 == 0 ? Color.warning : Color.brandAccent.opacity(0.7))
+                        .font(.system(size: CGFloat.random(in: 12...20)))
+                        .foregroundStyle(index % 2 == 0 ? Color.brandAccent : Color.mintMedium)
                         .offset(x: sparklePositions[index].0, y: sparklePositions[index].1)
-                        .opacity(showLogo ? Double.random(in: 0.4...1.0) : 0)
-                        .scaleEffect(pulseGlow ? 1.2 : 0.8)
+                        .opacity(showMascot ? Double.random(in: 0.5...1.0) : 0)
+                        .scaleEffect(showMascot ? 1.0 : 0.5)
                 }
+                
+                // Mascot character - waving hello
+                Image("MascotWave")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 180, height: 180)
+                    .scaleEffect(showMascot ? 1 : 0.5)
+                    .opacity(showMascot ? 1 : 0)
+                    .offset(y: floatOffset)
+                    .shadow(color: Color.brandAccent.opacity(0.2), radius: 20, y: 10)
             }
             .onAppear {
-                // Staggered entrance (Things 3 style)
+                // Mascot entrance animation
                 withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
-                    showLogo = true
+                    showMascot = true
                 }
                 
-                // Subtle pulse
+                // Gentle floating animation
                 withAnimation(.easeInOut(duration: 2.5).repeatForever(autoreverses: true).delay(0.5)) {
-                    pulseGlow = true
+                    floatOffset = -8
                 }
                 
-                // Haptic on logo appear
+                // Haptic on mascot appear
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                     UIImpactFeedbackGenerator(style: .soft).impactOccurred()
                 }
@@ -281,13 +270,13 @@ struct WelcomeScreen: View {
                 Text("Nudge")
                     .font(.system(size: 44, weight: .bold, design: .rounded))
                     .foregroundStyle(Color.textPrimary)
-                    .opacity(showLogo ? 1 : 0)
-                    .offset(y: showLogo ? 0 : 20)
-                    .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.2), value: showLogo)
+                    .opacity(showMascot ? 1 : 0)
+                    .offset(y: showMascot ? 0 : 20)
+                    .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.2), value: showMascot)
                 
                 Text("Sometimes you need\na little nudge")
                     .font(.title3)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.textSecondary)
                     .multilineTextAlignment(.center)
                     .opacity(showTagline ? 1 : 0)
                     .offset(y: showTagline ? 0 : 10)
@@ -308,15 +297,30 @@ struct WelcomeScreen: View {
 // MARK: - Screen 2: How It Works
 
 struct HowItWorksScreen: View {
+    @State private var showMascot = false
+    
     var body: some View {
-        VStack(spacing: 40) {
+        VStack(spacing: 32) {
             Spacer()
+            
+            // Small mascot giving a nudge gesture
+            Image("MascotNudge")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 100, height: 100)
+                .scaleEffect(showMascot ? 1 : 0.8)
+                .opacity(showMascot ? 1 : 0)
+                .onAppear {
+                    withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                        showMascot = true
+                    }
+                }
             
             Text("How It Works")
                 .font(.system(size: 32, weight: .bold, design: .rounded))
                 .foregroundStyle(Color.textPrimary)
             
-            VStack(spacing: 24) {
+            VStack(spacing: 20) {
                 HowItWorksRow(
                     icon: "square.and.pencil",
                     color: .brandAccent,
@@ -923,15 +927,25 @@ struct GoalTemplateCard: View {
 struct EnableCoachingScreen: View {
     let onEnableNotifications: () -> Void
     @State private var showExampleNotification = false
+    @State private var showMascot = false
     
     var body: some View {
         VStack(spacing: 24) {
             Spacer()
             
             VStack(spacing: 12) {
-                Image(systemName: "bell.badge.fill")
-                    .font(.system(size: 48))
-                    .foregroundStyle(Color.warning)
+                // Small happy mascot
+                Image("MascotHappy")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 80, height: 80)
+                    .scaleEffect(showMascot ? 1 : 0.8)
+                    .opacity(showMascot ? 1 : 0)
+                    .onAppear {
+                        withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                            showMascot = true
+                        }
+                    }
                 
                 Text("Enable AI Coaching")
                     .font(.system(size: 28, weight: .bold, design: .rounded))
@@ -939,7 +953,7 @@ struct EnableCoachingScreen: View {
                 
                 Text("Get daily insights & gentle nudges from your AI coach")
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.textSecondary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 32)
             }
@@ -947,9 +961,10 @@ struct EnableCoachingScreen: View {
             // Example notification
             VStack(alignment: .leading, spacing: 12) {
                 HStack(spacing: 12) {
-                    Image(systemName: "brain.head.profile")
-                        .font(.system(size: 32))
-                        .foregroundStyle(Color.brandAccent)
+                    Image("MascotNudge")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 40, height: 40)
                     
                     VStack(alignment: .leading, spacing: 4) {
                         HStack {
@@ -962,7 +977,7 @@ struct EnableCoachingScreen: View {
                             
                             Text("now")
                                 .font(.caption2)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(Color.textSecondary)
                         }
                         
                         Text("You've been scrolling for 45min. Time to refocus? 🎯")
@@ -973,7 +988,7 @@ struct EnableCoachingScreen: View {
                 .padding()
                 .background(Color.cardBackground)
                 .clipShape(RoundedRectangle(cornerRadius: 16))
-                .shadow(color: .black.opacity(0.3), radius: 10, y: 5)
+                .shadow(color: .black.opacity(0.08), radius: 12, y: 4)
             }
             .padding(.horizontal, 24)
             .opacity(showExampleNotification ? 1 : 0)
@@ -1002,7 +1017,7 @@ struct EnableCoachingScreen: View {
             
             Text("You can change this anytime in Settings")
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.textSecondary)
             
             Spacer()
             Spacer()
@@ -1017,23 +1032,44 @@ struct AllSetScreen: View {
     let selectedGoal: GoalTemplate?
     let onStart: () -> Void
     
-    @State private var showConfetti = false
+    @State private var showMascot = false
+    @State private var floatOffset: CGFloat = 0
     
     var body: some View {
         VStack(spacing: 32) {
             Spacer()
             
             ZStack {
-                // Celebration background
+                // Celebration background with mint glow
                 Circle()
-                    .fill(Color.success.opacity(0.1))
-                    .frame(width: 180, height: 180)
+                    .fill(
+                        RadialGradient(
+                            colors: [Color.mintLight, Color.clear],
+                            center: .center,
+                            startRadius: 0,
+                            endRadius: 120
+                        )
+                    )
+                    .frame(width: 220, height: 220)
                     .blur(radius: 30)
                 
-                Image(systemName: "checkmark.circle.fill")
-                    .font(.system(size: 80))
-                    .foregroundStyle(Color.success)
-                    .shadow(color: Color.success.opacity(0.5), radius: 20)
+                // Celebrating mascot
+                Image("MascotCelebrate")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 160, height: 160)
+                    .scaleEffect(showMascot ? 1 : 0.5)
+                    .opacity(showMascot ? 1 : 0)
+                    .offset(y: floatOffset)
+                    .shadow(color: Color.brandAccent.opacity(0.2), radius: 15, y: 8)
+            }
+            .onAppear {
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.6)) {
+                    showMascot = true
+                }
+                withAnimation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true).delay(0.3)) {
+                    floatOffset = -6
+                }
             }
             
             VStack(spacing: 12) {
@@ -1043,7 +1079,7 @@ struct AllSetScreen: View {
                 
                 Text("Here's what you've accomplished:")
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.textSecondary)
             }
             
             // Summary
@@ -1059,6 +1095,7 @@ struct AllSetScreen: View {
             .padding()
             .background(Color.cardBackground)
             .clipShape(RoundedRectangle(cornerRadius: 16))
+            .shadow(color: Color.black.opacity(0.05), radius: 10, y: 4)
             .padding(.horizontal, 24)
             
             Spacer()
@@ -1075,7 +1112,7 @@ struct AllSetScreen: View {
                 .padding()
                 .background(
                     LinearGradient(
-                        colors: [Color.brandAccent, Color.success],
+                        colors: [Color.brandAccent, Color.brandAccentDark],
                         startPoint: .leading,
                         endPoint: .trailing
                     )
@@ -1134,17 +1171,17 @@ struct WidgetPromoScreen: View {
                 
                 Text("See your goals at a glance.\nNo need to open the app.")
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.textSecondary)
                     .multilineTextAlignment(.center)
             }
             
             // Widget preview (floating)
             ZStack {
-                // Shadow/glow
+                // Shadow/glow with mint
                 RoundedRectangle(cornerRadius: 20)
-                    .fill(Color.brandAccent.opacity(0.1))
+                    .fill(Color.mintLight)
                     .frame(width: 180, height: 180)
-                    .blur(radius: 20)
+                    .blur(radius: 25)
                 
                 // Widget mockup
                 VStack(spacing: 12) {
@@ -1154,7 +1191,7 @@ struct WidgetPromoScreen: View {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Today's Focus")
                                 .font(.caption)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(Color.textSecondary)
                             Text("3h 24m")
                                 .font(.title3)
                                 .fontWeight(.bold)
@@ -1164,7 +1201,7 @@ struct WidgetPromoScreen: View {
                     }
                     
                     ProgressView(value: 0.7)
-                        .tint(Color.success)
+                        .tint(Color.brandAccent)
                     
                     HStack {
                         Text("🔥 7 day streak")
@@ -1177,7 +1214,7 @@ struct WidgetPromoScreen: View {
                 .frame(width: 170, height: 170)
                 .background(Color.cardBackground)
                 .clipShape(RoundedRectangle(cornerRadius: 20))
-                .shadow(color: .black.opacity(0.3), radius: 15, y: 8)
+                .shadow(color: .black.opacity(0.08), radius: 15, y: 8)
                 .scaleEffect(showWidget ? 1 : 0.8)
                 .opacity(showWidget ? 1 : 0)
                 .offset(y: floatAnimation ? -5 : 5)
@@ -1209,11 +1246,12 @@ struct WidgetPromoScreen: View {
                     Text("Find Nudge")
                 }
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.textSecondary)
             }
             .padding()
             .background(Color.cardBackground)
             .clipShape(RoundedRectangle(cornerRadius: 12))
+            .shadow(color: .black.opacity(0.05), radius: 8, y: 2)
             .padding(.horizontal, 24)
             
             Spacer()

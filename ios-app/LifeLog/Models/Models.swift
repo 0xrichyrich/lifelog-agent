@@ -227,12 +227,22 @@ extension Color {
         self.init(red: red, green: green, blue: blue)
     }
     
-    // Theme colors
-    static let background = Color(hex: "0a0a0a")!
-    static let cardBackground = Color(hex: "1a1a1a")!
-    static let textPrimary = Color(hex: "e5e5e5")!
-    static let brandAccent = Color(hex: "3b82f6")!
-    static let success = Color(hex: "10b981")!
-    static let warning = Color(hex: "f59e0b")!
-    static let danger = Color(hex: "ef4444")!
+    // Theme colors - Light theme with mint green accent
+    // Inspired by the kawaii mint green squircle mascot
+    static let background = Color(hex: "F8FAFB")!          // Soft off-white background
+    static let cardBackground = Color(hex: "FFFFFF")!      // Pure white cards
+    static let textPrimary = Color(hex: "1F2937")!         // Dark gray for text
+    static let textSecondary = Color(hex: "6B7280")!       // Medium gray for secondary text
+    static let brandAccent = Color(hex: "A8E6CF")!         // Mint green (mascot color)
+    static let brandAccentDark = Color(hex: "7DD3B0")!     // Darker mint for contrast
+    static let success = Color(hex: "6FCF97")!             // Soft green (complementary)
+    static let warning = Color(hex: "F2C94C")!             // Warm yellow
+    static let danger = Color(hex: "EB5757")!              // Soft red
+    static let mintLight = Color(hex: "E8F5F0")!           // Very light mint for backgrounds
+    static let mintMedium = Color(hex: "B8EDD9")!          // Medium mint
+    
+    // Semantic colors for the light theme
+    static let surfaceElevated = Color(hex: "FFFFFF")!     // Elevated surfaces (cards, modals)
+    static let divider = Color(hex: "E5E7EB")!             // Subtle dividers
+    static let inputBackground = Color(hex: "F3F4F6")!     // Input field backgrounds
 }

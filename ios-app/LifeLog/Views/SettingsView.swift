@@ -467,16 +467,19 @@ struct AboutSheet: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 24) {
-                    Image(systemName: "brain.fill")
-                        .font(.system(size: 80))
-                        .foregroundStyle(Color.brandAccent)
+                    // Mascot instead of brain icon
+                    Image("MascotWave")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 120, height: 120)
                     
                     Text("Nudge")
                         .font(.largeTitle)
                         .fontWeight(.bold)
+                        .foregroundStyle(Color.textPrimary)
                     
                     Text("Sometimes you need a little nudge")
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Color.textSecondary)
                     
                     VStack(alignment: .leading, spacing: 16) {
                         FeatureRow(icon: "square.and.pencil", title: "Quick Check-ins", description: "Log thoughts instantly with voice or text")
@@ -489,10 +492,11 @@ struct AboutSheet: View {
                     .padding()
                     .background(Color.cardBackground)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .shadow(color: .black.opacity(0.05), radius: 8, y: 2)
                     
                     Text("Built with ❤️ for the Moltiverse Hackathon")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Color.textSecondary)
                 }
                 .padding()
             }
@@ -525,9 +529,10 @@ struct FeatureRow: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
                     .fontWeight(.semibold)
+                    .foregroundStyle(Color.textPrimary)
                 Text(description)
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.textSecondary)
             }
         }
     }

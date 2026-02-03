@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Nudge Mascot - Mint Green Squircle Character -->
+  
+  <!-- Left arm (behind body) -->
+  <path d="M95 240 Q70 250 60 280 Q55 300 70 310" 
+        stroke="#2D3436" stroke-width="8" stroke-linecap="round" fill="none"/>
+  
+  <!-- Left leg -->
+  <path d="M160 340 L150 400 Q145 420 160 430" 
+        stroke="#2D3436" stroke-width="8" stroke-linecap="round" fill="none"/>
+  <ellipse cx="160" cy="435" rx="20" ry="10" fill="#7FDBBA"/>
+  
+  <!-- Right leg -->
+  <path d="M280 340 L290 400 Q295 420 280 430" 
+        stroke="#2D3436" stroke-width="8" stroke-linecap="round" fill="none"/>
+  <ellipse cx="280" cy="435" rx="20" ry="10" fill="#7FDBBA"/>
+  
+  <!-- Body - Rounded Square (Squircle) -->
+  <rect x="100" y="120" width="220" height="220" rx="50" ry="50" 
+        fill="#9EDFCE" stroke="#2D3436" stroke-width="6"/>
+  
+  <!-- Inner highlight on body -->
+  <rect x="115" y="135" width="190" height="100" rx="40" ry="40" 
+        fill="#B8E8DB" opacity="0.5"/>
+  
+  <!-- Left eye -->
+  <ellipse cx="170" cy="220" rx="18" ry="20" fill="#2D3436"/>
+  <ellipse cx="175" cy="215" rx="6" ry="7" fill="white"/>
+  
+  <!-- Right eye -->
+  <ellipse cx="250" cy="220" rx="18" ry="20" fill="#2D3436"/>
+  <ellipse cx="255" cy="215" rx="6" ry="7" fill="white"/>
+  
+  <!-- Smile -->
+  <path d="M180 270 Q210 300 240 270" 
+        stroke="#2D3436" stroke-width="6" stroke-linecap="round" fill="none"/>
+  
+  <!-- Left cheek (blush) -->
+  <ellipse cx="140" cy="260" rx="18" ry="12" fill="#FFB5B5" opacity="0.7"/>
+  
+  <!-- Right cheek (blush) -->
+  <ellipse cx="280" cy="260" rx="18" ry="12" fill="#FFB5B5" opacity="0.7"/>
+  
+  <!-- Right arm (nudging) -->
+  <path d="M320 220 Q360 210 400 200 Q430 195 450 200" 
+        stroke="#2D3436" stroke-width="8" stroke-linecap="round" fill="none"/>
+  
+  <!-- Hand at end of nudging arm -->
+  <ellipse cx="455" cy="200" rx="15" ry="12" fill="#9EDFCE" stroke="#2D3436" stroke-width="4"/>
+  
+  <!-- Motion lines for nudge -->
+  <path d="M460 180 Q475 175 485 180" stroke="#2D3436" stroke-width="3" stroke-linecap="round" fill="none"/>
+  <path d="M465 200 Q480 195 495 200" stroke="#2D3436" stroke-width="3" stroke-linecap="round" fill="none"/>
+  <path d="M460 220 Q475 225 485 220" stroke="#2D3436" stroke-width="3" stroke-linecap="round" fill="none"/>
+</svg>

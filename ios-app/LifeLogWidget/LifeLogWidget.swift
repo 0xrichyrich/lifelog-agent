@@ -152,26 +152,26 @@ struct LifeLogWidgetLargeView: View {
                     icon: "brain.head.profile",
                     value: "\(entry.focusMinutes)",
                     label: "Focus",
-                    color: Color(hex: "10b981")!
+                    color: Color(hex: "6FCF97")!
                 )
                 
                 StatBubble(
                     icon: "target",
                     value: "\(entry.goalsCompleted)/\(entry.totalGoals)",
                     label: "Goals",
-                    color: Color(hex: "3b82f6")!
+                    color: Color(hex: "A8E6CF")!
                 )
                 
                 StatBubble(
                     icon: "flame.fill",
                     value: "\(entry.maxStreak)",
                     label: "Streak",
-                    color: Color(hex: "f59e0b")!
+                    color: Color(hex: "F2C94C")!
                 )
             }
             
             Divider()
-                .overlay(Color.gray.opacity(0.3))
+                .overlay(Color.gray.opacity(0.2))
             
             // Quick Log Buttons (Interactive)
             Text("Quick Log")
@@ -183,14 +183,14 @@ struct LifeLogWidgetLargeView: View {
                 QuickLogWidgetButton(
                     icon: "brain.head.profile",
                     label: "Focus",
-                    color: Color(hex: "10b981")!,
+                    color: Color(hex: "6FCF97")!,
                     intent: QuickFocusIntent()
                 )
                 
                 QuickLogWidgetButton(
                     icon: "person.3.fill",
                     label: "Meeting",
-                    color: Color(hex: "f59e0b")!,
+                    color: Color(hex: "F2C94C")!,
                     intent: QuickMeetingIntent()
                 )
                 
@@ -204,7 +204,7 @@ struct LifeLogWidgetLargeView: View {
                 QuickLogWidgetButton(
                     icon: "mug.fill",
                     label: "Coffee",
-                    color: Color(hex: "8b5a2b")!,
+                    color: Color(hex: "A1887F")!,
                     intent: QuickCoffeeIntent()
                 )
             }
@@ -228,7 +228,7 @@ struct LifeLogWidgetLargeView: View {
         }
         .padding()
         .containerBackground(for: .widget) {
-            Color(hex: "1a1a1a")!
+            Color(hex: "FFFFFF")!
         }
     }
 }
@@ -296,11 +296,12 @@ struct LifeLogWidgetMediumView: View {
             VStack(spacing: 4) {
                 Image(systemName: "brain.head.profile")
                     .font(.title)
-                    .foregroundStyle(Color(hex: "10b981")!)
+                    .foregroundStyle(Color(hex: "6FCF97")!)
                 
                 Text("\(entry.focusMinutes)")
                     .font(.title2)
                     .fontWeight(.bold)
+                    .foregroundStyle(Color(hex: "1F2937")!)
                 
                 Text("Focus min")
                     .font(.caption2)
@@ -314,11 +315,12 @@ struct LifeLogWidgetMediumView: View {
             VStack(spacing: 4) {
                 Image(systemName: "target")
                     .font(.title)
-                    .foregroundStyle(Color(hex: "3b82f6")!)
+                    .foregroundStyle(Color(hex: "A8E6CF")!)
                 
                 Text("\(entry.goalsCompleted)/\(entry.totalGoals)")
                     .font(.title2)
                     .fontWeight(.bold)
+                    .foregroundStyle(Color(hex: "1F2937")!)
                 
                 Text("Goals")
                     .font(.caption2)
@@ -336,6 +338,7 @@ struct LifeLogWidgetMediumView: View {
                 Text("\(entry.maxStreak)")
                     .font(.title2)
                     .fontWeight(.bold)
+                    .foregroundStyle(Color(hex: "1F2937")!)
                 
                 Text("Streak")
                     .font(.caption2)
@@ -345,7 +348,7 @@ struct LifeLogWidgetMediumView: View {
         }
         .padding()
         .containerBackground(for: .widget) {
-            Color(hex: "1a1a1a")!
+            Color(hex: "FFFFFF")!
         }
     }
 }
@@ -361,6 +364,7 @@ struct LifeLogWidgetSmallView: View {
                 Text("\(entry.maxStreak)")
                     .font(.title)
                     .fontWeight(.bold)
+                    .foregroundStyle(Color(hex: "1F2937")!)
             }
             
             Text("day streak")
@@ -371,13 +375,14 @@ struct LifeLogWidgetSmallView: View {
             
             Text("\(entry.goalsCompleted)/\(entry.totalGoals)")
                 .font(.headline)
+                .foregroundStyle(Color(hex: "A8E6CF")!)
             Text("goals hit")
                 .font(.caption2)
                 .foregroundStyle(.secondary)
         }
         .padding()
         .containerBackground(for: .widget) {
-            Color(hex: "1a1a1a")!
+            Color(hex: "FFFFFF")!
         }
     }
 }
@@ -469,18 +474,21 @@ struct LifeLogQuickLogWidgetView: View {
         VStack(spacing: 12) {
             Text("Quick Log")
                 .font(.headline)
+                .foregroundStyle(Color(hex: "1F2937")!)
             
             HStack(spacing: 8) {
                 Button(intent: QuickFocusIntent()) {
                     VStack {
                         Image(systemName: "brain.head.profile")
                             .font(.title2)
+                            .foregroundStyle(Color(hex: "6FCF97")!)
                         Text("Focus")
                             .font(.caption2)
+                            .foregroundStyle(Color(hex: "1F2937")!)
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 8)
-                    .background(Color(hex: "10b981")!.opacity(0.2))
+                    .background(Color(hex: "6FCF97")!.opacity(0.15))
                     .cornerRadius(8)
                 }
                 .buttonStyle(.plain)
@@ -489,12 +497,14 @@ struct LifeLogQuickLogWidgetView: View {
                     VStack {
                         Image(systemName: "person.3.fill")
                             .font(.title2)
+                            .foregroundStyle(Color(hex: "F2C94C")!)
                         Text("Meeting")
                             .font(.caption2)
+                            .foregroundStyle(Color(hex: "1F2937")!)
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 8)
-                    .background(Color(hex: "f59e0b")!.opacity(0.2))
+                    .background(Color(hex: "F2C94C")!.opacity(0.15))
                     .cornerRadius(8)
                 }
                 .buttonStyle(.plain)
@@ -505,12 +515,14 @@ struct LifeLogQuickLogWidgetView: View {
                     VStack {
                         Image(systemName: "cup.and.saucer.fill")
                             .font(.title2)
+                            .foregroundStyle(Color.gray)
                         Text("Break")
                             .font(.caption2)
+                            .foregroundStyle(Color(hex: "1F2937")!)
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 8)
-                    .background(Color.gray.opacity(0.2))
+                    .background(Color.gray.opacity(0.1))
                     .cornerRadius(8)
                 }
                 .buttonStyle(.plain)
@@ -519,12 +531,14 @@ struct LifeLogQuickLogWidgetView: View {
                     VStack {
                         Image(systemName: "mug.fill")
                             .font(.title2)
+                            .foregroundStyle(Color(hex: "A1887F")!)
                         Text("Coffee")
                             .font(.caption2)
+                            .foregroundStyle(Color(hex: "1F2937")!)
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 8)
-                    .background(Color(hex: "8b5a2b")!.opacity(0.2))
+                    .background(Color(hex: "A1887F")!.opacity(0.15))
                     .cornerRadius(8)
                 }
                 .buttonStyle(.plain)
@@ -532,7 +546,7 @@ struct LifeLogQuickLogWidgetView: View {
         }
         .padding()
         .containerBackground(for: .widget) {
-            Color(hex: "1a1a1a")!
+            Color(hex: "FFFFFF")!
         }
     }
 }

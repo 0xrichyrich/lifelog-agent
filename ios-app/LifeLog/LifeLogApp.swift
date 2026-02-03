@@ -23,7 +23,7 @@ struct LifeLogApp: App {
             if hasCompletedOnboarding {
                 ContentView()
                     .environment(appState)
-                    .preferredColorScheme(.dark)
+                    .preferredColorScheme(.light)
                     .onAppear {
                         setupApp()
                     }
@@ -33,7 +33,7 @@ struct LifeLogApp: App {
             } else {
                 OnboardingView(hasCompletedOnboarding: $hasCompletedOnboarding)
                     .environment(appState)
-                    .preferredColorScheme(.dark)
+                    .preferredColorScheme(.light)
             }
         }
     }

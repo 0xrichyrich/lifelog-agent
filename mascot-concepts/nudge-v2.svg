@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Gradient for 3D body effect -->
+    <linearGradient id="bodyGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#B8E8D4"/>
+      <stop offset="50%" style="stop-color:#8FD9BE"/>
+      <stop offset="100%" style="stop-color:#7ACCA8"/>
+    </linearGradient>
+    
+    <!-- Highlight gradient -->
+    <linearGradient id="highlightGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#D4F5E9"/>
+      <stop offset="100%" style="stop-color:#B8E8D4;stop-opacity:0"/>
+    </linearGradient>
+    
+    <!-- Shadow -->
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="3" flood-color="#000" flood-opacity="0.1"/>
+    </filter>
+  </defs>
+  
+  <!-- Ground shadow -->
+  <ellipse cx="220" cy="450" rx="120" ry="25" fill="#000" opacity="0.08"/>
+  
+  <!-- Left leg -->
+  <path d="M150 340 C145 370, 140 400, 145 420" 
+        stroke="#5A9A7F" stroke-width="12" stroke-linecap="round" fill="none"/>
+  <ellipse cx="148" cy="425" rx="22" ry="14" fill="#8FD9BE" stroke="#5A9A7F" stroke-width="3"/>
+  
+  <!-- Right leg -->
+  <path d="M290 340 C295 370, 300 400, 295 420" 
+        stroke="#5A9A7F" stroke-width="12" stroke-linecap="round" fill="none"/>
+  <ellipse cx="292" cy="425" rx="22" ry="14" fill="#8FD9BE" stroke="#5A9A7F" stroke-width="3"/>
+  
+  <!-- Left arm (behind) -->
+  <path d="M100 230 C70 240, 50 260, 45 290" 
+        stroke="#5A9A7F" stroke-width="12" stroke-linecap="round" fill="none"/>
+  <ellipse cx="45" cy="295" rx="18" ry="14" fill="#8FD9BE" stroke="#5A9A7F" stroke-width="3"/>
+  
+  <!-- Body - 3D Rounded Cube -->
+  <rect x="95" y="110" width="250" height="240" rx="55" ry="55" 
+        fill="url(#bodyGradient)" stroke="#5A9A7F" stroke-width="5" filter="url(#shadow)"/>
+  
+  <!-- Body highlight -->
+  <rect x="110" y="120" width="150" height="80" rx="40" ry="40" 
+        fill="url(#highlightGradient)"/>
+  
+  <!-- Left eye -->
+  <ellipse cx="175" cy="210" rx="12" ry="14" fill="#3D5A4C"/>
+  <ellipse cx="179" cy="206" rx="4" ry="5" fill="white" opacity="0.8"/>
+  
+  <!-- Right eye -->
+  <ellipse cx="265" cy="210" rx="12" ry="14" fill="#3D5A4C"/>
+  <ellipse cx="269" cy="206" rx="4" ry="5" fill="white" opacity="0.8"/>
+  
+  <!-- Smile -->
+  <path d="M195 270 Q220 295 245 270" 
+        stroke="#3D5A4C" stroke-width="5" stroke-linecap="round" fill="none"/>
+  
+  <!-- Right arm (nudging outward) -->
+  <path d="M345 200 C380 185, 420 180, 455 185" 
+        stroke="#5A9A7F" stroke-width="12" stroke-linecap="round" fill="none"/>
+  <ellipse cx="460" cy="188" rx="20" ry="16" fill="#8FD9BE" stroke="#5A9A7F" stroke-width="3"/>
+  
+  <!-- Motion lines -->
+  <path d="M470 165 C480 162, 490 165, 495 160" stroke="#5A9A7F" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.7"/>
+  <path d="M475 188 C485 185, 500 188, 505 185" stroke="#5A9A7F" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.7"/>
+  <path d="M470 211 C480 214, 490 211, 495 216" stroke="#5A9A7F" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.7"/>
+  
+  <!-- Exclamation/spark above head -->
+  <path d="M330 85 L335 70 L340 85" stroke="#5A9A7F" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <circle cx="335" cy="62" r="4" fill="#5A9A7F"/>
+</svg>
