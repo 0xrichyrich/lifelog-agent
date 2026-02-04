@@ -24,41 +24,6 @@ struct SettingsView: View {
         
         NavigationStack {
             List {
-                // API Configuration
-                Section {
-                    HStack {
-                        Image(systemName: "server.rack")
-                            .foregroundStyle(Color.brandAccent)
-                        TextField("API Endpoint", text: $state.apiEndpoint)
-                            .textContentType(.URL)
-                            .autocapitalization(.none)
-                            .keyboardType(.URL)
-                    }
-                    
-                    HStack {
-                        Image(systemName: "key.fill")
-                            .foregroundStyle(Color.brandAccent)
-                        SecureField("API Key", text: $state.apiKey)
-                            .textContentType(.password)
-                            .autocapitalization(.none)
-                    }
-                    
-                    Button {
-                        Task {
-                            await testConnection()
-                        }
-                    } label: {
-                        HStack {
-                            Image(systemName: "antenna.radiowaves.left.and.right")
-                            Text("Test Connection")
-                        }
-                    }
-                } header: {
-                    Text("API Configuration")
-                } footer: {
-                    Text("API key is stored securely in your device's Keychain.")
-                }
-                
                 // Wallet
                 Section {
                     NavigationLink {
@@ -349,30 +314,6 @@ struct SettingsView: View {
         // iOS doesn't have a direct URL to widget gallery, guide user
         // Show a tip instead
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
-    }
-    
-    private func testConnection() async {
-        guard let url = URL(string: "\(appState.apiEndpoint)/api/goals") else {
-            return
-        }
-        
-        do {
-            let (_, response) = try await URLSession.shared.data(from: url)
-            if let httpResponse = response as? HTTPURLResponse,
-               httpResponse.statusCode == 200 {
-                await MainActor.run {
-                    UINotificationFeedbackGenerator().notificationOccurred(.success)
-                }
-            } else {
-                await MainActor.run {
-                    UINotificationFeedbackGenerator().notificationOccurred(.error)
-                }
-            }
-        } catch {
-            await MainActor.run {
-                UINotificationFeedbackGenerator().notificationOccurred(.error)
-            }
-        }
     }
     
     private func requestNotifications() {
