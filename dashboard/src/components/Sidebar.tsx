@@ -62,13 +62,6 @@ export default function Sidebar() {
           );
         })}
       </nav>
-      
-      <div className="absolute bottom-6 left-6 right-6">
-        <div className="bg-accent/5 border border-accent/20 rounded-xl p-4">
-          <p className="text-sm text-text font-medium">Phase 4 Dashboard</p>
-          <p className="text-xs text-text-muted mt-1">v0.1.0</p>
-        </div>
-      </div>
     </aside>
   );
 }

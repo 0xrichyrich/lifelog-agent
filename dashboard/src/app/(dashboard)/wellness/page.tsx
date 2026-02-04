@@ -164,20 +164,19 @@ export default function WellnessPage() {
     <div className="p-6 max-w-7xl mx-auto">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white mb-2">🤖 Wellness Agent Marketplace</h1>
-        <p className="text-gray-400">
+        <h1 className="text-3xl font-bold text-text mb-2">🤖 Wellness Agents</h1>
+        <p className="text-text-muted">
           Hire specialized AI agents to help you achieve your wellness goals.
-          Powered by Virtuals Protocol ACP.
         </p>
       </div>
 
       {/* Wallet Balance */}
-      <div className="bg-gray-800 rounded-lg p-4 mb-6 flex items-center justify-between">
+      <div className="bg-white rounded-xl p-4 mb-6 flex items-center justify-between border border-card-border shadow-card">
         <div>
-          <span className="text-gray-400 text-sm">ACP Wallet Balance</span>
-          <p className="text-2xl font-bold text-green-400">${walletBalance} USDC</p>
+          <span className="text-text-muted text-sm">Wallet Balance</span>
+          <p className="text-2xl font-bold text-accent">${walletBalance} USDC</p>
         </div>
-        <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition">
+        <button className="bg-accent hover:bg-accent-dark text-white px-4 py-2 rounded-lg transition">
           Add Funds
         </button>
       </div>
@@ -190,7 +189,7 @@ export default function WellnessPage() {
             placeholder="Search agents (e.g., fitness coach, meal planning...)"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-purple-500"
+            className="w-full bg-white border border-card-border rounded-xl px-4 py-3 text-text placeholder-text-muted focus:outline-none focus:border-accent shadow-sm"
           />
         </div>
         <div className="flex gap-2 flex-wrap">
@@ -198,10 +197,10 @@ export default function WellnessPage() {
             <button
               key={category}
               onClick={() => setSelectedCategory(category)}
-              className={`px-4 py-2 rounded-lg transition capitalize ${
+              className={`px-4 py-2 rounded-xl transition capitalize ${
                 selectedCategory === category
-                  ? 'bg-purple-600 text-white'
-                  : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                  ? 'bg-accent text-white'
+                  : 'bg-white text-text-muted hover:bg-surface-light border border-card-border'
               }`}
             >
               {category === 'all' ? '🌟 All' : `${getCategoryEmoji(category)} ${category}`}
@@ -214,39 +213,39 @@ export default function WellnessPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Agent List */}
         <div className="lg:col-span-2 space-y-4">
-          <h2 className="text-lg font-semibold text-gray-300 mb-4">
+          <h2 className="text-lg font-semibold text-text mb-4">
             {filteredAgents.length} Agent{filteredAgents.length !== 1 ? 's' : ''} Available
           </h2>
           
           {filteredAgents.map(agent => (
             <div
               key={agent.id}
-              className="bg-gray-800 rounded-lg p-5 border border-gray-700 hover:border-purple-500 transition cursor-pointer"
+              className="bg-white rounded-xl p-5 border border-card-border hover:border-accent transition cursor-pointer shadow-card"
               onClick={() => setSelectedAgent(agent)}
             >
               <div className="flex justify-between items-start mb-3">
                 <div>
-                  <h3 className="text-xl font-bold text-white">
+                  <h3 className="text-xl font-bold text-text">
                     {getCategoryEmoji(agent.category)} {agent.name}
                   </h3>
-                  <span className="text-sm text-gray-500 capitalize">{agent.category}</span>
+                  <span className="text-sm text-text-muted capitalize">{agent.category}</span>
                 </div>
                 <div className="text-right">
-                  <span className="text-2xl font-bold text-green-400">${agent.priceUsd.toFixed(2)}</span>
-                  <span className="text-gray-500 text-sm block">per task</span>
+                  <span className="text-2xl font-bold text-accent">${agent.priceUsd.toFixed(2)}</span>
+                  <span className="text-text-muted text-sm block">per task</span>
                 </div>
               </div>
               
-              <p className="text-gray-300 mb-3">{agent.description}</p>
+              <p className="text-text-muted mb-3">{agent.description}</p>
               
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   {renderStars(agent.rating)}
-                  <span className="text-gray-500 text-sm">{agent.completedJobs} jobs</span>
+                  <span className="text-text-muted text-sm">{agent.completedJobs} jobs</span>
                 </div>
                 <div className="flex gap-2">
                   {agent.capabilities.slice(0, 2).map(cap => (
-                    <span key={cap} className="bg-gray-700 text-gray-300 px-2 py-1 rounded text-xs">
+                    <span key={cap} className="bg-surface-light text-text-muted px-2 py-1 rounded-lg text-xs">
                       {cap.replace(/_/g, ' ')}
                     </span>
                   ))}
@@ -260,31 +259,31 @@ export default function WellnessPage() {
         <div className="space-y-6">
           {/* Hire Modal */}
           {selectedAgent && (
-            <div className="bg-gray-800 rounded-lg p-5 border-2 border-purple-500">
+            <div className="bg-white rounded-xl p-5 border-2 border-accent shadow-card">
               <div className="flex justify-between items-start mb-4">
-                <h3 className="text-lg font-bold text-white">
+                <h3 className="text-lg font-bold text-text">
                   Hire {selectedAgent.name}
                 </h3>
                 <button
                   onClick={() => setSelectedAgent(null)}
-                  className="text-gray-400 hover:text-white"
+                  className="text-text-muted hover:text-text"
                 >
                   ✕
                 </button>
               </div>
               
-              <p className="text-gray-400 text-sm mb-4">{selectedAgent.description}</p>
+              <p className="text-text-muted text-sm mb-4">{selectedAgent.description}</p>
               
               <textarea
                 placeholder="Describe what you need help with..."
                 value={taskDescription}
                 onChange={(e) => setTaskDescription(e.target.value)}
-                className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 h-32 resize-none mb-4"
+                className="w-full bg-surface-light border border-card-border rounded-xl px-4 py-3 text-text placeholder-text-muted focus:outline-none focus:border-accent h-32 resize-none mb-4"
               />
               
               <div className="flex items-center justify-between mb-4">
-                <span className="text-gray-400">Cost:</span>
-                <span className="text-xl font-bold text-green-400">
+                <span className="text-text-muted">Cost:</span>
+                <span className="text-xl font-bold text-accent">
                   ${selectedAgent.priceUsd.toFixed(2)} USDC
                 </span>
               </div>
@@ -292,7 +291,7 @@ export default function WellnessPage() {
               <button
                 onClick={() => handleHire(selectedAgent)}
                 disabled={isHiring || !taskDescription.trim()}
-                className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white py-3 rounded-lg font-semibold transition"
+                className="w-full bg-accent hover:bg-accent-dark disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-3 rounded-xl font-semibold transition"
               >
                 {isHiring ? '🔄 Creating Job...' : '🚀 Hire Agent'}
               </button>
@@ -300,31 +299,31 @@ export default function WellnessPage() {
           )}
 
           {/* Job History */}
-          <div className="bg-gray-800 rounded-lg p-5">
-            <h3 className="text-lg font-bold text-white mb-4">📋 Your Jobs</h3>
+          <div className="bg-white rounded-xl p-5 border border-card-border shadow-card">
+            <h3 className="text-lg font-bold text-text mb-4">📋 Your Jobs</h3>
             
             {jobs.length === 0 ? (
-              <p className="text-gray-500 text-center py-8">
+              <p className="text-text-muted text-center py-8">
                 No jobs yet. Hire an agent to get started!
               </p>
             ) : (
               <div className="space-y-3">
                 {jobs.map(job => (
-                  <div key={job.id} className="bg-gray-700 rounded-lg p-3">
+                  <div key={job.id} className="bg-surface-light rounded-xl p-3">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium text-white">
+                      <span className="font-medium text-text">
                         {WELLNESS_AGENTS.find(a => a.id === job.agentId)?.name || job.agentId}
                       </span>
-                      <span className={`${getStatusColor(job.status)} text-white text-xs px-2 py-1 rounded`}>
+                      <span className={`${getStatusColor(job.status)} text-white text-xs px-2 py-1 rounded-lg`}>
                         {job.status}
                       </span>
                     </div>
-                    <p className="text-gray-400 text-sm truncate">{job.taskDescription}</p>
+                    <p className="text-text-muted text-sm truncate">{job.taskDescription}</p>
                     <div className="flex justify-between items-center mt-2">
-                      <span className="text-gray-500 text-xs">
+                      <span className="text-text-muted text-xs">
                         {new Date(job.createdAt).toLocaleDateString()}
                       </span>
-                      <span className="text-green-400 text-sm">${job.cost.toFixed(2)}</span>
+                      <span className="text-accent text-sm">${job.cost.toFixed(2)}</span>
                     </div>
                   </div>
                 ))}
@@ -333,20 +332,20 @@ export default function WellnessPage() {
           </div>
 
           {/* AI Recommendation */}
-          <div className="bg-gradient-to-br from-purple-900 to-indigo-900 rounded-lg p-5 border border-purple-600">
-            <h3 className="text-lg font-bold text-white mb-2">💡 AI Recommendation</h3>
-            <p className="text-purple-200 text-sm mb-3">
+          <div className="bg-gradient-to-br from-accent-light to-emerald-100 rounded-xl p-5 border border-accent/30">
+            <h3 className="text-lg font-bold text-text mb-2">💡 AI Recommendation</h3>
+            <p className="text-text-muted text-sm mb-3">
               Based on your patterns, you should consider hiring:
             </p>
-            <div className="bg-black/30 rounded-lg p-3">
-              <span className="font-bold text-white">💪 FitBot Pro</span>
-              <p className="text-purple-200 text-sm mt-1">
+            <div className="bg-white/60 rounded-xl p-3">
+              <span className="font-bold text-text">💪 FitBot Pro</span>
+              <p className="text-text-muted text-sm mt-1">
                 Your exercise consistency is at 40%. A personalized workout plan could help!
               </p>
             </div>
             <button
               onClick={() => setSelectedAgent(WELLNESS_AGENTS[0])}
-              className="w-full mt-3 bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-lg text-sm transition"
+              className="w-full mt-3 bg-accent hover:bg-accent-dark text-white py-2 rounded-xl text-sm transition"
             >
               View Recommendation
             </button>
