@@ -46,7 +46,16 @@ struct AgentChatView: View {
             }
             
             ToolbarItem(placement: .topBarTrailing) {
-                PriceBadge(isFree: agent.isFree, price: agent.priceDisplay)
+                Text(agent.priceDisplay)
+                    .font(.caption)
+                    .fontWeight(.bold)
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(agent.isFree ? Color.success : Color.brandAccent)
+                    )
             }
         }
         .sheet(isPresented: $showPaymentSheet) {
