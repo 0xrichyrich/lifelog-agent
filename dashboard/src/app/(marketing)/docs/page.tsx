@@ -266,7 +266,7 @@ const DOC_SECTIONS: DocSection[] = [
         </p>
         <div className="bg-surface-light rounded-lg p-4 font-mono text-sm">
           <p className="text-text-muted mb-2"># Base URL</p>
-          <p>https://api.getnudge.app/v1</p>
+          <p>https://api.littlenudge.app/v1</p>
         </div>
         <div className="space-y-2">
           <h4 className="font-semibold">Key Endpoints:</h4>

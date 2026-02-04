@@ -146,7 +146,7 @@ export default function FAQPage() {
                 Read the Docs
                 <ChevronRight className="w-4 h-4" />
               </Link>
-              <a href="mailto:hello@getnudge.app" className="btn btn-secondary">
+              <a href="mailto:hello@littlenudge.app" className="btn btn-secondary">
                 Contact Us
               </a>
             </div>

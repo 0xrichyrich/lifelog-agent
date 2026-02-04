@@ -182,7 +182,7 @@ export default function PrivacyPage() {
                 please contact us at:
               </p>
               <div className="mt-4 p-4 bg-surface-light rounded-xl">
-                <p className="font-mono text-sm">privacy@getnudge.app</p>
+                <p className="font-mono text-sm">privacy@littlenudge.app</p>
               </div>
             </div>
 

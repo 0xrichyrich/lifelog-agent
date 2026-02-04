@@ -225,7 +225,7 @@ export default function TermsPage() {
               </p>
               <p className="text-text-muted leading-relaxed">
                 If you have questions about these terms, contact us at{' '}
-                <span className="font-mono text-sm bg-surface-light px-2 py-1 rounded">legal@getnudge.app</span>
+                <span className="font-mono text-sm bg-surface-light px-2 py-1 rounded">legal@littlenudge.app</span>
               </p>
             </div>
           </div>
