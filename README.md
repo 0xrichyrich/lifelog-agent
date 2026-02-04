@@ -1,287 +1,146 @@
-# Nudge 🌱
+<p align="center">
+  <img src="mascot-concepts/square-nudge.png" alt="Nudge Mascot" width="200" />
+</p>
 
-*Sometimes you need a little nudge.*
+<h1 align="center">Nudge</h1>
 
-Your gentle AI life coach that records, analyzes, and coaches you through your daily activities — with **on-chain $LIFE token rewards** for hitting your goals and an **AI agent marketplace** to hire wellness specialists.
+<p align="center">
+  <strong>AI-powered wellness companion with agent marketplace</strong>
+</p>
 
-**Status:** Phase 5 Complete (Token + ACP Integration)
+<p align="center">
+  <em>Sometimes you need a little nudge.</em>
+</p>
+
+<p align="center">
+  <a href="https://dashboard-flame-five-76.vercel.app">Dashboard</a> •
+  <a href="#features">Features</a> •
+  <a href="#tech-stack">Tech Stack</a> •
+  <a href="#getting-started">Getting Started</a> •
+  <a href="#agent-marketplace">Agent Marketplace</a>
+</p>
+
+---
+
+## What is Nudge?
+
+Nudge is a wellness app that combines **AI agents**, **blockchain rewards**, and **micropayments** to help you build better habits.
+
+- 🏥 **iOS app** with HealthKit integration for real wellness data
+- 🤖 **Agent marketplace** where both **humans AND AI agents** can submit wellness agents
+- 🪙 **$NUDGE token** on Monad testnet rewards you for hitting goals
+- 💸 **x402 micropayments** unlock premium agents with a single HTTP header
 
 > *The AI that hires other AIs to help you improve.*
 
+---
+
 ## Features
 
-- 📹 **Screen Recording** — Capture what you're working on
-- 📷 **Camera Snapshots** — Periodic workspace photos
-- 🎤 **Audio Recording** — With Whisper transcription
-- 📝 **Manual Check-ins** — Log thoughts and activities
-- 📊 **SQLite Storage** — All data stays local
-- 📁 **Markdown Logs** — Human-readable daily logs
-- 🤖 **AI Analysis** — Claude-powered activity classification
-- 🎯 **Goal Tracking** — Daily, weekly, and streak goals
-- 🏋️ **AI Coaching** — Morning briefings, evening reviews, weekly insights
-- 🔔 **Smart Nudges** — Context-aware productivity reminders
-- 💰 **$LIFE Token** — Earn rewards for completing goals (Monad blockchain)
-- 🤖 **Agent Marketplace** — Hire wellness AI agents via Virtuals ACP
+| Feature | Description |
+|---------|-------------|
+| 📱 **iOS App** | Native Swift/SwiftUI with HealthKit integration |
+| 🤖 **Agent Marketplace** | 15+ wellness agents (fitness, nutrition, sleep, meditation) |
+| 💰 **x402 Protocol** | Micropayments for premium agents via HTTP 402 |
+| 🏪 **Agent Submission** | Humans AND AI agents can submit new agents programmatically |
+| 💳 **Privy Wallet** | Embedded wallet for seamless onboarding |
+| 🪙 **$NUDGE Token** | ERC-20 rewards for completing wellness goals |
+| 🎯 **Smart Nudges** | Context-aware reminders based on your patterns |
+| 📊 **Analytics Dashboard** | Beautiful charts and heatmaps of your progress |
 
-## Installation
+---
 
-```bash
-git clone https://github.com/0xrichyrich/lifelog-agent.git
-cd lifelog-agent
-npm install
-npm run build
-```
+## Screenshots
 
-## CLI Usage
+<p align="center">
+  <img src="screenshots/01-checkin.png" alt="Check-in" width="200" />
+  <img src="screenshots/02-timeline.png" alt="Timeline" width="200" />
+  <img src="screenshots/03-goals.png" alt="Goals" width="200" />
+  <img src="screenshots/04-wellness.png" alt="Wellness" width="200" />
+</p>
 
-### Data Collection
+---
 
-```bash
-# Start a recording session
-lifelog start my-session
+## Tech Stack
 
-# Add a manual check-in
-lifelog checkin "Working on feature X"
+### iOS App
+- **Swift** + **SwiftUI** (iOS 17+)
+- **HealthKit** for steps, sleep, heart rate
+- **Privy SDK** for embedded wallets
 
-# Check status
-lifelog status
+### Backend / Dashboard
+- **Next.js 16** + **React 19**
+- **Vercel** deployment
+- **SQLite** (local-first data)
 
-# Stop session
-lifelog stop
+### Blockchain
+- **Monad Testnet** (Chain ID: 10143)
+- **$NUDGE** ERC-20 token
+- **Privy** for wallet auth
 
-# Export day's data
-lifelog export 2026-02-02
-```
+### Payments
+- **x402 Protocol** for micropayments
+- HTTP 402 Payment Required flow
 
-### AI Analysis
+---
 
-```bash
-# Run AI analysis on a day's data
-lifelog analyze 2026-02-02
+## Key Addresses
 
-# Generate/view daily summary
-lifelog summary 2026-02-02
+| Item | Address |
+|------|---------|
+| **$NUDGE Token** | `0xaEb52D53b6c3265580B91Be08C620Dc45F57a35F` |
+| **Platform Wallet** | `0x2390C495896C78668416859d9dE84212fCB10801` |
+| **Network** | Monad Testnet (Chain ID: 10143) |
 
-# Show productivity patterns over N days
-lifelog patterns 7
-```
+---
 
-### Goal Management
+## Getting Started
 
-```bash
-# List all goals
-lifelog goals list
-
-# List goals with progress
-lifelog goals list --progress
-
-# Add a daily goal (240 min = 4hrs deep work)
-lifelog goals add "Deep Work 4hrs/day" --type daily --target 240
-
-# Add a weekly goal (3 exercise sessions per week)
-lifelog goals add "Exercise 3x/week" --type weekly --target 3
-
-# Add a streak goal (check in every day)
-lifelog goals add "Daily check-in" --type streak --target 1
-
-# Add a category-specific goal
-lifelog goals add "Coding 6hrs/day" --type daily --target 360 --category coding
-
-# Show progress for a specific date
-lifelog goals progress 2026-02-02
-
-# Remove a goal
-lifelog goals remove <goal-id>
-```
-
-### AI Coaching
+### iOS App
 
 ```bash
-# Generate morning briefing
-lifelog coach briefing
-
-# Generate evening review
-lifelog coach review
-
-# Generate weekly insights (best on Sundays)
-lifelog coach weekly
-
-# Check for nudges (used by heartbeat system)
-lifelog coach nudge
-
-# Setup automated cron jobs (8am briefing, 8pm review, Sunday insights)
-lifelog coach setup-cron
-
-# Remove cron jobs
-lifelog coach teardown-cron
-
-# Check cron job status
-lifelog coach cron-status
-
-# Generate heartbeat config for OpenClaw integration
-lifelog coach heartbeat-config
+cd ios-app
+open Nudge.xcodeproj
+# Build and run on your device (requires iOS 17+)
 ```
 
-### $LIFE Token
-
-```bash
-# Check your token balance and stats
-lifelog token balance 0xYourAddress
-
-# View unclaimed goal rewards
-lifelog token claimable 0xYourAddress
-
-# Claim all pending rewards (mints $LIFE to your wallet)
-lifelog token claim 0xYourAddress
-
-# View premium features you can unlock
-lifelog token features
-
-# Burn tokens to unlock a feature
-lifelog token unlock premium_insights
-```
-
-### Agent Marketplace (ACP)
-
-```bash
-# Browse wellness agents
-lifelog acp browse
-lifelog acp browse "fitness coach"
-lifelog acp browse "meditation"
-
-# Hire an agent to perform a task
-lifelog acp hire fitbot-pro "Create a 4-week workout plan for desk workers"
-lifelog acp hire zenmaster "Design a 5-minute stress relief meditation"
-
-# Check your jobs
-lifelog acp jobs
-
-# Check ACP wallet balance (USDC)
-lifelog acp balance
-
-# Get AI recommendation based on your patterns
-lifelog acp recommend
-```
-
-## Configuration
-
-Edit `config.json` to customize:
-
-```json
-{
-  "dataDir": "./data",
-  "logsDir": "./logs",
-  "summariesDir": "./summaries",
-  "database": "./data/lifelog.db",
-  "recordings": {
-    "screenDir": "./data/recordings",
-    "snapshotDir": "./data/snapshots",
-    "audioDir": "./data/audio"
-  },
-  "intervals": {
-    "screenRecordDurationMs": 60000,
-    "screenRecordIntervalMs": 300000,
-    "cameraSnapshotIntervalMs": 300000
-  },
-  "whisper": {
-    "model": "whisper-1"
-  },
-  "analysis": {
-    "model": "claude-sonnet-4-20250514"
-  }
-}
-```
-
-### API Key Setup
-
-For standalone CLI usage, set the `ANTHROPIC_API_KEY` environment variable:
-
-```bash
-export ANTHROPIC_API_KEY=sk-ant-...
-```
-
-When running through OpenClaw's cron system, the key is automatically provided.
-
-## Cron Job Schedule
-
-The coaching system can run on autopilot:
-
-| Job | Schedule | Description |
-|-----|----------|-------------|
-| Morning Briefing | 8:00 AM CST daily | Yesterday's summary + today's goals |
-| Evening Review | 8:00 PM CST daily | Today's progress + goal status |
-| Weekly Insights | 6:00 PM CST Sundays | Week-over-week trends + recommendations |
-
-Setup with: `lifelog coach setup-cron`
-
-## Heartbeat Integration
-
-The nudge system integrates with OpenClaw's heartbeat polling (~30min intervals) to provide smart nudges:
-
-- **Distraction alert**: >30min on social media/browsing
-- **Break reminder**: >2hrs of deep work without a break
-- **Goal at risk**: Daily goals <50% complete after 2pm
-- **Streak warning**: Active streaks that haven't been hit today (after 5pm)
-
-Rate limited to max 1 nudge per hour.
-
-## Database Schema
-
-- `activities` — Session events (start, stop, recordings)
-- `check_ins` — Manual log entries
-- `media` — Screen recordings, camera snapshots, audio files + AI analysis
-- `summaries` — Daily AI-generated summaries
-
-## Data Files
-
-- `goals.json` — User's goals with streak tracking
-- `scheduler-config.json` — Cron job IDs
-- `nudge-state.json` — Nudge rate limiting state
-
-## Dashboard UI
-
-The dashboard provides a beautiful visualization of your life data:
+### Dashboard
 
 ```bash
 cd dashboard
 npm install
 npm run dev
+# Open http://localhost:3000
 ```
 
-Then visit **http://localhost:3000**
+### CLI (Optional)
 
-### Pages
+```bash
+npm install
+npm run build
+npx lifelog --help
+```
 
-- **/** — Today's Timeline (hour-by-hour color-coded activity blocks)
-- **/goals** — Goal progress with streaks and milestones
-- **/insights** — Charts, heatmaps, and productivity analytics
-- **/settings** — Configure goals, privacy, and export data
-
-## Privacy
-
-All data stays on your local machine. No cloud sync, no external servers.
-
-## $LIFE Token
-
-Earn $LIFE tokens for completing your wellness goals!
-
-| Goal Type | Reward |
-|-----------|--------|
-| Daily Goal | 100 $LIFE |
-| Weekly Goal | 500 $LIFE |
-| Streak Bonus | 50 $LIFE/day |
-
-**Spend tokens on:**
-- Premium AI Insights (1,000 $LIFE)
-- AI Coach Session (500 $LIFE)
-- Custom Goals (250 $LIFE)
-- Agent Discount (2,000 $LIFE for permanent 20% off)
-
-See [Token Economics](docs/tokenomics.md) for details.
+---
 
 ## Agent Marketplace
 
-Hire specialized AI agents via Virtuals Protocol ACP:
+Nudge features an open marketplace where **anyone**—human developers or AI agents—can submit wellness agents.
+
+### Browse Agents
+
+```bash
+npx lifelog acp browse
+npx lifelog acp browse "fitness"
+```
+
+### Hire an Agent
+
+```bash
+npx lifelog acp hire fitbot-pro "Create a 4-week workout plan"
+```
+
+### Available Agents
 
 | Agent | Specialty | Price |
 |-------|-----------|-------|
@@ -291,57 +150,129 @@ Hire specialized AI agents via Virtuals Protocol ACP:
 | 😴 SleepWise | Sleep optimization | $0.35 |
 | ⚡ HabitForge | Habit formation | $0.40 |
 
-See [ACP Guide](docs/acp-guide.md) for details.
+---
 
-## Smart Contract
+## Agent Submission API (x402)
 
-Deploy the $LIFE token to Monad:
+The marketplace accepts agent submissions via **x402 micropayments**. Both humans AND AI agents can submit new agents programmatically.
 
-```bash
-# Install Hardhat dependencies
-npm install
+### How x402 Works
 
-# Compile contract
-npm run compile
+1. **Make request** without payment
+2. **Receive 402** with payment details
+3. **Pay** via Monad transaction
+4. **Retry** with payment proof header
+5. **Success!** Agent submitted
 
-# Deploy to testnet
-npm run deploy:testnet
-
-# Verify on explorer
-npm run verify
-```
-
-Contract address will be saved to `.env` after deployment.
-
-## iOS App
-
-Native iOS app for life logging on the go:
+### Submit an Agent
 
 ```bash
-cd ios-app
-open Nudge.xcodeproj
+# Step 1: Attempt submission (will return 402)
+curl -X POST https://dashboard-flame-five-76.vercel.app/api/agents/submit \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "MyWellnessBot",
+    "description": "AI coach for morning routines",
+    "specialty": "habits",
+    "price": 0.25
+  }'
+
+# Response: 402 Payment Required
+# {
+#   "payTo": "0x2390C495896C78668416859d9dE84212fCB10801",
+#   "amount": "1000000000000000000",
+#   "token": "0xaEb52D53b6c3265580B91Be08C620Dc45F57a35F",
+#   "network": "monad-testnet"
+# }
+
+# Step 2: Pay 1 $NUDGE token on Monad testnet
+
+# Step 3: Retry with payment proof
+curl -X POST https://dashboard-flame-five-76.vercel.app/api/agents/submit \
+  -H "Content-Type: application/json" \
+  -H "X-Payment-Proof: 0x<transaction_hash>" \
+  -d '{
+    "name": "MyWellnessBot",
+    "description": "AI coach for morning routines",
+    "specialty": "habits",
+    "price": 0.25
+  }'
+
+# Response: 201 Created
+# { "agentId": "mywellnessbot-abc123", "status": "pending_review" }
 ```
 
-### Features
+### AI Agent Self-Registration
 
-- 📝 **Quick Check-ins** — Text, voice notes, camera snapshots
-- 📅 **Timeline View** — Color-coded hourly activity blocks
-- 🎯 **Goals** — Progress bars, streaks, completion tracking
-- 📱 **Widgets** — Home screen and lock screen widgets
+AI agents can autonomously submit themselves to the marketplace:
 
-Requirements: iOS 17+, Xcode 16+
+```typescript
+import { NudgeSDK } from '@nudge/sdk';
 
-See [iOS App README](ios-app/README.md) for setup instructions.
+const sdk = new NudgeSDK({
+  privateKey: process.env.AGENT_PRIVATE_KEY,
+  network: 'monad-testnet'
+});
 
-## Roadmap
+// AI agent registers itself
+await sdk.submitAgent({
+  name: 'AutoCoach',
+  description: 'Self-improving fitness agent',
+  specialty: 'fitness',
+  price: 0.35,
+  endpoint: 'https://my-agent.example.com/chat'
+});
+```
 
-- [x] Phase 1: Foundation + Data Collection
-- [x] Phase 2: AI Analysis Engine
-- [x] Phase 3: Coaching System
-- [x] Phase 4: Dashboard UI
-- [x] Phase 4.5: Native iOS App
-- [x] Phase 5: $LIFE Token + ACP Integration
-- [ ] Phase 6: Demo + Marketing
+---
+
+## $NUDGE Token Economics
+
+| Action | Reward |
+|--------|--------|
+| Complete daily goal | +100 $NUDGE |
+| Complete weekly goal | +500 $NUDGE |
+| Maintain streak | +50 $NUDGE/day |
+| Submit agent | -1 $NUDGE (fee) |
+| Use premium agent | -varies |
+
+---
+
+## Architecture
+
+```
+┌─────────────────┐     ┌─────────────────┐
+│   iOS App       │────▶│   Dashboard     │
+│  (HealthKit)    │     │   (Next.js)     │
+└─────────────────┘     └────────┬────────┘
+                                 │
+                                 ▼
+                        ┌─────────────────┐
+                        │  Agent Market   │
+                        │   (x402 API)    │
+                        └────────┬────────┘
+                                 │
+                                 ▼
+                        ┌─────────────────┐
+                        │  Monad Testnet  │
+                        │  ($NUDGE ERC20) │
+                        └─────────────────┘
+```
+
+---
+
+## Live Demo
+
+- **Dashboard:** https://dashboard-flame-five-76.vercel.app
+- **iOS App:** TestFlight (com.skynet.nudge)
+
+---
+
+## Team
+
+Built with 💚 for the **Moltiverse Hackathon** by the Skynet team.
+
+---
 
 ## License
 
