@@ -147,6 +147,24 @@ struct Agent: Identifiable, Codable, Hashable {
         capabilities = try container.decodeIfPresent([String].self, forKey: .capabilities)
     }
     
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        
+        try container.encode(id, forKey: .id)
+        try container.encode(name, forKey: .name)
+        try container.encode(icon, forKey: .icon)
+        try container.encode(personality, forKey: .personality)
+        try container.encode(pricing, forKey: .pricing)
+        try container.encodeIfPresent(triggers, forKey: .triggers)
+        try container.encodeIfPresent(description, forKey: .description)
+        try container.encodeIfPresent(category, forKey: .category)
+        try container.encodeIfPresent(rating, forKey: .rating)
+        try container.encodeIfPresent(totalRatings, forKey: .totalRatings)
+        try container.encodeIfPresent(usageCount, forKey: .usageCount)
+        try container.encodeIfPresent(featured, forKey: .featured)
+        try container.encodeIfPresent(capabilities, forKey: .capabilities)
+    }
+    
     init(
         id: String,
         name: String,
