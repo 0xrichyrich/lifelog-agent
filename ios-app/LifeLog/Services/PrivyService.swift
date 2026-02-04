@@ -23,7 +23,7 @@ class PrivyService: ObservableObject {
     // Privy configuration
     private let appId = "cml88575000qmjr0bt3tivdrr"
     // App Client ID from Privy Dashboard (Settings -> API Keys -> App client ID)
-    private let appClientId = "client-WTYfzGJqPpPqDGrWvjJw5Ugm"
+    private let appClientId = "client-WY6VqnR715TBi3TYk8mmGfsVs6WTzKJDGmaWHsr3sHU3G"
     
     private var privy: (any Privy)?
     private var currentUser: (any PrivyUser)?
