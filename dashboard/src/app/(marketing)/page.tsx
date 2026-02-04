@@ -205,7 +205,7 @@ export default function LandingPage() {
       <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-surface-light">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Brain className="w-8 h-8 text-accent" />
+            <Image src="/mascot.png" alt="Nudge mascot" width={36} height={36} className="rounded-lg" />
             <span className="text-xl font-bold">Nudge</span>
           </div>
           <div className="flex items-center gap-4">
@@ -549,7 +549,7 @@ export default function LandingPage() {
             {/* Brand */}
             <div className="md:col-span-2">
               <div className="flex items-center gap-3 mb-4">
-                <Brain className="w-8 h-8 text-accent" />
+                <Image src="/mascot.png" alt="Nudge mascot" width={36} height={36} className="rounded-lg" />
                 <span className="text-xl font-bold">Nudge</span>
               </div>
               <p className="text-text-muted mb-4">

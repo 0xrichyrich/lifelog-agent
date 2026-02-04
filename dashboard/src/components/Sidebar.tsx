@@ -2,12 +2,12 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import Image from 'next/image';
 import { 
   Calendar, 
   Target, 
   BarChart3, 
-  Settings, 
-  Activity,
+  Settings,
   Users,
   Wallet,
   Store,
@@ -31,9 +31,13 @@ export default function Sidebar() {
   return (
     <aside className="fixed left-0 top-0 h-full w-64 bg-white border-r border-card-border p-6 shadow-sm">
       <div className="flex items-center gap-3 mb-10">
-        <div className="p-2 bg-accent/10 rounded-xl">
-          <Activity className="w-6 h-6 text-accent" />
-        </div>
+        <Image
+          src="/mascot.png"
+          alt="Nudge mascot"
+          width={40}
+          height={40}
+          className="rounded-xl"
+        />
         <h1 className="text-xl font-bold text-text">Nudge</h1>
       </div>
       
