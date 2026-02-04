@@ -21,6 +21,12 @@
 	<string>Nudge reads your health data like steps, sleep, and workouts to provide personalized wellness insights and track your progress over time.</string>
 	<key>NSHealthUpdateUsageDescription</key>
 	<string>Nudge saves your mood check-ins and wellness metrics to Apple Health so you can see a complete picture of your wellbeing in one place.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Nudge uses the microphone for voice check-ins so you can quickly capture your thoughts and mood by speaking.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Nudge uses the camera to capture photos for your check-ins and wellness journal.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Nudge accesses your photo library to attach images to your check-ins and wellness journal.</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
