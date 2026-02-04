@@ -13,6 +13,7 @@ import WidgetKit
 @main
 struct LifeLogApp: App {
     @State private var appState = AppState()
+    @StateObject private var privyService = PrivyService()
     @State private var hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
     @Environment(\.scenePhase) private var scenePhase
     
@@ -23,6 +24,7 @@ struct LifeLogApp: App {
             if hasCompletedOnboarding {
                 ContentView()
                     .environment(appState)
+                    .environmentObject(privyService)
                     .preferredColorScheme(.light)
                     .onAppear {
                         setupApp()
@@ -33,6 +35,7 @@ struct LifeLogApp: App {
             } else {
                 OnboardingView(hasCompletedOnboarding: $hasCompletedOnboarding)
                     .environment(appState)
+                    .environmentObject(privyService)
                     .preferredColorScheme(.light)
             }
         }

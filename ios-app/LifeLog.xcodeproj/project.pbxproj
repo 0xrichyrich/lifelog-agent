@@ -41,6 +41,11 @@
 		A11111110000000000000054 /* BalanceCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000054 /* BalanceCard.swift */; };
 		A11111110000000000000055 /* WellnessNudgeCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000055 /* WellnessNudgeCard.swift */; };
 		A11111110000000000000056 /* WellnessView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000056 /* WellnessView.swift */; };
+		A11111110000000000000080 /* Agent.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000080 /* Agent.swift */; };
+		A11111110000000000000081 /* AgentService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000081 /* AgentService.swift */; };
+		A11111110000000000000082 /* AgentsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000082 /* AgentsView.swift */; };
+		A11111110000000000000083 /* AgentChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000083 /* AgentChatView.swift */; };
+		A11111110000000000000084 /* PaymentSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000084 /* PaymentSheet.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -105,6 +110,11 @@
 		A10000000000000000000061 /* PrivyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivyService.swift; sourceTree = "<group>"; };
 		A10000000000000000000062 /* WalletService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalletService.swift; sourceTree = "<group>"; };
 		A10000000000000000000063 /* WalletView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalletView.swift; sourceTree = "<group>"; };
+		A10000000000000000000080 /* Agent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Agent.swift; sourceTree = "<group>"; };
+		A10000000000000000000081 /* AgentService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentService.swift; sourceTree = "<group>"; };
+		A10000000000000000000082 /* AgentsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentsView.swift; sourceTree = "<group>"; };
+		A10000000000000000000083 /* AgentChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentChatView.swift; sourceTree = "<group>"; };
+		A10000000000000000000084 /* PaymentSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaymentSheet.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -190,6 +200,7 @@
 				A10000000000000000000004 /* Models.swift */,
 				A10000000000000000000050 /* WellnessModels.swift */,
 				A10000000000000000000060 /* WalletModels.swift */,
+				A10000000000000000000080 /* Agent.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -204,6 +215,9 @@
 				A10000000000000000000040 /* OnboardingView.swift */,
 				A10000000000000000000056 /* WellnessView.swift */,
 				A10000000000000000000063 /* WalletView.swift */,
+				A10000000000000000000082 /* AgentsView.swift */,
+				A10000000000000000000083 /* AgentChatView.swift */,
+				A10000000000000000000084 /* PaymentSheet.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -219,6 +233,7 @@
 				A10000000000000000000053 /* WellnessNudgeService.swift */,
 				A10000000000000000000061 /* PrivyService.swift */,
 				A10000000000000000000062 /* WalletService.swift */,
+				A10000000000000000000081 /* AgentService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -376,6 +391,11 @@
 				A11111110000000000000061 /* PrivyService.swift in Sources */,
 				A11111110000000000000062 /* WalletService.swift in Sources */,
 				A11111110000000000000063 /* WalletView.swift in Sources */,
+				A11111110000000000000080 /* Agent.swift in Sources */,
+				A11111110000000000000081 /* AgentService.swift in Sources */,
+				A11111110000000000000082 /* AgentsView.swift in Sources */,
+				A11111110000000000000083 /* AgentChatView.swift in Sources */,
+				A11111110000000000000084 /* PaymentSheet.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

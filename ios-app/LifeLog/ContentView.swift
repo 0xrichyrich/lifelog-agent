@@ -9,13 +9,14 @@ import SwiftUI
 
 struct ContentView: View {
     @Environment(AppState.self) private var appState
+    @EnvironmentObject private var privyService: PrivyService
     @State private var selectedTab: Tab = ContentView.initialTab()
     
     enum Tab: String {
         case checkIn = "checkin"
         case wellness = "wellness"
+        case agents = "agents"
         case timeline = "timeline"
-        case goals = "goals"
         case settings = "settings"
     }
     
@@ -44,17 +45,18 @@ struct ContentView: View {
                 }
                 .tag(Tab.wellness)
             
+            AgentsView()
+                .environmentObject(privyService)
+                .tabItem {
+                    Label("Agents", systemImage: "person.3.fill")
+                }
+                .tag(Tab.agents)
+            
             TimelineView()
                 .tabItem {
                     Label("Timeline", systemImage: "calendar.day.timeline.left")
                 }
                 .tag(Tab.timeline)
-            
-            GoalsView()
-                .tabItem {
-                    Label("Goals", systemImage: "target")
-                }
-                .tag(Tab.goals)
             
             SettingsView()
                 .tabItem {
@@ -69,8 +71,8 @@ struct ContentView: View {
                 switch url.host {
                 case "checkin": selectedTab = .checkIn
                 case "wellness": selectedTab = .wellness
+                case "agents": selectedTab = .agents
                 case "timeline": selectedTab = .timeline
-                case "goals": selectedTab = .goals
                 case "settings": selectedTab = .settings
                 default: break
                 }
@@ -82,4 +84,5 @@ struct ContentView: View {
 #Preview {
     ContentView()
         .environment(AppState())
+        .environmentObject(PrivyService.preview)
 }
