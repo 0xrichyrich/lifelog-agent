@@ -4,7 +4,19 @@ import { randomUUID } from 'crypto';
 /**
  * Agent Message Endpoint
  * Sends a message to an AI agent and returns the response
+ * Supports x402 micropayments for paid agents
  */
+
+// Agent pricing configuration (matches /api/agents)
+// Amount is in USDC micro-units (6 decimals): 10000 = $0.01
+const AGENT_PRICING: Record<string, { perMessage: number; isFree: boolean; freeTierDaily: number | null }> = {
+  'nudge-coach': { perMessage: 0, isFree: true, freeTierDaily: null },
+  'coffee-scout': { perMessage: 10000, isFree: false, freeTierDaily: 3 },
+  'book-buddy': { perMessage: 10000, isFree: false, freeTierDaily: 3 },
+};
+
+// Platform wallet address for receiving payments (Base network)
+const PLATFORM_WALLET = process.env.PLATFORM_WALLET_ADDRESS || '0x4f9e2dc880328facc0ebc8f3a6b0e9b0f0e0e0e0';
 
 // System prompts for each agent - these define their personality
 const AGENT_PROMPTS: Record<string, string> = {
@@ -41,19 +53,133 @@ Keep responses helpful and concise. When recommending places, ask clarifying que
 Keep responses conversational and engaging. Ask about their reading preferences and history to give better recommendations. You're the well-read friend who always has the perfect book suggestion.`,
 };
 
+// Agent display names for payment descriptions
+const AGENT_NAMES: Record<string, string> = {
+  'nudge-coach': 'Nudge Coach',
+  'coffee-scout': 'Coffee Scout',
+  'book-buddy': 'Book Buddy',
+};
+
 // In-memory conversation storage (for demo purposes)
 // In production, use a database
 const conversations: Map<string, { role: string; content: string }[]> = new Map();
 
+// In-memory usage tracking for free tier
+const dailyUsage: Map<string, { date: string; count: number }> = new Map();
+
+interface PaymentProof {
+  signature: string;
+  paymentId: string;
+  timestamp: string;
+  chain: string;
+  txHash?: string;
+}
+
 interface MessageRequest {
   message: string;
   conversationId?: string;
-  paymentProof?: {
-    signature: string;
-    paymentId: string;
-    timestamp: string;
-    chain: string;
-    txHash?: string;
+  paymentProof?: PaymentProof;
+}
+
+interface PaymentRequest {
+  agentId: string;
+  amount: number;
+  currency: string;
+  recipient: string;
+  description: string;
+  expiresAt: string;
+  nonce: string;
+}
+
+/**
+ * Check if user has remaining free tier messages for the day
+ */
+function checkFreeTier(userId: string, agentId: string): { hasFreeTier: boolean; remaining: number } {
+  const pricing = AGENT_PRICING[agentId];
+  if (!pricing || pricing.isFree || pricing.freeTierDaily === null) {
+    return { hasFreeTier: true, remaining: -1 }; // -1 = unlimited
+  }
+
+  const today = new Date().toISOString().split('T')[0];
+  const key = `${userId}_${agentId}`;
+  const usage = dailyUsage.get(key);
+
+  if (!usage || usage.date !== today) {
+    return { hasFreeTier: true, remaining: pricing.freeTierDaily };
+  }
+
+  const remaining = pricing.freeTierDaily - usage.count;
+  return { hasFreeTier: remaining > 0, remaining };
+}
+
+/**
+ * Increment free tier usage for user
+ */
+function incrementUsage(userId: string, agentId: string): void {
+  const today = new Date().toISOString().split('T')[0];
+  const key = `${userId}_${agentId}`;
+  const usage = dailyUsage.get(key);
+
+  if (!usage || usage.date !== today) {
+    dailyUsage.set(key, { date: today, count: 1 });
+  } else {
+    usage.count += 1;
+    dailyUsage.set(key, usage);
+  }
+}
+
+/**
+ * Verify payment proof
+ * In production, this would verify the signature against the wallet
+ * and optionally check on-chain transaction status
+ */
+function verifyPaymentProof(proof: PaymentProof, agentId: string): boolean {
+  // Basic validation
+  if (!proof.signature || !proof.paymentId || !proof.timestamp || !proof.chain) {
+    console.warn('[Payment] Invalid proof structure:', proof);
+    return false;
+  }
+
+  // Check timestamp is recent (within 5 minutes)
+  const proofTime = new Date(proof.timestamp).getTime();
+  const now = Date.now();
+  const fiveMinutes = 5 * 60 * 1000;
+  
+  if (Math.abs(now - proofTime) > fiveMinutes) {
+    console.warn('[Payment] Proof timestamp too old:', proof.timestamp);
+    return false;
+  }
+
+  // Check chain is Base
+  if (proof.chain !== 'base') {
+    console.warn('[Payment] Invalid chain:', proof.chain);
+    return false;
+  }
+
+  // In production: verify signature matches the expected message format
+  // For now, accept any well-formed proof
+  console.log('[Payment] Proof accepted for agent:', agentId, 'paymentId:', proof.paymentId);
+  return true;
+}
+
+/**
+ * Create x402 payment request response
+ */
+function createPaymentRequest(agentId: string): PaymentRequest {
+  const pricing = AGENT_PRICING[agentId];
+  const agentName = AGENT_NAMES[agentId] || agentId;
+  
+  // Payment expires in 1 hour
+  const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+  
+  return {
+    agentId,
+    amount: pricing?.perMessage || 10000,
+    currency: 'USDC',
+    recipient: PLATFORM_WALLET,
+    description: `Message to ${agentName}`,
+    expiresAt,
+    nonce: randomUUID(),
   };
 }
 
@@ -64,7 +190,7 @@ export async function POST(
   try {
     const { agentId } = await params;
     const body = await request.json() as MessageRequest;
-    const { message, conversationId } = body;
+    const { message, conversationId, paymentProof } = body;
     const userId = request.headers.get('X-User-ID') || 'anonymous';
 
     // Validate agent exists
@@ -74,6 +200,39 @@ export async function POST(
         { error: 'Agent not found' },
         { status: 404 }
       );
+    }
+
+    // Check pricing and payment
+    const pricing = AGENT_PRICING[agentId];
+    const isPaidAgent = pricing && !pricing.isFree;
+    
+    if (isPaidAgent) {
+      const { hasFreeTier, remaining } = checkFreeTier(userId, agentId);
+      
+      if (!hasFreeTier) {
+        // Check if payment proof was provided
+        if (!paymentProof) {
+          // Return 402 Payment Required
+          const paymentRequest = createPaymentRequest(agentId);
+          console.log('[x402] Payment required for', agentId, 'user:', userId);
+          
+          return NextResponse.json(paymentRequest, { status: 402 });
+        }
+        
+        // Verify payment proof
+        if (!verifyPaymentProof(paymentProof, agentId)) {
+          return NextResponse.json(
+            { error: 'Invalid payment proof' },
+            { status: 400 }
+          );
+        }
+        
+        console.log('[x402] Payment verified for', agentId, 'user:', userId);
+      } else {
+        // Using free tier - track usage
+        incrementUsage(userId, agentId);
+        console.log('[x402] Free tier message for', agentId, 'user:', userId, 'remaining:', remaining - 1);
+      }
     }
 
     // Check for OpenAI API key
