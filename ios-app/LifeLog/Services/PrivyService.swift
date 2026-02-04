@@ -22,8 +22,14 @@ class PrivyService: ObservableObject {
     
     // Privy configuration
     private let appId = "cml88575000qmjr0bt3tivdrr"
+    // App Client ID from Privy Dashboard (Settings -> API Keys -> App client ID)
+    private let appClientId = "client-WTYfzGJqPpPqDGrWvjJw5Ugm"
     
-    private var privy: Privy?
+    private var privy: (any Privy)?
+    private var currentUser: (any PrivyUser)?
+    
+    // Store email for verification flow
+    private var pendingEmail: String?
     
     init() {
         initializePrivy()
@@ -32,47 +38,49 @@ class PrivyService: ObservableObject {
     // MARK: - Initialization
     
     private func initializePrivy() {
-        do {
-            let config = PrivyConfig(
-                appId: appId,
-                loggingConfig: .init(logLevel: .info)
-            )
-            privy = PrivySdk.initialize(config: config)
-            isInitialized = true
-            
-            // Check if already authenticated
-            Task {
-                await checkAuthStatus()
-            }
-        } catch {
-            self.error = "Failed to initialize Privy: \(error.localizedDescription)"
-            print("Privy initialization error: \(error)")
+        let config = PrivyConfig(
+            appId: appId,
+            appClientId: appClientId,
+            loggingConfig: PrivyLoggingConfig(logLevel: .info)
+        )
+        privy = PrivySdk.initialize(config: config)
+        isInitialized = true
+        
+        // Check if already authenticated
+        Task {
+            await checkAuthStatus()
         }
     }
     
     private func checkAuthStatus() async {
         guard let privy = privy else { return }
         
-        do {
-            let authState = try await privy.auth.getAuthState()
-            if let user = authState?.user {
-                self.userId = user.id
-                self.isAuthenticated = true
-                
-                // Get wallet address
-                if let address = await privy.embeddedWallet.getAddress() {
-                    self.walletAddress = address
-                    UserDefaults.standard.set(address, forKey: "walletAddress")
-                }
+        let authState = await privy.getAuthState()
+        
+        switch authState {
+        case .authenticated(let user):
+            self.currentUser = user
+            self.userId = user.id
+            self.isAuthenticated = true
+            
+            // Get wallet address from first embedded Ethereum wallet
+            if let wallet = user.embeddedEthereumWallets.first {
+                self.walletAddress = wallet.address
+                UserDefaults.standard.set(wallet.address, forKey: "walletAddress")
             }
-        } catch {
-            print("Error checking auth status: \(error)")
+            
+        case .unauthenticated, .notReady, .authenticatedUnverified:
+            self.isAuthenticated = false
+            self.currentUser = nil
+            
+        @unknown default:
+            self.isAuthenticated = false
         }
     }
     
     // MARK: - Authentication
     
-    /// Authenticate with email (Privy embedded wallet)
+    /// Authenticate with email (Privy embedded wallet) - Step 1: Send OTP
     func loginWithEmail(_ email: String) async throws {
         guard let privy = privy else {
             throw PrivyError.notInitialized
@@ -80,51 +88,63 @@ class PrivyService: ObservableObject {
         
         isLoading = true
         error = nil
+        pendingEmail = email
         
         defer { isLoading = false }
         
         do {
             // Send OTP code to email
             try await privy.email.sendCode(to: email)
-            // OTP verification will be handled separately via verifyEmailCode
+            // OTP verification will be handled via verifyEmailCode
         } catch {
             self.error = error.localizedDescription
             throw error
         }
     }
     
-    /// Verify OTP code for email login
+    /// Verify OTP code for email login - Step 2: Verify and authenticate
     func verifyEmailCode(_ code: String) async throws {
         guard let privy = privy else {
             throw PrivyError.notInitialized
         }
         
+        guard let email = pendingEmail else {
+            throw PrivyError.unknown("No pending email verification. Call loginWithEmail first.")
+        }
+        
         isLoading = true
         error = nil
         
-        defer { isLoading = false }
+        defer { 
+            isLoading = false 
+            pendingEmail = nil
+        }
         
         do {
-            let authState = try await privy.email.verifyCode(code)
-            if let user = authState?.user {
-                self.userId = user.id
-                self.isAuthenticated = true
-                
-                // Create embedded wallet if user doesn't have one
-                let address = try await privy.embeddedWallet.getAddress() 
-                    ?? (try await privy.embeddedWallet.create())?.address
-                
-                self.walletAddress = address
-                
-                // Save credentials
-                if let userId = userId {
-                    KeychainHelper.save(key: "privyUserId", value: userId)
-                }
-                if let address = address {
-                    UserDefaults.standard.set(address, forKey: "walletAddress")
-                }
-                UserDefaults.standard.set(true, forKey: "walletConnected")
+            // Verify code and login
+            let user = try await privy.email.loginWithCode(code, sentTo: email)
+            
+            self.currentUser = user
+            self.userId = user.id
+            self.isAuthenticated = true
+            
+            // Get or create embedded wallet
+            var wallet = user.embeddedEthereumWallets.first
+            if wallet == nil {
+                wallet = try await user.createEthereumWallet()
             }
+            
+            if let address = wallet?.address {
+                self.walletAddress = address
+                UserDefaults.standard.set(address, forKey: "walletAddress")
+            }
+            
+            // Save credentials
+            if let userId = userId {
+                KeychainHelper.save(key: "privyUserId", value: userId)
+            }
+            UserDefaults.standard.set(true, forKey: "walletConnected")
+            
         } catch {
             self.error = error.localizedDescription
             throw error
@@ -143,26 +163,30 @@ class PrivyService: ObservableObject {
         defer { isLoading = false }
         
         do {
-            let authState = try await privy.apple.login()
-            if let user = authState?.user {
-                self.userId = user.id
-                self.isAuthenticated = true
-                
-                // Get or create embedded wallet
-                let address = try await privy.embeddedWallet.getAddress() 
-                    ?? (try await privy.embeddedWallet.create())?.address
-                
-                self.walletAddress = address
-                
-                // Save credentials
-                if let userId = userId {
-                    KeychainHelper.save(key: "privyUserId", value: userId)
-                }
-                if let address = address {
-                    UserDefaults.standard.set(address, forKey: "walletAddress")
-                }
-                UserDefaults.standard.set(true, forKey: "walletConnected")
+            // Use OAuth provider for Apple Sign In
+            let user = try await privy.oAuth.login(with: .apple)
+            
+            self.currentUser = user
+            self.userId = user.id
+            self.isAuthenticated = true
+            
+            // Get or create embedded wallet
+            var wallet = user.embeddedEthereumWallets.first
+            if wallet == nil {
+                wallet = try await user.createEthereumWallet()
             }
+            
+            if let address = wallet?.address {
+                self.walletAddress = address
+                UserDefaults.standard.set(address, forKey: "walletAddress")
+            }
+            
+            // Save credentials
+            if let userId = userId {
+                KeychainHelper.save(key: "privyUserId", value: userId)
+            }
+            UserDefaults.standard.set(true, forKey: "walletConnected")
+            
         } catch {
             self.error = error.localizedDescription
             throw error
@@ -171,19 +195,17 @@ class PrivyService: ObservableObject {
     
     /// Log out and disconnect wallet
     func logout() async {
-        guard let privy = privy else { return }
-        
         isLoading = true
         
         defer { isLoading = false }
         
-        do {
-            try await privy.logout()
-        } catch {
-            print("Logout error: \(error)")
+        // Logout is called on the user, not the privy instance
+        if let user = currentUser {
+            await user.logout()
         }
         
         // Clear local state
+        currentUser = nil
         userId = nil
         walletAddress = nil
         isAuthenticated = false
@@ -198,19 +220,17 @@ class PrivyService: ObservableObject {
     
     /// Get the embedded wallet address
     func getWalletAddress() async -> String? {
-        guard let privy = privy else { return nil }
+        guard let user = currentUser else { return walletAddress }
         
-        do {
-            return try await privy.embeddedWallet.getAddress()
-        } catch {
-            print("Error getting wallet address: \(error)")
-            return walletAddress
+        if let wallet = user.embeddedEthereumWallets.first {
+            return wallet.address
         }
+        return walletAddress
     }
     
     /// Sign a message with the embedded wallet
     func signMessage(_ message: String) async throws -> String {
-        guard let privy = privy else {
+        guard let user = currentUser else {
             throw PrivyError.notInitialized
         }
         
@@ -218,8 +238,14 @@ class PrivyService: ObservableObject {
             throw PrivyError.notAuthenticated
         }
         
+        guard let wallet = user.embeddedEthereumWallets.first else {
+            throw PrivyError.walletCreationFailed
+        }
+        
         do {
-            return try await privy.embeddedWallet.signMessage(message)
+            // Use the wallet provider with personalSign RPC request
+            let request = EthereumRpcRequest.personalSign(message: message, address: wallet.address)
+            return try await wallet.provider.request(request)
         } catch {
             throw PrivyError.signatureFailed
         }
@@ -227,7 +253,7 @@ class PrivyService: ObservableObject {
     
     /// Sign a transaction
     func signTransaction(_ transaction: [String: Any]) async throws -> String {
-        guard let privy = privy else {
+        guard let user = currentUser else {
             throw PrivyError.notInitialized
         }
         
@@ -235,8 +261,21 @@ class PrivyService: ObservableObject {
             throw PrivyError.notAuthenticated
         }
         
+        guard let wallet = user.embeddedEthereumWallets.first else {
+            throw PrivyError.walletCreationFailed
+        }
+        
         do {
-            return try await privy.embeddedWallet.signTransaction(transaction)
+            // Build unsigned transaction from dictionary
+            let unsignedTx = EthereumRpcRequest.UnsignedEthTransaction(
+                from: transaction["from"] as? String,
+                to: transaction["to"] as? String,
+                data: transaction["data"] as? String,
+                value: (transaction["value"] as? Int).map { .int($0) }
+            )
+            
+            let request = try EthereumRpcRequest.ethSignTransaction(transaction: unsignedTx)
+            return try await wallet.provider.request(request)
         } catch {
             throw PrivyError.signatureFailed
         }
