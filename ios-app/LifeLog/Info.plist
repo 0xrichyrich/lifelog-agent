@@ -27,11 +27,6 @@
 	<string>Nudge uses the camera to capture photos for your check-ins and wellness journal.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Nudge accesses your photo library to attach images to your check-ins and wellness journal.</string>
-	<key>NSAppTransportSecurity</key>
-	<dict>
-		<key>NSAllowsArbitraryLoads</key>
-		<true/>
-	</dict>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>audio</string>
