@@ -3,16 +3,16 @@ import { NextRequest, NextResponse } from 'next/server';
 /**
  * API Key Authentication Middleware
  * 
- * Validates requests against LIFELOG_API_KEY environment variable.
+ * Validates requests against NUDGE_API_KEY environment variable.
  * Returns null if authenticated, or NextResponse with error if not.
  */
 export function validateApiKey(request: NextRequest): NextResponse | null {
-  const apiKey = process.env.LIFELOG_API_KEY;
+  const apiKey = process.env.NUDGE_API_KEY;
   
   // If no API key is configured, allow in development only
   if (!apiKey) {
     if (process.env.NODE_ENV === 'development') {
-      console.warn('⚠️ LIFELOG_API_KEY not configured - allowing request in dev mode');
+      console.warn('⚠️ NUDGE_API_KEY not configured - allowing request in dev mode');
       return null;
     }
     return NextResponse.json(

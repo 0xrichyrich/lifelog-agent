@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
       streak: '50',
     },
     // Don't expose contract address directly in API
-    // contractAddress: process.env.LIFE_TOKEN_ADDRESS || '0x...',
+    // contractAddress: process.env.NUDGE_TOKEN_ADDRESS || '0x...',
   };
 
   const response = NextResponse.json(mockStats);
