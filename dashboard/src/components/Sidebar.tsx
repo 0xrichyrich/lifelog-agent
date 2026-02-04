@@ -15,14 +15,15 @@ import {
 } from 'lucide-react';
 
 const navItems = [
-  { href: '/timeline', label: 'Timeline', icon: Calendar },
-  { href: '/goals', label: 'Goals', icon: Target },
-  { href: '/insights', label: 'Insights', icon: BarChart3 },
+  // Commented out for hackathon - focus on marketplace
+  // { href: '/timeline', label: 'Timeline', icon: Calendar },
+  // { href: '/goals', label: 'Goals', icon: Target },
+  // { href: '/insights', label: 'Insights', icon: BarChart3 },
   { href: '/marketplace', label: 'Marketplace', icon: Store },
   { href: '/submit-agent', label: 'Submit Agent', icon: PlusCircle },
-  { href: '/wellness', label: 'Wellness Agents', icon: Users },
+  // { href: '/wellness', label: 'Wellness Agents', icon: Users },
   { href: '/wallet', label: 'Wallet', icon: Wallet },
-  { href: '/settings', label: 'Settings', icon: Settings },
+  // { href: '/settings', label: 'Settings', icon: Settings },
 ];
 
 export default function Sidebar() {
