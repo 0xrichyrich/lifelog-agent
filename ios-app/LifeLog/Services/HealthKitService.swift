@@ -205,7 +205,7 @@ final class HealthKitService: ObservableObject {
     // MARK: - Shared Defaults
     
     private func saveToSharedDefaults() {
-        let defaults = UserDefaults(suiteName: "group.com.skynet.lifelog")
+        let defaults = UserDefaults(suiteName: "group.com.skynet.nudge")
         defaults?.set(todaySteps, forKey: "healthSteps")
         defaults?.set(todaySleepHours, forKey: "healthSleep")
         defaults?.set(todayActiveMinutes, forKey: "healthExercise")

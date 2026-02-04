@@ -25,7 +25,7 @@ struct LogActivityIntent: AppIntent {
         let message = customMessage.isEmpty ? activityType.message : customMessage
         
         // Save to pending logs for the app to process
-        let defaults = UserDefaults(suiteName: "group.com.skynet.lifelog")
+        let defaults = UserDefaults(suiteName: "group.com.skynet.nudge")
         defaults?.set(message, forKey: "pendingQuickLog")
         defaults?.set(Date().timeIntervalSince1970, forKey: "pendingQuickLogTime")
         defaults?.set(activityType.id, forKey: "pendingActivityType")
@@ -92,7 +92,7 @@ struct LogFocusIntent: AppIntent {
     static let openAppWhenRun: Bool = false
     
     func perform() async throws -> some IntentResult & ProvidesDialog {
-        let defaults = UserDefaults(suiteName: "group.com.skynet.lifelog")
+        let defaults = UserDefaults(suiteName: "group.com.skynet.nudge")
         defaults?.set("Started focus session", forKey: "pendingQuickLog")
         defaults?.set(Date().timeIntervalSince1970, forKey: "pendingQuickLogTime")
         
@@ -108,7 +108,7 @@ struct LogCoffeeIntent: AppIntent {
     static let openAppWhenRun: Bool = false
     
     func perform() async throws -> some IntentResult & ProvidesDialog {
-        let defaults = UserDefaults(suiteName: "group.com.skynet.lifelog")
+        let defaults = UserDefaults(suiteName: "group.com.skynet.nudge")
         defaults?.set("Coffee break ☕️", forKey: "pendingQuickLog")
         defaults?.set(Date().timeIntervalSince1970, forKey: "pendingQuickLogTime")
         
@@ -124,7 +124,7 @@ struct LogMeetingIntent: AppIntent {
     static let openAppWhenRun: Bool = false
     
     func perform() async throws -> some IntentResult & ProvidesDialog {
-        let defaults = UserDefaults(suiteName: "group.com.skynet.lifelog")
+        let defaults = UserDefaults(suiteName: "group.com.skynet.nudge")
         defaults?.set("In a meeting", forKey: "pendingQuickLog")
         defaults?.set(Date().timeIntervalSince1970, forKey: "pendingQuickLogTime")
         
@@ -143,7 +143,7 @@ struct StartTimerIntent: AppIntent {
     var duration: Int
     
     func perform() async throws -> some IntentResult & ProvidesDialog {
-        let defaults = UserDefaults(suiteName: "group.com.skynet.lifelog")
+        let defaults = UserDefaults(suiteName: "group.com.skynet.nudge")
         defaults?.set(true, forKey: "focusTimerActive")
         defaults?.set(Date().timeIntervalSince1970, forKey: "focusTimerStart")
         defaults?.set(duration * 60, forKey: "focusTimerDuration")
@@ -160,7 +160,7 @@ struct GetTodayStatsIntent: AppIntent {
     static let openAppWhenRun: Bool = false
     
     func perform() async throws -> some IntentResult & ProvidesDialog {
-        let defaults = UserDefaults(suiteName: "group.com.skynet.lifelog")
+        let defaults = UserDefaults(suiteName: "group.com.skynet.nudge")
         
         let focusMinutes = defaults?.integer(forKey: "focusMinutes") ?? 0
         let goalsCompleted = defaults?.integer(forKey: "goalsCompleted") ?? 0
@@ -186,7 +186,7 @@ struct LogCustomIntent: AppIntent {
     var message: String
     
     func perform() async throws -> some IntentResult & ProvidesDialog {
-        let defaults = UserDefaults(suiteName: "group.com.skynet.lifelog")
+        let defaults = UserDefaults(suiteName: "group.com.skynet.nudge")
         defaults?.set(message, forKey: "pendingQuickLog")
         defaults?.set(Date().timeIntervalSince1970, forKey: "pendingQuickLogTime")
         

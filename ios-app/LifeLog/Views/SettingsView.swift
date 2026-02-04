@@ -37,7 +37,7 @@ struct SettingsView: View {
                                 .foregroundStyle(Color.brandAccent)
                             VStack(alignment: .leading, spacing: 2) {
                                 Text("Wallet")
-                                Text("Earn $LIFE tokens for check-ins")
+                                Text("Earn $NUDGE tokens for check-ins")
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                             }
@@ -57,7 +57,7 @@ struct SettingsView: View {
                 } header: {
                     Text("Rewards")
                 } footer: {
-                    Text("Connect your wallet to earn $LIFE tokens on Monad Testnet.")
+                    Text("Connect your wallet to earn $NUDGE tokens on Monad Testnet.")
                 }
                 
                 // Integrations

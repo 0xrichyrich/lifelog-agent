@@ -248,7 +248,7 @@ export default function WalletPage() {
             ) : (
               <>
                 <span className="text-5xl font-bold">{formatBalance(balance.balance)}</span>
-                <span className="text-xl text-text-muted">LIFE</span>
+                <span className="text-xl text-text-muted">NUDGE</span>
               </>
             )}
           </div>
@@ -274,7 +274,7 @@ export default function WalletPage() {
                 <span className="text-3xl font-bold text-accent">
                   {formatBalance(balance.pendingRewards)}
                 </span>
-                <span className="text-text-muted">LIFE</span>
+                <span className="text-text-muted">NUDGE</span>
               </div>
             </div>
             <Gift className="w-8 h-8 text-accent/50" />

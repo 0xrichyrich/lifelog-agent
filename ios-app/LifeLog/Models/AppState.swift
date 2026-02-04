@@ -68,7 +68,7 @@ final class AppState {
 
 // MARK: - App Group for Widgets
 extension AppState {
-    static let appGroup = "group.com.skynet.lifelog"
+    static let appGroup = "group.com.skynet.nudge"
     
     static var sharedDefaults: UserDefaults? {
         UserDefaults(suiteName: appGroup)
@@ -94,7 +94,7 @@ extension AppState {
 // MARK: - Keychain Helper for Secure Storage
 /// Securely stores sensitive data in iOS Keychain
 enum KeychainHelper {
-    private static let service = "com.skynet.lifelog"
+    private static let service = "com.skynet.nudge"
     
     static func save(key: String, value: String) {
         guard let data = value.data(using: .utf8) else { return }

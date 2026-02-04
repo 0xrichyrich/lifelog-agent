@@ -51,7 +51,7 @@ struct LifeLogProvider: TimelineProvider {
     }
     
     private func loadEntry() -> LifeLogEntry {
-        let defaults = UserDefaults(suiteName: "group.com.skynet.lifelog")
+        let defaults = UserDefaults(suiteName: "group.com.skynet.nudge")
         
         let focusMinutes = defaults?.integer(forKey: "focusMinutes") ?? 0
         let goalsCompleted = defaults?.integer(forKey: "goalsCompleted") ?? 0
@@ -80,7 +80,7 @@ struct QuickFocusIntent: AppIntent {
     
     func perform() async throws -> some IntentResult {
         // Store in shared defaults for the main app to pick up
-        let defaults = UserDefaults(suiteName: "group.com.skynet.lifelog")
+        let defaults = UserDefaults(suiteName: "group.com.skynet.nudge")
         defaults?.set("Started focus session", forKey: "pendingQuickLog")
         defaults?.set(Date().timeIntervalSince1970, forKey: "pendingQuickLogTime")
         
@@ -97,7 +97,7 @@ struct QuickMeetingIntent: AppIntent {
     static let description = IntentDescription("Quickly log a meeting")
     
     func perform() async throws -> some IntentResult {
-        let defaults = UserDefaults(suiteName: "group.com.skynet.lifelog")
+        let defaults = UserDefaults(suiteName: "group.com.skynet.nudge")
         defaults?.set("In a meeting", forKey: "pendingQuickLog")
         defaults?.set(Date().timeIntervalSince1970, forKey: "pendingQuickLogTime")
         
@@ -113,7 +113,7 @@ struct QuickBreakIntent: AppIntent {
     static let description = IntentDescription("Quickly log a break")
     
     func perform() async throws -> some IntentResult {
-        let defaults = UserDefaults(suiteName: "group.com.skynet.lifelog")
+        let defaults = UserDefaults(suiteName: "group.com.skynet.nudge")
         defaults?.set("Taking a break", forKey: "pendingQuickLog")
         defaults?.set(Date().timeIntervalSince1970, forKey: "pendingQuickLogTime")
         
@@ -129,7 +129,7 @@ struct QuickCoffeeIntent: AppIntent {
     static let description = IntentDescription("Quickly log a coffee break")
     
     func perform() async throws -> some IntentResult {
-        let defaults = UserDefaults(suiteName: "group.com.skynet.lifelog")
+        let defaults = UserDefaults(suiteName: "group.com.skynet.nudge")
         defaults?.set("Coffee break ☕️", forKey: "pendingQuickLog")
         defaults?.set(Date().timeIntervalSince1970, forKey: "pendingQuickLogTime")
         

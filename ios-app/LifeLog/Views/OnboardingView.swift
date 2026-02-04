@@ -338,7 +338,7 @@ struct HowItWorksScreen: View {
                 HowItWorksRow(
                     icon: "bitcoinsign.circle.fill",
                     color: .warning,
-                    title: "Earn $LIFE Tokens",
+                    title: "Earn $NUDGE Tokens",
                     description: "Get rewarded for hitting your goals"
                 )
             }

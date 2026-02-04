@@ -56,7 +56,7 @@ actor WalletService {
     
     // MARK: - Wallet Balance
     
-    /// Fetch the $LIFE token balance for a wallet address
+    /// Fetch the $NUDGE token balance for a wallet address
     func fetchBalance(address: String) async throws -> WalletBalanceResponse {
         let url = URL(string: "\(baseURL)/api/wallet/balance?address=\(address)")!
         let request = authenticatedRequest(url: url)
