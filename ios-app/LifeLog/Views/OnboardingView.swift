@@ -35,7 +35,7 @@ struct OnboardingView: View {
                     Button("Skip") {
                         completeOnboarding()
                     }
-                    .foregroundStyle(Color.brandAccent)
+                    .foregroundStyle(Color.brandInteractive)
                     .padding()
                 }
                 
@@ -109,7 +109,7 @@ struct OnboardingView: View {
                                 Image(systemName: "chevron.left")
                                 Text("Back")
                             }
-                            .foregroundStyle(Color.brandAccent)
+                            .foregroundStyle(Color.brandInteractive)
                             .padding()
                         }
                     }

@@ -408,7 +408,7 @@ struct HealthDataCard: View {
                         }
                     }
                     .font(.caption)
-                    .foregroundStyle(Color.brandAccent)
+                    .foregroundStyle(Color.brandInteractive)
                 }
             }
             

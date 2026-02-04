@@ -58,6 +58,17 @@ export default function AddAgentPage() {
   
   const embeddedWallet = wallets.find(w => w.walletClientType === 'privy');
   const walletAddress = embeddedWallet?.address || user?.wallet?.address;
+  
+  // Wait for wallet to be available after authentication
+  const [walletReady, setWalletReady] = useState(false);
+  
+  useEffect(() => {
+    if (authenticated && walletAddress) {
+      setWalletReady(true);
+    } else if (!authenticated) {
+      setWalletReady(false);
+    }
+  }, [authenticated, walletAddress]);
 
   const [formData, setFormData] = useState<FormData>({
     name: '',
@@ -246,7 +257,7 @@ export default function AddAgentPage() {
         
         {/* Bottom */}
         <div className="mt-6 pt-6 border-t border-card-border flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-text-muted">
-          <p>© 2025 Nudge. Built with ❤️ for better wellness.</p>
+          <p>© 2026 Nudge. Built with ❤️ for better wellness.</p>
           <div className="flex items-center gap-4">
             <span>Powered by</span>
             <span className="font-medium text-text">Monad</span>
@@ -346,8 +357,21 @@ export default function AddAgentPage() {
           </p>
         </div>
 
+        {/* Loading state while Privy initializes */}
+        {!ready && (
+          <div className="bg-white rounded-2xl p-8 border border-card-border shadow-card text-center mb-8">
+            <div className="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Loader2 className="w-8 h-8 text-accent animate-spin" />
+            </div>
+            <h2 className="text-xl font-bold mb-2">Loading...</h2>
+            <p className="text-text-muted">
+              Checking authentication status...
+            </p>
+          </div>
+        )}
+
         {/* Wallet Connection Required */}
-        {!authenticated && (
+        {ready && !authenticated && (
           <div className="bg-white rounded-2xl p-8 border border-card-border shadow-card text-center mb-8">
             <div className="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-4">
               <Wallet className="w-8 h-8 text-accent" />
@@ -363,8 +387,21 @@ export default function AddAgentPage() {
           </div>
         )}
 
-        {/* Form */}
-        {authenticated && (
+        {/* Wallet loading after authentication */}
+        {ready && authenticated && !walletAddress && (
+          <div className="bg-white rounded-2xl p-8 border border-card-border shadow-card text-center mb-8">
+            <div className="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Loader2 className="w-8 h-8 text-accent animate-spin" />
+            </div>
+            <h2 className="text-xl font-bold mb-2">Setting Up Your Wallet...</h2>
+            <p className="text-text-muted">
+              Your embedded wallet is being created. This only takes a moment.
+            </p>
+          </div>
+        )}
+
+        {/* Form - show when authenticated AND wallet is ready */}
+        {ready && authenticated && walletAddress && (
           <>
             {errorMessage && (
               <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-center gap-2">
