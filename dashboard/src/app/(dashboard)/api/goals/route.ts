@@ -24,8 +24,8 @@ export async function GET(request: NextRequest) {
     if (!goalsPath.startsWith(expectedPrefix)) {
       console.error('Path traversal attempt detected');
       return NextResponse.json({
-        goals: mockGoals,
-        source: 'mock',
+        goals: [],
+        source: 'empty',
       });
     }
     
@@ -38,18 +38,17 @@ export async function GET(request: NextRequest) {
       return addRateLimitHeaders(response, RATE_LIMITS.read, request);
     }
     
-    // Return mock data if no goals file exists
+    // Return empty array if no goals file exists
     const response = NextResponse.json({
-      goals: mockGoals,
-      source: 'mock',
+      goals: [],
+      source: 'empty',
     });
     return addRateLimitHeaders(response, RATE_LIMITS.read, request);
   } catch (error) {
     console.error('Failed to fetch goals:', error);
     return NextResponse.json({
-      goals: mockGoals,
-      source: 'mock',
-      error: 'Service temporarily unavailable',
+      goals: [],
+      source: 'empty',
     });
   }
 }

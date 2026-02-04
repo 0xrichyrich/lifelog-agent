@@ -119,30 +119,32 @@ export async function GET(request: NextRequest) {
   try {
     const activities = getRecentActivities(daysResult.value!);
     
-    if (activities.length === 0) {
-      const response = NextResponse.json({
-        days: daysResult.value,
-        insights: mockInsightData,
-        source: 'mock',
-      });
-      return addRateLimitHeaders(response, RATE_LIMITS.read, request);
-    }
-    
-    const insights = generateInsights(activities);
+    const insights = activities.length > 0 
+      ? generateInsights(activities)
+      : {
+          dailyProductivity: [],
+          categoryBreakdown: [],
+          hourlyHeatmap: [],
+          weeklyTrends: [],
+        };
     
     const response = NextResponse.json({
       days: daysResult.value,
       insights,
-      source: 'database',
+      source: activities.length > 0 ? 'database' : 'empty',
     });
     return addRateLimitHeaders(response, RATE_LIMITS.read, request);
   } catch (error) {
     console.error('Failed to generate insights:', error);
     return NextResponse.json({
       days: daysResult.value,
-      insights: mockInsightData,
-      source: 'mock',
-      error: 'Service temporarily unavailable',
+      insights: {
+        dailyProductivity: [],
+        categoryBreakdown: [],
+        hourlyHeatmap: [],
+        weeklyTrends: [],
+      },
+      source: 'empty',
     });
   }
 }

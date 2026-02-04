@@ -30,29 +30,21 @@ export async function GET(request: NextRequest) {
     // Try to get from database
     const activities = getActivitiesByDate(dateResult.value!);
     
-    // If no data, return mock data
-    if (activities.length === 0) {
-      const response = NextResponse.json({
-        date: dateResult.value,
-        activities: mockActivities,
-        source: 'mock',
-      });
-      return addRateLimitHeaders(response, RATE_LIMITS.read, request);
-    }
-    
+    // Return actual data (empty array if none)
     const response = NextResponse.json({
       date: dateResult.value,
       activities,
-      source: 'database',
+      source: activities.length > 0 ? 'database' : 'empty',
     });
     return addRateLimitHeaders(response, RATE_LIMITS.read, request);
   } catch (error) {
     console.error('Failed to fetch activities:', error);
-    return NextResponse.json({
+    // Return empty on error instead of mock data
+    const response = NextResponse.json({
       date: dateResult.value,
-      activities: mockActivities,
-      source: 'mock',
-      error: 'Service temporarily unavailable',
+      activities: [],
+      source: 'empty',
     });
+    return addRateLimitHeaders(response, RATE_LIMITS.read, request);
   }
 }
