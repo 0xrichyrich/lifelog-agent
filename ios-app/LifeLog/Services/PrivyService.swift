@@ -218,17 +218,9 @@ class PrivyService: ObservableObject {
     
     /// Handle OAuth callback URL from Privy
     func handleCallback(url: URL) async {
-        guard let privy = privy else { return }
-        
-        do {
-            // Let Privy SDK handle the OAuth callback
-            try await privy.handleUrl(url)
-            
-            // Re-check auth status after callback
-            await checkAuthStatus()
-        } catch {
-            self.error = "OAuth callback failed: \(error.localizedDescription)"
-        }
+        // Privy SDK handles OAuth callbacks automatically
+        // Just re-check auth status after callback
+        await checkAuthStatus()
     }
     
     // MARK: - Wallet Operations
