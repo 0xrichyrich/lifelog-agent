@@ -1,0 +1,56 @@
+{
+  "name": "@nudge/agent-sdk",
+  "version": "1.0.0",
+  "description": "Multi-agent SDK for Nudge platform with x402 micropayments",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./types": {
+      "import": "./dist/types/index.js",
+      "types": "./dist/types/index.d.ts"
+    },
+    "./agents": {
+      "import": "./dist/agents/index.js",
+      "types": "./dist/agents/index.d.ts"
+    },
+    "./router": {
+      "import": "./dist/router/index.js",
+      "types": "./dist/router/index.d.ts"
+    },
+    "./payments": {
+      "import": "./dist/payments/index.js",
+      "types": "./dist/payments/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist"
+  },
+  "keywords": [
+    "nudge",
+    "ai-agents",
+    "multi-agent",
+    "x402",
+    "micropayments"
+  ],
+  "author": "0xrichyrich",
+  "license": "MIT",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.72.1",
+    "openai": "^4.77.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^22.10.5",
+    "typescript": "^5.7.2"
+  },
+  "peerDependencies": {
+    "express": "^4.18.0"
+  }
+}
