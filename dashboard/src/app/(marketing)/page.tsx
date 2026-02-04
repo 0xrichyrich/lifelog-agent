@@ -185,6 +185,7 @@ export default function LandingPage() {
             <a href="#features" className="text-text-muted hover:text-accent transition">Features</a>
             <a href="#agents" className="text-text-muted hover:text-accent transition">Agents</a>
             <a href="#token" className="text-text-muted hover:text-accent transition">Token</a>
+            <a href="/docs" className="text-text-muted hover:text-accent transition">Docs</a>
             <a href="/dashboard" className="btn btn-primary flex items-center gap-2">
               Try Web App
               <ChevronRight className="w-4 h-4" />
@@ -510,8 +511,16 @@ export default function LandingPage() {
             </div>
           </div>
           
+          {/* Footer Links */}
+          <div className="mt-8 pt-6 border-t border-card-border flex flex-wrap justify-center gap-6 text-sm text-text-muted">
+            <a href="/docs" className="hover:text-accent transition">Docs</a>
+            <a href="/faq" className="hover:text-accent transition">FAQ</a>
+            <a href="/privacy" className="hover:text-accent transition">Privacy</a>
+            <a href="/terms" className="hover:text-accent transition">Terms</a>
+          </div>
+          
           {/* Bottom */}
-          <div className="mt-8 pt-6 border-t border-card-border flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-text-muted">
+          <div className="mt-6 pt-6 border-t border-card-border flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-text-muted">
             <p>© 2025 Nudge. Built with ❤️ for better wellness.</p>
             <div className="flex items-center gap-4">
               <span>Powered by</span>
