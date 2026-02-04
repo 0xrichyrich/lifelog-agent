@@ -178,13 +178,16 @@ struct ConnectWalletResponse: Codable {
 }
 
 // MARK: - Token Constants
-enum LifeToken {
+enum NudgeToken {
     // Placeholder for Monad testnet - address TBD
     static let contractAddress = "0x0000000000000000000000000000000000000000"
-    static let symbol = "LIFE"
+    static let symbol = "NUDGE"
     static let decimals = 18
     static let chainId = 10143 // Monad testnet chain ID (placeholder)
     static let chainName = "Monad Testnet"
     static let rpcUrl = "https://testnet.monad.xyz/rpc"
     static let explorerUrl = "https://testnet.monad.xyz"
 }
+
+// Keep alias for backwards compatibility
+typealias LifeToken = NudgeToken
