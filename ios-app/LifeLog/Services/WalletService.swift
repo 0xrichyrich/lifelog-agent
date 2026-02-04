@@ -14,7 +14,7 @@ actor WalletService {
     private var baseURL: String
     private var apiKey: String?
     
-    init(baseURL: String = "https://dashboard-flame-five-76.vercel.app", apiKey: String? = nil) {
+    init(baseURL: String = "https://www.littlenudge.app", apiKey: String? = nil) {
         self.baseURL = baseURL
         self.apiKey = apiKey
         
