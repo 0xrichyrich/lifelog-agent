@@ -76,12 +76,12 @@ export default function MarketplacePage() {
             key={star}
             className={`w-4 h-4 ${
               star <= Math.round(rating)
-                ? 'text-yellow-400 fill-yellow-400'
-                : 'text-gray-600'
+                ? 'text-amber-400 fill-amber-400'
+                : 'text-gray-300'
             }`}
           />
         ))}
-        <span className="text-sm text-gray-400 ml-1">({rating.toFixed(1)})</span>
+        <span className="text-sm text-text-muted ml-1">({rating.toFixed(1)})</span>
       </div>
     );
   };
@@ -95,21 +95,21 @@ export default function MarketplacePage() {
     <div className="p-6 max-w-7xl mx-auto">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white mb-2">🏪 Agent Marketplace</h1>
-        <p className="text-gray-400">
+        <h1 className="text-3xl font-bold text-text mb-2">🏪 Agent Marketplace</h1>
+        <p className="text-text-muted">
           Discover AI agents to enhance your Nudge experience. From wellness coaches to productivity boosters.
         </p>
       </div>
 
       {/* Search Bar */}
       <div className="relative mb-6">
-        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 w-5 h-5" />
+        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-text-muted w-5 h-5" />
         <input
           type="text"
           placeholder="Search agents by name, description, or capability..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full bg-gray-800 border border-gray-700 rounded-xl px-12 py-4 text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 transition"
+          className="w-full bg-white border border-card-border rounded-xl px-12 py-4 text-text placeholder-text-muted focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition shadow-card"
         />
       </div>
 
@@ -121,10 +121,10 @@ export default function MarketplacePage() {
             <button
               key={cat.id}
               onClick={() => setSelectedCategory(cat.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition font-medium ${
                 selectedCategory === cat.id
-                  ? 'bg-purple-600 text-white'
-                  : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white'
+                  ? 'bg-accent text-white shadow-md'
+                  : 'bg-white text-text-muted border border-card-border hover:border-accent hover:text-accent shadow-card'
               }`}
             >
               <Icon className="w-4 h-4" />
@@ -136,48 +136,48 @@ export default function MarketplacePage() {
 
       {isLoading ? (
         <div className="flex justify-center py-20">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-accent"></div>
         </div>
       ) : (
         <>
           {/* Featured Agents */}
           {featuredAgents.length > 0 && selectedCategory === 'all' && !searchQuery && (
             <div className="mb-10">
-              <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-yellow-400" />
+              <h2 className="text-xl font-bold text-text mb-4 flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-amber-500" />
                 Featured Agents
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {featuredAgents.map((agent) => (
                   <div
                     key={agent.id}
-                    className="bg-gradient-to-br from-purple-900/50 to-indigo-900/50 rounded-xl p-6 border border-purple-500/30 hover:border-purple-500 transition"
+                    className="bg-gradient-to-br from-accent/10 to-emerald-50 rounded-xl p-6 border border-accent/30 hover:border-accent hover:shadow-card-hover transition"
                   >
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center gap-3">
                         <span className="text-4xl">{agent.icon}</span>
                         <div>
-                          <h3 className="text-xl font-bold text-white">{agent.name}</h3>
-                          <span className="text-sm text-purple-300 capitalize">{agent.category}</span>
+                          <h3 className="text-xl font-bold text-text">{agent.name}</h3>
+                          <span className="text-sm text-accent font-medium capitalize">{agent.category}</span>
                         </div>
                       </div>
                       <div className="text-right">
                         {agent.isFree ? (
-                          <span className="bg-green-600 text-white text-sm px-3 py-1 rounded-full">Free</span>
+                          <span className="bg-accent text-white text-sm px-3 py-1 rounded-full font-medium">Free</span>
                         ) : (
-                          <span className="text-lg font-bold text-green-400">{agent.price.toLocaleString()} NUDGE</span>
+                          <span className="text-lg font-bold text-accent">{agent.price.toLocaleString()} NUDGE</span>
                         )}
                       </div>
                     </div>
-                    <p className="text-gray-300 mb-4">{agent.description}</p>
+                    <p className="text-text-muted mb-4">{agent.description}</p>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
                         {renderStars(agent.rating)}
-                        <span className="text-gray-500 text-sm">{formatUsage(agent.usageCount)} uses</span>
+                        <span className="text-text-muted text-sm">{formatUsage(agent.usageCount)} uses</span>
                       </div>
                       <Link
                         href={`/wellness?agent=${agent.id}`}
-                        className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition"
+                        className="flex items-center gap-2 bg-accent hover:bg-accent-dark text-white px-4 py-2 rounded-lg transition font-medium"
                       >
                         Try Agent <ArrowRight className="w-4 h-4" />
                       </Link>
@@ -190,39 +190,39 @@ export default function MarketplacePage() {
 
           {/* All Agents Grid */}
           <div>
-            <h2 className="text-xl font-bold text-white mb-4">
+            <h2 className="text-xl font-bold text-text mb-4">
               {selectedCategory === 'all' ? 'All Agents' : `${selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)} Agents`}
-              <span className="text-gray-500 font-normal ml-2">({agents.length})</span>
+              <span className="text-text-muted font-normal ml-2">({agents.length})</span>
             </h2>
             
             {agents.length === 0 ? (
               <div className="text-center py-20">
-                <p className="text-gray-500 text-lg">No agents found matching your criteria.</p>
+                <p className="text-text-muted text-lg">No agents found matching your criteria.</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {(searchQuery || selectedCategory !== 'all' ? agents : regularAgents).map((agent) => (
                   <div
                     key={agent.id}
-                    className="bg-gray-800 rounded-xl p-5 border border-gray-700 hover:border-purple-500 transition group"
+                    className="bg-white rounded-xl p-5 border border-card-border hover:border-accent hover:shadow-card-hover transition group shadow-card"
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center gap-3">
                         <span className="text-3xl">{agent.icon}</span>
                         <div>
-                          <h3 className="text-lg font-bold text-white">{agent.name}</h3>
-                          <span className="text-xs text-gray-500 capitalize flex items-center gap-1">
+                          <h3 className="text-lg font-bold text-text">{agent.name}</h3>
+                          <span className="text-xs text-text-muted capitalize flex items-center gap-1">
                             {getCategoryIcon(agent.category)} {agent.category}
                           </span>
                         </div>
                       </div>
                     </div>
                     
-                    <p className="text-gray-400 text-sm mb-4 line-clamp-2">{agent.description}</p>
+                    <p className="text-text-muted text-sm mb-4 line-clamp-2">{agent.description}</p>
                     
                     <div className="flex flex-wrap gap-1 mb-4">
                       {agent.capabilities.slice(0, 3).map((cap) => (
-                        <span key={cap} className="bg-gray-700 text-gray-300 text-xs px-2 py-1 rounded">
+                        <span key={cap} className="bg-accent-light text-accent-dark text-xs px-2 py-1 rounded font-medium">
                           {cap}
                         </span>
                       ))}
@@ -231,20 +231,20 @@ export default function MarketplacePage() {
                     <div className="flex items-center justify-between">
                       <div>
                         {renderStars(agent.rating)}
-                        <span className="text-xs text-gray-500 block mt-1">{formatUsage(agent.usageCount)} uses</span>
+                        <span className="text-xs text-text-muted block mt-1">{formatUsage(agent.usageCount)} uses</span>
                       </div>
                       <div className="text-right">
                         {agent.isFree ? (
-                          <span className="text-green-400 font-semibold">Free</span>
+                          <span className="text-accent font-semibold">Free</span>
                         ) : (
-                          <span className="text-green-400 font-semibold">{agent.price.toLocaleString()} NUDGE</span>
+                          <span className="text-accent font-semibold">{agent.price.toLocaleString()} NUDGE</span>
                         )}
                       </div>
                     </div>
                     
                     <Link
                       href={`/wellness?agent=${agent.id}`}
-                      className="mt-4 w-full flex items-center justify-center gap-2 bg-gray-700 hover:bg-purple-600 text-white py-2 rounded-lg transition opacity-0 group-hover:opacity-100"
+                      className="mt-4 w-full flex items-center justify-center gap-2 bg-surface-light hover:bg-accent hover:text-white text-text py-2 rounded-lg transition opacity-0 group-hover:opacity-100 font-medium"
                     >
                       Try Agent <ArrowRight className="w-4 h-4" />
                     </Link>
@@ -255,18 +255,18 @@ export default function MarketplacePage() {
           </div>
 
           {/* Submit Agent CTA */}
-          <div className="mt-12 bg-gradient-to-r from-indigo-900 to-purple-900 rounded-xl p-8 border border-purple-500/30">
+          <div className="mt-12 bg-gradient-to-r from-accent to-emerald-500 rounded-xl p-8">
             <div className="flex flex-col md:flex-row items-center justify-between gap-6">
               <div>
                 <h3 className="text-2xl font-bold text-white mb-2">🛠️ Build Your Own Agent</h3>
-                <p className="text-purple-200">
+                <p className="text-emerald-100">
                   Have an idea for an AI agent? Submit your agent to the marketplace and earn NUDGE tokens.
                 </p>
               </div>
               <Link
                 href="https://github.com/0xrichyrich/nudge-agents-sdk"
                 target="_blank"
-                className="flex items-center gap-2 bg-white text-purple-900 font-semibold px-6 py-3 rounded-lg hover:bg-gray-100 transition whitespace-nowrap"
+                className="flex items-center gap-2 bg-white text-accent font-semibold px-6 py-3 rounded-lg hover:bg-gray-50 transition whitespace-nowrap shadow-md"
               >
                 Submit Your Agent <ArrowRight className="w-5 h-5" />
               </Link>

@@ -81,7 +81,7 @@ actor AgentService {
         return request
     }
     
-    // MARK: - Fetch Agents
+    // MARK: - Fetch Agents (Original)
     
     /// Fetch list of available agents from the API
     func fetchAgents() async -> [Agent] {
@@ -106,6 +106,54 @@ actor AgentService {
             
         } catch {
             print("[AgentService] Error fetching agents: \(error)")
+            return Agent.mockAgents
+        }
+    }
+    
+    // MARK: - Fetch Marketplace Agents
+    
+    /// Fetch all agents from the marketplace API
+    /// - Parameters:
+    ///   - category: Optional category filter
+    ///   - search: Optional search query
+    /// - Returns: Array of marketplace agents
+    func fetchMarketplaceAgents(category: AgentCategory? = nil, search: String? = nil) async -> [Agent] {
+        var components = URLComponents(string: "\(baseURL)/api/marketplace/agents")!
+        var queryItems: [URLQueryItem] = []
+        
+        if let category = category {
+            queryItems.append(URLQueryItem(name: "category", value: category.rawValue))
+        }
+        
+        if let search = search, !search.isEmpty {
+            queryItems.append(URLQueryItem(name: "search", value: search))
+        }
+        
+        if !queryItems.isEmpty {
+            components.queryItems = queryItems
+        }
+        
+        let request = makeRequest(url: components.url!)
+        
+        do {
+            let (data, response) = try await session.data(for: request)
+            
+            guard let httpResponse = response as? HTTPURLResponse else {
+                print("[AgentService] Invalid response type for marketplace")
+                return Agent.mockAgents
+            }
+            
+            guard httpResponse.statusCode == 200 else {
+                print("[AgentService] Marketplace returned \(httpResponse.statusCode)")
+                return Agent.mockAgents
+            }
+            
+            let decoded = try JSONDecoder().decode(MarketplaceAgentResponse.self, from: data)
+            print("[AgentService] Fetched \(decoded.agents.count) marketplace agents")
+            return decoded.agents
+            
+        } catch {
+            print("[AgentService] Error fetching marketplace agents: \(error)")
             return Agent.mockAgents
         }
     }

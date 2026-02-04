@@ -9,15 +9,26 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: '#0a0a0a',
-        surface: '#1a1a1a',
-        'surface-light': '#252525',
-        text: '#e5e5e5',
-        'text-muted': '#a3a3a3',
-        accent: '#3b82f6',
-        success: '#10b981',
-        warning: '#f59e0b',
-        danger: '#ef4444',
+        // iOS-matching light theme
+        background: '#F8FAFB',
+        surface: '#FFFFFF',
+        'surface-light': '#F1F5F9',
+        text: '#1F2937',
+        'text-muted': '#6B7280',
+        // Primary mint/emerald from iOS
+        accent: '#10B981',
+        'accent-light': '#D1FAE5',
+        'accent-dark': '#059669',
+        success: '#10B981',
+        warning: '#F59E0B',
+        danger: '#EF4444',
+        // Card styling
+        card: '#FFFFFF',
+        'card-border': '#E5E7EB',
+      },
+      boxShadow: {
+        'card': '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1)',
+        'card-hover': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1)',
       },
     },
   },
