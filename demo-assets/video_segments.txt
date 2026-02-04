@@ -1,0 +1,16 @@
+# segment 1: intro (14s) - web landing
+file 'seg01.mp4'
+# segment 2: problem (15s) - web landing
+file 'seg02.mp4'
+# segment 3: ios goals/timeline (21.5s)
+file 'seg03.mp4'
+# segment 4: chat/wallet (14s)
+file 'seg04.mp4'
+# segment 5: marketplace (24.8s)
+file 'seg05.mp4'
+# segment 6: agents/submit (22.9s)
+file 'seg06.mp4'
+# segment 7: token (13.7s)
+file 'seg07.mp4'
+# segment 8: outro (19.9s)
+file 'seg08.mp4'

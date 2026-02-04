@@ -1,0 +1,8 @@
+file 'vo-01-intro.mp3'
+file 'vo-02-problem.mp3'
+file 'vo-03-ios-app.mp3'
+file 'vo-04-chat-wallet.mp3'
+file 'vo-05-marketplace.mp3'
+file 'vo-06-agents.mp3'
+file 'vo-07-token.mp3'
+file 'vo-08-outro.mp3'

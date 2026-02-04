@@ -209,16 +209,18 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto relative">
           <div className="text-center max-w-4xl mx-auto">
             {/* Mascot */}
-            <div className="mb-8 relative inline-block">
-              <div className="absolute inset-0 bg-accent/20 rounded-full blur-2xl scale-150" />
-              <Image 
-                src="/mascot.png" 
-                alt="Nudge mascot" 
-                width={180} 
-                height={180} 
-                className="relative rounded-3xl shadow-2xl"
-                priority
-              />
+            <div className="mb-8 flex justify-center">
+              <div className="relative">
+                <div className="absolute inset-0 bg-accent/20 rounded-full blur-2xl scale-150" />
+                <Image 
+                  src="/mascot.png" 
+                  alt="Nudge mascot" 
+                  width={180} 
+                  height={180} 
+                  className="relative rounded-3xl shadow-2xl"
+                  priority
+                />
+              </div>
             </div>
             
             {/* Badge */}
