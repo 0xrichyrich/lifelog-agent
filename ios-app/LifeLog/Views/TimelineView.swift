@@ -244,8 +244,7 @@ struct TimelineView: View {
         } catch {
             print("Failed to load activities: \(error)")
             await MainActor.run {
-                // Use mock data for demo instead of showing error
-                timeBlocks = generateMockBlocks()
+                loadError = error
             }
         }
         
@@ -283,39 +282,6 @@ struct TimelineView: View {
         return blocks
     }
     
-    private func generateMockBlocks() -> [TimeBlock] {
-        let mockCategories: [(Int, ActivityCategory, Int)] = [
-            (7, .break_, 30),
-            (8, .focus, 55),
-            (9, .focus, 60),
-            (10, .break_, 20),
-            (11, .collaboration, 45),
-            (12, .break_, 60),
-            (13, .focus, 50),
-            (14, .focus, 60),
-            (15, .distraction, 25),
-            (16, .collaboration, 40),
-            (17, .focus, 35),
-            (18, .break_, 60)
-        ]
-        
-        return (0..<24).map { hour in
-            if let mock = mockCategories.first(where: { $0.0 == hour }) {
-                return TimeBlock(
-                    hour: hour,
-                    activities: [],
-                    dominantCategory: mock.1,
-                    totalMinutes: mock.2
-                )
-            }
-            return TimeBlock(
-                hour: hour,
-                activities: [],
-                dominantCategory: .idle,
-                totalMinutes: 0
-            )
-        }
-    }
 }
 
 // MARK: - Animated Stat Card

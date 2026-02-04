@@ -36,8 +36,8 @@ export default function PrivyProvider({ children }: { children: ReactNode }) {
       appId={appId}
       config={{
         appearance: {
-          theme: 'dark',
-          accentColor: '#3b82f6',
+          theme: 'light',
+          accentColor: '#10B981',
           logo: '/nudge-logo.png',
         },
         loginMethods: ['email', 'wallet', 'google', 'apple'],

@@ -165,9 +165,8 @@ struct GoalsView: View {
             }
         } catch {
             print("Failed to load goals: \(error)")
-            // Use mock data for demo
             await MainActor.run {
-                goals = mockGoals
+                loadError = error
             }
         }
         
@@ -176,13 +175,6 @@ struct GoalsView: View {
         }
     }
     
-    private var mockGoals: [Goal] {
-        [
-            Goal(id: "1", name: "4 Hours Deep Work", description: "Spend at least 4 hours in focused work", type: .daily, target: 240, unit: "minutes", current: 180, streak: 7, category: "Productivity", color: "#10b981", createdAt: "2026-01-15"),
-            Goal(id: "2", name: "Exercise Daily", description: "30 minutes of physical activity", type: .daily, target: 30, unit: "minutes", current: 30, streak: 3, category: "Health", color: "#3b82f6", createdAt: "2026-01-01"),
-            Goal(id: "3", name: "Read 20 Pages", description: "Read at least 20 pages", type: .daily, target: 20, unit: "pages", current: 20, streak: 12, category: "Learning", color: "#f59e0b", createdAt: "2026-01-10"),
-        ]
-    }
 }
 
 // MARK: - Animated Streak Card
