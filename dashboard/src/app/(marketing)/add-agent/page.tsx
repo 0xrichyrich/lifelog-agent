@@ -12,7 +12,9 @@ import {
   CheckCircle,
   Wallet,
   ChevronRight,
-  Loader2
+  Loader2,
+  Award,
+  Github
 } from 'lucide-react';
 
 const CATEGORIES = [
@@ -178,9 +180,59 @@ export default function AddAgentPage() {
 
   // Footer component
   const Footer = () => (
-    <footer className="py-8 px-6 border-t border-card-border bg-white mt-12">
-      <div className="max-w-4xl mx-auto text-center text-sm text-text-muted">
-        <p>© 2025 Nudge. Built for Moltiverse Hackathon.</p>
+    <footer className="py-12 px-6 border-t border-card-border bg-white mt-12">
+      <div className="max-w-6xl mx-auto">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+          {/* Brand */}
+          <div className="flex items-center gap-3">
+            <Image src="/mascot.png" alt="Nudge mascot" width={36} height={36} className="rounded-lg" />
+            <div>
+              <span className="font-bold">Nudge</span>
+              <p className="text-sm text-text-muted">Sometimes you need a little nudge.</p>
+            </div>
+          </div>
+          
+          {/* Hackathon badge */}
+          <div className="flex items-center gap-2 px-4 py-2 bg-purple-50 rounded-xl border border-purple-200">
+            <Award className="w-5 h-5 text-purple-500" />
+            <span className="text-sm">
+              Built for <span className="font-bold text-purple-600">Moltiverse Hackathon</span>
+            </span>
+          </div>
+          
+          {/* Links */}
+          <div className="flex items-center gap-4">
+            <a 
+              href="https://github.com/0xrichyrich/lifelog-agent" 
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-text-muted hover:text-text transition p-2 hover:bg-surface-light rounded-lg"
+            >
+              <Github className="w-5 h-5" />
+            </a>
+          </div>
+        </div>
+        
+        {/* Footer Links */}
+        <div className="mt-8 pt-6 border-t border-card-border flex flex-wrap justify-center gap-6 text-sm text-text-muted">
+          <a href="/docs" className="hover:text-accent transition">Docs</a>
+          <a href="/faq" className="hover:text-accent transition">FAQ</a>
+          <a href="/privacy" className="hover:text-accent transition">Privacy</a>
+          <a href="/terms" className="hover:text-accent transition">Terms</a>
+        </div>
+        
+        {/* Bottom */}
+        <div className="mt-6 pt-6 border-t border-card-border flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-text-muted">
+          <p>© 2025 Nudge. Built with ❤️ for better wellness.</p>
+          <div className="flex items-center gap-4">
+            <span>Powered by</span>
+            <span className="font-medium text-text">Monad</span>
+            <span>•</span>
+            <span className="font-medium text-text">Privy</span>
+            <span>•</span>
+            <span className="font-medium text-text">x402</span>
+          </div>
+        </div>
       </div>
     </footer>
   );
