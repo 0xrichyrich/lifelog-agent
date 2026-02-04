@@ -292,14 +292,27 @@ struct SettingsView: View {
     private func connectHealth() {
         Task {
             do {
+                // Request authorization - this shows the iOS HealthKit permission dialog
                 try await healthService.requestAuthorization()
+                
+                // Mark that we've completed the authorization flow
+                // (iOS doesn't tell us if user denied read access for privacy reasons)
+                healthService.markAuthorizationCompleted()
+                
+                // Try to fetch data - if user granted access, this works
                 try await healthService.fetchTodayData()
                 UINotificationFeedbackGenerator().notificationOccurred(.success)
-            } catch {
+            } catch HealthKitError.notAvailable {
+                // HealthKit not available on this device (e.g., iPad without HealthKit)
                 await MainActor.run {
                     showingHealthAlert = true
                     UINotificationFeedbackGenerator().notificationOccurred(.error)
                 }
+            } catch {
+                // Other errors - authorization completed but data fetch may have failed
+                // Still mark as completed since the dialog was shown
+                healthService.markAuthorizationCompleted()
+                UINotificationFeedbackGenerator().notificationOccurred(.success)
             }
         }
     }

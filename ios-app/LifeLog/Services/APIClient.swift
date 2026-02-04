@@ -13,7 +13,7 @@ actor APIClient {
     private var baseURL: String
     private var apiKey: String?
     
-    init(baseURL: String = "https://dashboard-flame-five-76.vercel.app", apiKey: String? = nil) {
+    init(baseURL: String = "https://dashboard-flame-five-76.vercel.app", apiKey: String? = "629f39419aca200337cb85b275fcbfbb99e58cd0d279a39eb9da0dc486b43e0a") {
         self.baseURL = baseURL
         self.apiKey = apiKey
         

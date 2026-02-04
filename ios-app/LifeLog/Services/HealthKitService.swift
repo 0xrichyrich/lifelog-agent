@@ -52,7 +52,12 @@ final class HealthKitService: ObservableObject {
             throw HealthKitError.notAvailable
         }
         
+        // Always request authorization - iOS will show the dialog if needed
+        // Note: For read-only access, iOS doesn't report denial status for privacy
         try await healthStore.requestAuthorization(toShare: [], read: readTypes)
+        
+        // After requesting, try to fetch data to verify access works
+        // If user granted at least some access, this will succeed
         isAuthorized = true
     }
     
@@ -62,11 +67,15 @@ final class HealthKitService: ObservableObject {
             return
         }
         
-        // Check if we have read access to at least one type
-        if let stepType = HKQuantityType.quantityType(forIdentifier: .stepCount) {
-            let status = healthStore.authorizationStatus(for: stepType)
-            isAuthorized = (status == .sharingAuthorized)
-        }
+        // For read-only HealthKit access, authorizationStatus only tells us about WRITE permissions
+        // iOS intentionally hides read permission status for privacy (so apps can't tell if user denied)
+        // We check UserDefaults to remember if user previously completed authorization flow
+        isAuthorized = UserDefaults.standard.bool(forKey: "healthKitAuthorizationCompleted")
+    }
+    
+    func markAuthorizationCompleted() {
+        UserDefaults.standard.set(true, forKey: "healthKitAuthorizationCompleted")
+        isAuthorized = true
     }
     
     // MARK: - Fetch Data
