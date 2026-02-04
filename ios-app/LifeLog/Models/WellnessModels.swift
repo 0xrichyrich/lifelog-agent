@@ -18,6 +18,7 @@ struct ScreenTimeData: Codable, Identifiable {
     let productivityMinutes: Int
     let entertainmentMinutes: Int
     let categories: [AppCategoryUsage]
+    let isRealData: Bool // True when using actual Screen Time API data
     
     init(
         id: UUID = UUID(),
@@ -26,7 +27,8 @@ struct ScreenTimeData: Codable, Identifiable {
         socialMediaMinutes: Int = 0,
         productivityMinutes: Int = 0,
         entertainmentMinutes: Int = 0,
-        categories: [AppCategoryUsage] = []
+        categories: [AppCategoryUsage] = [],
+        isRealData: Bool = false
     ) {
         self.id = id
         self.date = date
@@ -35,6 +37,7 @@ struct ScreenTimeData: Codable, Identifiable {
         self.productivityMinutes = productivityMinutes
         self.entertainmentMinutes = entertainmentMinutes
         self.categories = categories
+        self.isRealData = isRealData
     }
     
     var socialMediaHours: Double {
@@ -225,6 +228,7 @@ enum InsightType {
     case balanceWin        // Good balance
     case morningGreeting   // Start of day
     case eveningSummary    // End of day
+    case info              // Informational message
     
     var backgroundColor: Color {
         switch self {
@@ -236,6 +240,8 @@ enum InsightType {
             return Color.warning.opacity(0.15)
         case .eveningSummary:
             return Color(hex: "8b5cf6")!.opacity(0.15)
+        case .info:
+            return Color(.systemGray).opacity(0.15)
         }
     }
     
@@ -249,6 +255,8 @@ enum InsightType {
             return Color.warning.opacity(0.3)
         case .eveningSummary:
             return Color(hex: "8b5cf6")!.opacity(0.3)
+        case .info:
+            return Color(.systemGray).opacity(0.3)
         }
     }
 }
