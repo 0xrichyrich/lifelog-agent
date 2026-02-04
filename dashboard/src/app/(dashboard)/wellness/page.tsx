@@ -23,7 +23,7 @@ interface Job {
   cost: number;
 }
 
-// Mock wellness agents (same as in ACP client)
+// Nudge wellness agents
 const WELLNESS_AGENTS: Agent[] = [
   {
     id: "fitbot-pro",
