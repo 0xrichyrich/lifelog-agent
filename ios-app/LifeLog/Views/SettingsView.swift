@@ -347,6 +347,11 @@ struct SettingsView: View {
             let status = settings.authorizationStatus
             DispatchQueue.main.async {
                 notificationStatus = status
+                // Sync toggle with actual system permission status
+                let isAuthorized = (status == .authorized || status == .provisional)
+                if appState.notificationsEnabled != isAuthorized {
+                    appState.notificationsEnabled = isAuthorized
+                }
             }
         }
     }
