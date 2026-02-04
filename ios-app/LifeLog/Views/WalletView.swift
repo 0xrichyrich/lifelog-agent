@@ -69,7 +69,7 @@ struct WalletView: View {
                     }
                 }
             } message: {
-                Text("Claim \(walletState.pendingRewards) $LIFE tokens to your wallet?")
+                Text("Claim \(walletState.pendingRewards) $NUDGE tokens to your wallet?")
             }
             .overlay {
                 if let result = claimResult {
@@ -103,7 +103,7 @@ struct WalletView: View {
                 .fontWeight(.bold)
                 .foregroundStyle(Color.textPrimary)
             
-            Text("Connect to earn $LIFE tokens for your check-ins and streaks")
+            Text("Connect to earn $NUDGE tokens for your check-ins and streaks")
                 .font(.body)
                 .foregroundStyle(Color.textSecondary)
                 .multilineTextAlignment(.center)
@@ -210,7 +210,7 @@ struct WalletView: View {
     private var balanceSection: some View {
         VStack(spacing: 16) {
             VStack(spacing: 4) {
-                Text("$LIFE Balance")
+                Text("$NUDGE Balance")
                     .font(.caption)
                     .foregroundStyle(Color.textSecondary)
                 
@@ -224,7 +224,7 @@ struct WalletView: View {
                             .foregroundStyle(Color.textPrimary)
                     }
                     
-                    Text("LIFE")
+                    Text("NUDGE")
                         .font(.title3)
                         .fontWeight(.medium)
                         .foregroundStyle(Color.textSecondary)
@@ -282,7 +282,7 @@ struct WalletView: View {
                             .fontWeight(.bold)
                             .foregroundStyle(Color.brandAccent)
                         
-                        Text("LIFE")
+                        Text("NUDGE")
                             .font(.subheadline)
                             .foregroundStyle(Color.textSecondary)
                     }
@@ -320,7 +320,7 @@ struct WalletView: View {
             
             // Earnings info
             VStack(alignment: .leading, spacing: 8) {
-                Text("How to earn $LIFE")
+                Text("How to earn $NUDGE")
                     .font(.caption)
                     .fontWeight(.semibold)
                     .foregroundStyle(Color.textSecondary)
@@ -613,7 +613,7 @@ struct ClaimResultOverlay: View {
                             .fontWeight(.bold)
                             .foregroundStyle(Color.textPrimary)
                         
-                        Text("+\(result.amount) LIFE")
+                        Text("+\(result.amount) NUDGE")
                             .font(.title)
                             .fontWeight(.bold)
                             .foregroundStyle(Color.success)
