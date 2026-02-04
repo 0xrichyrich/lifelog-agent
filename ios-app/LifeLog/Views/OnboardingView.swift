@@ -834,7 +834,8 @@ struct GoalTemplate: Identifiable, Equatable {
 struct SetGoalScreen: View {
     @Binding var selectedGoal: GoalTemplate?
     
-    private let goalTemplates = [
+    // Static so UUIDs remain stable across view re-renders (fixes radio button visual state)
+    private static let goalTemplates = [
         GoalTemplate(name: "4hrs Deep Work", icon: "brain.head.profile", color: .success, target: "4 hours/day"),
         GoalTemplate(name: "Exercise 3x/week", icon: "figure.run", color: .brandAccent, target: "3 times/week"),
         GoalTemplate(name: "Daily Check-in", icon: "square.and.pencil", color: .warning, target: "1 check-in/day"),
@@ -860,7 +861,7 @@ struct SetGoalScreen: View {
             }
             
             VStack(spacing: 12) {
-                ForEach(goalTemplates) { template in
+                ForEach(Self.goalTemplates) { template in
                     GoalTemplateCard(
                         template: template,
                         isSelected: selectedGoal?.id == template.id,
