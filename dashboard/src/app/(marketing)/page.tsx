@@ -23,9 +23,9 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 
-// Contract address (placeholder - update with real address)
-const CONTRACT_ADDRESS = '0x1234...5678abcd';
-const FULL_CONTRACT = '0x1234567890abcdef1234567890abcdef12345678';
+// Contract address
+const CONTRACT_ADDRESS = '0xaEb52D53...a2F6EA';
+const FULL_CONTRACT = '0xaEb52D53b6c3265580B91Be08C620Dc45F57a35F';
 
 // Featured agents for marketplace preview
 const FEATURED_AGENTS = [
@@ -158,7 +158,7 @@ function AgentCard({ agent }: { agent: typeof FEATURED_AGENTS[0] }) {
       <p className="text-text-muted text-sm mb-3">{agent.description}</p>
       <div className="flex items-center justify-between pt-3 border-t border-card-border">
         <div className="flex items-center gap-1 text-sm">
-          <Coins className="w-4 h-4 text-yellow-500" />
+          <Coins className="w-4 h-4 text-accent" />
           <span className="font-bold">{agent.price}</span>
           <span className="text-text-muted">$NUDGE/msg</span>
         </div>
@@ -175,11 +175,12 @@ export default function LandingPage() {
     <div className="min-h-screen bg-background">
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-xl border-b border-card-border">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-4 md:px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Image src="/mascot.png" alt="Nudge mascot" width={40} height={40} className="rounded-xl" />
             <span className="text-xl font-bold">Nudge</span>
           </div>
+          {/* Desktop nav */}
           <div className="hidden md:flex items-center gap-6">
             <a href="#features" className="text-text-muted hover:text-accent transition">Features</a>
             <a href="#agents" className="text-text-muted hover:text-accent transition">Agents</a>
@@ -189,6 +190,11 @@ export default function LandingPage() {
               <ChevronRight className="w-4 h-4" />
             </a>
           </div>
+          {/* Mobile CTA only */}
+          <a href="/dashboard" className="md:hidden btn btn-primary text-sm px-4 py-2 flex items-center gap-1">
+            Get Started
+            <ChevronRight className="w-4 h-4" />
+          </a>
         </div>
       </nav>
 
@@ -257,7 +263,7 @@ export default function LandingPage() {
                 HealthKit Integration
               </div>
               <div className="flex items-center gap-2">
-                <Coins className="w-5 h-5 text-yellow-500" />
+                <Coins className="w-5 h-5 text-accent" />
                 Earn $NUDGE
               </div>
               <div className="flex items-center gap-2">
@@ -380,9 +386,9 @@ export default function LandingPage() {
       {/* Token Section */}
       <section id="token" className="py-20 px-6 bg-white">
         <div className="max-w-4xl mx-auto">
-          <div className="card border-yellow-500/30 bg-gradient-to-br from-yellow-50 to-orange-50">
+          <div className="card border-accent/30 bg-gradient-to-br from-emerald-50 to-teal-50">
             <div className="text-center mb-8">
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-500/10 border border-yellow-500/20 rounded-full text-yellow-600 text-sm mb-4">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-accent/10 border border-accent/20 rounded-full text-accent text-sm mb-4">
                 <Coins className="w-4 h-4" />
                 $NUDGE Token
               </div>
@@ -394,12 +400,12 @@ export default function LandingPage() {
             
             <div className="grid md:grid-cols-3 gap-6 mb-8">
               <div className="text-center p-4 bg-white rounded-xl">
-                <Heart className="w-8 h-8 text-red-500 mx-auto mb-2" />
+                <Heart className="w-8 h-8 text-accent mx-auto mb-2" />
                 <p className="font-bold">+10 $NUDGE</p>
                 <p className="text-sm text-text-muted">Daily check-in</p>
               </div>
               <div className="text-center p-4 bg-white rounded-xl">
-                <Sun className="w-8 h-8 text-yellow-500 mx-auto mb-2" />
+                <Sun className="w-8 h-8 text-emerald-500 mx-auto mb-2" />
                 <p className="font-bold">+50 $NUDGE</p>
                 <p className="text-sm text-text-muted">7-day streak</p>
               </div>
