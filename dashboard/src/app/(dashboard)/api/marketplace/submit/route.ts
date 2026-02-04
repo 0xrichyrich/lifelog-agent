@@ -181,7 +181,16 @@ export async function POST(request: NextRequest) {
     }
 
     // Payment proof provided - process submission
-    // In production, you would verify the payment on-chain here
+    // ============================================================================
+    // ⚠️  DEMO MODE - Payment verification is simplified for hackathon demo
+    // ============================================================================
+    // TODO: Production implementation requires:
+    // 1. On-chain verification via Base RPC (eth_getTransactionReceipt)
+    // 2. Verify payment amount matches LISTING_FEE_USDC
+    // 3. Verify recipient is PLATFORM_WALLET
+    // 4. Store processed payment IDs in database to prevent replay attacks
+    // 5. Consider using a payment processor or indexer service
+    // ============================================================================
     
     // Load existing agents
     const agents = loadCommunityAgents();

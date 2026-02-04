@@ -3,8 +3,19 @@ import { NextRequest, NextResponse } from 'next/server';
 /**
  * Simple in-memory rate limiter
  * 
- * For production, consider using Upstash Redis or similar.
- * This is suitable for single-instance deployments.
+ * ⚠️  WARNING: In-memory rate limiting does NOT work reliably on serverless!
+ * Each serverless function instance has its own memory, so rate limits
+ * are not shared across instances. A user could bypass limits by hitting
+ * different instances.
+ * 
+ * TODO: For production, use Upstash Redis or Vercel KV:
+ * - Upstash Redis: https://upstash.com/docs/redis/sdks/ratelimit-ts
+ * - Vercel KV: https://vercel.com/docs/storage/vercel-kv
+ * 
+ * This implementation is suitable for:
+ * - Development/testing
+ * - Single-instance deployments
+ * - Hackathon demos
  */
 
 interface RateLimitEntry {

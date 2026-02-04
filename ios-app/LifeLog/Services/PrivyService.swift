@@ -24,6 +24,11 @@ class PrivyService: ObservableObject {
     @Published var userId: String?
     
     // Privy configuration
+    // NOTE: These IDs are intentionally public - they are client-side identifiers
+    // similar to Firebase API keys. They are NOT secrets and are designed to be
+    // embedded in client apps. Authentication security comes from Privy's backend
+    // validation, not from keeping these IDs secret.
+    // See: https://docs.privy.io/guide/security
     private let appId = "cml88575000qmjr0bt3tivdrr"
     // App Client ID from Privy Dashboard (Settings -> API Keys -> App client ID)
     private let appClientId = "client-WY6VqnR715TBi3TYk8mmGfsVs6WTzKJDGmaWHsr3sHU3G"
@@ -75,7 +80,8 @@ class PrivyService: ObservableObject {
             // Get wallet address from first embedded Ethereum wallet
             if let wallet = user.embeddedEthereumWallets.first {
                 self.walletAddress = wallet.address
-                UserDefaults.standard.set(wallet.address, forKey: "walletAddress")
+                // Store wallet address in Keychain for security (not UserDefaults)
+                KeychainHelper.save(key: "walletAddress", value: wallet.address)
             }
             
         case .unauthenticated, .notReady, .authenticatedUnverified:
@@ -145,10 +151,11 @@ class PrivyService: ObservableObject {
             
             if let address = wallet?.address {
                 self.walletAddress = address
-                UserDefaults.standard.set(address, forKey: "walletAddress")
+                // Store wallet address in Keychain for security (not UserDefaults)
+                KeychainHelper.save(key: "walletAddress", value: address)
             }
             
-            // Save credentials
+            // Save credentials securely in Keychain
             if let userId = userId {
                 KeychainHelper.save(key: "privyUserId", value: userId)
             }
@@ -187,10 +194,11 @@ class PrivyService: ObservableObject {
             
             if let address = wallet?.address {
                 self.walletAddress = address
-                UserDefaults.standard.set(address, forKey: "walletAddress")
+                // Store wallet address in Keychain for security (not UserDefaults)
+                KeychainHelper.save(key: "walletAddress", value: address)
             }
             
-            // Save credentials
+            // Save credentials securely in Keychain
             if let userId = userId {
                 KeychainHelper.save(key: "privyUserId", value: userId)
             }
@@ -219,9 +227,9 @@ class PrivyService: ObservableObject {
         walletAddress = nil
         isAuthenticated = false
         
-        // Clear stored credentials
+        // Clear stored credentials from Keychain
         KeychainHelper.delete(key: "privyUserId")
-        UserDefaults.standard.removeObject(forKey: "walletAddress")
+        KeychainHelper.delete(key: "walletAddress")
         UserDefaults.standard.removeObject(forKey: "walletConnected")
     }
     

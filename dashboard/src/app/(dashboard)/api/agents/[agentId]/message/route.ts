@@ -89,14 +89,35 @@ interface PaymentRequest {
 }
 
 /**
- * Verify payment proof
- * In production, this would verify the signature against the wallet
- * and optionally check on-chain transaction status
+ * ============================================================================
+ * ⚠️  DEMO MODE - Payment verification is simplified for hackathon demo
+ * ============================================================================
+ * 
+ * TODO: Production implementation requires:
+ * 1. On-chain verification via Base RPC to confirm tx exists and amount matches
+ * 2. Signature verification using ethers.js or viem to validate wallet ownership
+ * 3. Redis/PostgreSQL storage for processed payment IDs (replay protection)
+ * 4. Webhook integration for async payment confirmation
+ * 
+ * Current implementation accepts well-formed proofs without on-chain validation.
+ * This is ONLY acceptable for hackathon demonstration purposes.
+ * ============================================================================
  */
+
+// In-memory payment ID tracking for replay protection (demo only)
+// TODO: For production, use Redis or database for persistence across instances
+const processedPaymentIds = new Set<string>();
+
 function verifyPaymentProof(proof: PaymentProof, agentId: string): boolean {
   // Basic validation
   if (!proof.signature || !proof.paymentId || !proof.timestamp || !proof.chain) {
     console.warn('[Payment] Invalid proof structure:', proof);
+    return false;
+  }
+
+  // REPLAY PROTECTION: Check if payment ID was already used
+  if (processedPaymentIds.has(proof.paymentId)) {
+    console.warn('[Payment] Replay attack detected - payment ID already used:', proof.paymentId);
     return false;
   }
 
@@ -116,9 +137,25 @@ function verifyPaymentProof(proof: PaymentProof, agentId: string): boolean {
     return false;
   }
 
-  // In production: verify signature matches the expected message format
-  // For now, accept any well-formed proof
-  console.log('[Payment] Proof accepted for agent:', agentId, 'paymentId:', proof.paymentId);
+  // DEMO MODE: Accept well-formed proof without on-chain verification
+  // TODO: Production should verify:
+  // - Signature matches expected message format using ethers.verifyMessage()
+  // - Transaction exists on Base via eth_getTransactionReceipt
+  // - Payment amount matches expected amount
+  // - Recipient matches PLATFORM_WALLET
+  
+  // Mark payment ID as processed (replay protection)
+  processedPaymentIds.add(proof.paymentId);
+  
+  // Cleanup old payment IDs periodically (prevent memory leak in demo)
+  if (processedPaymentIds.size > 10000) {
+    const iterator = processedPaymentIds.values();
+    for (let i = 0; i < 5000; i++) {
+      processedPaymentIds.delete(iterator.next().value);
+    }
+  }
+  
+  console.log('[Payment] DEMO MODE - Proof accepted for agent:', agentId, 'paymentId:', proof.paymentId);
   return true;
 }
 

@@ -268,7 +268,9 @@ export async function GET(request: NextRequest) {
   const communityAgents = loadCommunityAgents();
   const allAgents: MarketplaceAgent[] = [
     ...MARKETPLACE_AGENTS,
-    ...communityAgents.map(agent => ({
+    // Strip systemPrompt from community agents - it should be server-side only
+    // Exposing system prompts is a security risk (prompt injection, IP theft)
+    ...communityAgents.map(({ systemPrompt, ...agent }) => ({
       ...agent,
       isCommunity: true,
     })),
