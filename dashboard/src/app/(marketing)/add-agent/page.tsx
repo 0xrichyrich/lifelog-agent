@@ -156,24 +156,47 @@ export default function AddAgentPage() {
   // Navigation component
   const Nav = () => (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-xl border-b border-card-border">
-      <div className="max-w-4xl mx-auto px-4 md:px-6 py-4 flex items-center justify-between">
+      <div className="max-w-6xl mx-auto px-4 md:px-6 py-4 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3">
           <Image src="/mascot.png" alt="Nudge mascot" width={40} height={40} className="rounded-xl" />
           <span className="text-xl font-bold">Nudge</span>
         </Link>
-        {authenticated && walletAddress ? (
-          <div className="flex items-center gap-2 bg-accent/10 px-4 py-2 rounded-full">
-            <Wallet className="w-4 h-4 text-accent" />
-            <span className="text-sm font-medium text-accent">
-              {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
-            </span>
-          </div>
-        ) : (
-          <button onClick={login} className="btn btn-primary text-sm px-4 py-2 flex items-center gap-2">
-            <Wallet className="w-4 h-4" />
-            Connect Wallet
-          </button>
-        )}
+        {/* Desktop nav */}
+        <div className="hidden md:flex items-center gap-6">
+          <a href="/#features" className="text-text-muted hover:text-accent transition">Features</a>
+          <a href="/#agents" className="text-text-muted hover:text-accent transition">Agents</a>
+          <a href="/#token" className="text-text-muted hover:text-accent transition">Token</a>
+          <a href="/docs" className="text-text-muted hover:text-accent transition">Docs</a>
+          {authenticated && walletAddress ? (
+            <div className="flex items-center gap-2 bg-accent/10 px-4 py-2 rounded-full">
+              <Wallet className="w-4 h-4 text-accent" />
+              <span className="text-sm font-medium text-accent">
+                {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
+              </span>
+            </div>
+          ) : (
+            <button onClick={login} className="btn btn-primary flex items-center gap-2">
+              <Wallet className="w-4 h-4" />
+              Connect Wallet
+            </button>
+          )}
+        </div>
+        {/* Mobile: wallet button only */}
+        <div className="md:hidden">
+          {authenticated && walletAddress ? (
+            <div className="flex items-center gap-2 bg-accent/10 px-3 py-2 rounded-full">
+              <Wallet className="w-4 h-4 text-accent" />
+              <span className="text-sm font-medium text-accent">
+                {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
+              </span>
+            </div>
+          ) : (
+            <button onClick={login} className="btn btn-primary text-sm px-4 py-2 flex items-center gap-1">
+              <Wallet className="w-4 h-4" />
+              Connect
+            </button>
+          )}
+        </div>
       </div>
     </nav>
   );
