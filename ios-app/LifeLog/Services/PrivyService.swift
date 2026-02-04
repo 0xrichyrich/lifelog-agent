@@ -8,8 +8,7 @@
 
 import Foundation
 import SwiftUI
-// Import PrivySDK when added via SPM
-// import PrivySDK
+import PrivySDK
 
 /// Service for managing Privy embedded wallet integration
 @MainActor
@@ -21,12 +20,10 @@ class PrivyService: ObservableObject {
     @Published var walletAddress: String?
     @Published var userId: String?
     
-    // Privy configuration - Replace with your app credentials
-    private let appId = "YOUR_PRIVY_APP_ID" // TODO: Get from Privy Dashboard
-    private let appClientId = "YOUR_PRIVY_APP_CLIENT_ID" // TODO: Get from Privy Dashboard
+    // Privy configuration
+    private let appId = "cml88575000qmjr0bt3tivdrr"
     
-    // Privy SDK instance - uncomment when SDK is added
-    // private var privy: Privy?
+    private var privy: Privy?
     
     init() {
         initializePrivy()
@@ -35,110 +32,156 @@ class PrivyService: ObservableObject {
     // MARK: - Initialization
     
     private func initializePrivy() {
-        // TODO: Initialize Privy SDK when package is added
-        // let config = PrivyConfig(
-        //     appId: appId,
-        //     appClientId: appClientId,
-        //     loggingConfig: .init(logLevel: .verbose)
-        // )
-        // privy = PrivySdk.initialize(config: config)
-        // isInitialized = true
-        
-        // For now, check if we have stored credentials
-        if let storedUserId = KeychainHelper.load(key: "privyUserId"),
-           let storedAddress = UserDefaults.standard.string(forKey: "walletAddress") {
-            self.userId = storedUserId
-            self.walletAddress = storedAddress
-            self.isAuthenticated = true
+        do {
+            let config = PrivyConfig(
+                appId: appId,
+                loggingConfig: .init(logLevel: .info)
+            )
+            privy = PrivySdk.initialize(config: config)
+            isInitialized = true
+            
+            // Check if already authenticated
+            Task {
+                await checkAuthStatus()
+            }
+        } catch {
+            self.error = "Failed to initialize Privy: \(error.localizedDescription)"
+            print("Privy initialization error: \(error)")
         }
+    }
+    
+    private func checkAuthStatus() async {
+        guard let privy = privy else { return }
         
-        isInitialized = true
+        do {
+            let authState = try await privy.auth.getAuthState()
+            if let user = authState?.user {
+                self.userId = user.id
+                self.isAuthenticated = true
+                
+                // Get wallet address
+                if let address = await privy.embeddedWallet.getAddress() {
+                    self.walletAddress = address
+                    UserDefaults.standard.set(address, forKey: "walletAddress")
+                }
+            }
+        } catch {
+            print("Error checking auth status: \(error)")
+        }
     }
     
     // MARK: - Authentication
     
     /// Authenticate with email (Privy embedded wallet)
     func loginWithEmail(_ email: String) async throws {
+        guard let privy = privy else {
+            throw PrivyError.notInitialized
+        }
+        
         isLoading = true
         error = nil
         
         defer { isLoading = false }
         
-        // TODO: Implement with Privy SDK
-        // do {
-        //     let authState = try await privy?.email.sendCode(to: email)
-        //     // Handle OTP verification flow
-        // } catch {
-        //     self.error = error.localizedDescription
-        //     throw error
-        // }
-        
-        // Placeholder: Simulate successful login
-        try await Task.sleep(nanoseconds: 1_000_000_000) // 1 second delay
-        
-        // Simulated response for demo purposes
-        self.userId = "user_\(UUID().uuidString.prefix(8))"
-        self.walletAddress = generateDemoAddress()
-        self.isAuthenticated = true
-        
-        // Save credentials
-        KeychainHelper.save(key: "privyUserId", value: userId ?? "")
-        UserDefaults.standard.set(walletAddress, forKey: "walletAddress")
-        UserDefaults.standard.set(true, forKey: "walletConnected")
+        do {
+            // Send OTP code to email
+            try await privy.email.sendCode(to: email)
+            // OTP verification will be handled separately via verifyEmailCode
+        } catch {
+            self.error = error.localizedDescription
+            throw error
+        }
     }
     
     /// Verify OTP code for email login
     func verifyEmailCode(_ code: String) async throws {
+        guard let privy = privy else {
+            throw PrivyError.notInitialized
+        }
+        
         isLoading = true
         error = nil
         
         defer { isLoading = false }
         
-        // TODO: Implement with Privy SDK
-        // let authState = try await privy?.email.verifyCode(code)
-        // if let user = authState?.user {
-        //     self.userId = user.id
-        //     // Create embedded wallet if needed
-        //     if user.wallet == nil {
-        //         let wallet = try await privy?.embeddedWallet.create()
-        //         self.walletAddress = wallet?.address
-        //     } else {
-        //         self.walletAddress = user.wallet?.address
-        //     }
-        //     self.isAuthenticated = true
-        // }
+        do {
+            let authState = try await privy.email.verifyCode(code)
+            if let user = authState?.user {
+                self.userId = user.id
+                self.isAuthenticated = true
+                
+                // Create embedded wallet if user doesn't have one
+                let address = try await privy.embeddedWallet.getAddress() 
+                    ?? (try await privy.embeddedWallet.create())?.address
+                
+                self.walletAddress = address
+                
+                // Save credentials
+                if let userId = userId {
+                    KeychainHelper.save(key: "privyUserId", value: userId)
+                }
+                if let address = address {
+                    UserDefaults.standard.set(address, forKey: "walletAddress")
+                }
+                UserDefaults.standard.set(true, forKey: "walletConnected")
+            }
+        } catch {
+            self.error = error.localizedDescription
+            throw error
+        }
     }
     
     /// Sign in with Apple
     func loginWithApple() async throws {
+        guard let privy = privy else {
+            throw PrivyError.notInitialized
+        }
+        
         isLoading = true
         error = nil
         
         defer { isLoading = false }
         
-        // TODO: Implement with Privy SDK
-        // let authState = try await privy?.apple.login()
-        
-        // Placeholder for demo
-        try await Task.sleep(nanoseconds: 1_500_000_000)
-        
-        self.userId = "apple_\(UUID().uuidString.prefix(8))"
-        self.walletAddress = generateDemoAddress()
-        self.isAuthenticated = true
-        
-        KeychainHelper.save(key: "privyUserId", value: userId ?? "")
-        UserDefaults.standard.set(walletAddress, forKey: "walletAddress")
-        UserDefaults.standard.set(true, forKey: "walletConnected")
+        do {
+            let authState = try await privy.apple.login()
+            if let user = authState?.user {
+                self.userId = user.id
+                self.isAuthenticated = true
+                
+                // Get or create embedded wallet
+                let address = try await privy.embeddedWallet.getAddress() 
+                    ?? (try await privy.embeddedWallet.create())?.address
+                
+                self.walletAddress = address
+                
+                // Save credentials
+                if let userId = userId {
+                    KeychainHelper.save(key: "privyUserId", value: userId)
+                }
+                if let address = address {
+                    UserDefaults.standard.set(address, forKey: "walletAddress")
+                }
+                UserDefaults.standard.set(true, forKey: "walletConnected")
+            }
+        } catch {
+            self.error = error.localizedDescription
+            throw error
+        }
     }
     
     /// Log out and disconnect wallet
     func logout() async {
+        guard let privy = privy else { return }
+        
         isLoading = true
         
         defer { isLoading = false }
         
-        // TODO: Implement with Privy SDK
-        // try? await privy?.logout()
+        do {
+            try await privy.logout()
+        } catch {
+            print("Logout error: \(error)")
+        }
         
         // Clear local state
         userId = nil
@@ -155,44 +198,48 @@ class PrivyService: ObservableObject {
     
     /// Get the embedded wallet address
     func getWalletAddress() async -> String? {
-        // TODO: Implement with Privy SDK
-        // return await privy?.embeddedWallet.getAddress()
-        return walletAddress
+        guard let privy = privy else { return nil }
+        
+        do {
+            return try await privy.embeddedWallet.getAddress()
+        } catch {
+            print("Error getting wallet address: \(error)")
+            return walletAddress
+        }
     }
     
     /// Sign a message with the embedded wallet
     func signMessage(_ message: String) async throws -> String {
+        guard let privy = privy else {
+            throw PrivyError.notInitialized
+        }
+        
         guard isAuthenticated else {
             throw PrivyError.notAuthenticated
         }
         
-        // TODO: Implement with Privy SDK
-        // return try await privy?.embeddedWallet.signMessage(message)
-        
-        // Placeholder signature for demo
-        return "0x\(UUID().uuidString.replacingOccurrences(of: "-", with: ""))"
+        do {
+            return try await privy.embeddedWallet.signMessage(message)
+        } catch {
+            throw PrivyError.signatureFailed
+        }
     }
     
     /// Sign a transaction
     func signTransaction(_ transaction: [String: Any]) async throws -> String {
+        guard let privy = privy else {
+            throw PrivyError.notInitialized
+        }
+        
         guard isAuthenticated else {
             throw PrivyError.notAuthenticated
         }
         
-        // TODO: Implement with Privy SDK
-        // return try await privy?.embeddedWallet.signTransaction(transaction)
-        
-        // Placeholder for demo
-        return "0x\(UUID().uuidString.replacingOccurrences(of: "-", with: ""))"
-    }
-    
-    // MARK: - Helpers
-    
-    private func generateDemoAddress() -> String {
-        // Generate a realistic-looking Ethereum address for demo
-        let chars = "0123456789abcdef"
-        let randomPart = String((0..<40).map { _ in chars.randomElement()! })
-        return "0x\(randomPart)"
+        do {
+            return try await privy.embeddedWallet.signTransaction(transaction)
+        } catch {
+            throw PrivyError.signatureFailed
+        }
     }
 }
 
