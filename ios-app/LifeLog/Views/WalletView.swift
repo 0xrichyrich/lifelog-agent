@@ -10,7 +10,7 @@ import SwiftUI
 
 struct WalletView: View {
     @Environment(AppState.self) private var appState
-    @StateObject private var privyService = PrivyService()
+    @EnvironmentObject private var privyService: PrivyService
     @State private var walletState = WalletState()
     @State private var showingConnectSheet = false
     @State private var showingClaimConfirmation = false
@@ -871,4 +871,5 @@ struct TransactionHistoryView: View {
 #Preview {
     WalletView()
         .environment(AppState())
+        .environmentObject(PrivyService.shared)
 }

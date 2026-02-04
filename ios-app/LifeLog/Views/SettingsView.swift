@@ -12,6 +12,7 @@ import HealthKit
 
 struct SettingsView: View {
     @Environment(AppState.self) private var appState
+    @EnvironmentObject private var privyService: PrivyService
     @State private var showingExportSheet = false
     @State private var showingAboutSheet = false
     @State private var notificationStatus: UNAuthorizationStatus = .notDetermined
@@ -29,6 +30,7 @@ struct SettingsView: View {
                     NavigationLink {
                         WalletView()
                             .environment(appState)
+                            .environmentObject(privyService)
                     } label: {
                         HStack {
                             Image(systemName: "wallet.bifold.fill")

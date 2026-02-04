@@ -13,6 +13,15 @@ import PrivySDK
 /// Service for managing Privy embedded wallet integration
 @MainActor
 class PrivyService: ObservableObject {
+    /// Shared singleton instance
+    static let shared = PrivyService()
+    
+    /// Preview instance for SwiftUI previews
+    static let preview: PrivyService = {
+        let service = PrivyService(skipInit: true)
+        return service
+    }()
+    
     @Published var isInitialized: Bool = false
     @Published var isAuthenticated: Bool = false
     @Published var isLoading: Bool = false
@@ -31,8 +40,14 @@ class PrivyService: ObservableObject {
     // Store email for verification flow
     private var pendingEmail: String?
     
-    init() {
-        initializePrivy()
+    // Track if SDK was already initialized
+    private static var sdkInitialized = false
+    
+    private init(skipInit: Bool = false) {
+        if !skipInit && !PrivyService.sdkInitialized {
+            initializePrivy()
+            PrivyService.sdkInitialized = true
+        }
     }
     
     // MARK: - Initialization

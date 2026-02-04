@@ -13,7 +13,7 @@ import WidgetKit
 @main
 struct LifeLogApp: App {
     @State private var appState = AppState()
-    @StateObject private var privyService = PrivyService()
+    private var privyService = PrivyService.shared
     @State private var hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
     @Environment(\.scenePhase) private var scenePhase
     
