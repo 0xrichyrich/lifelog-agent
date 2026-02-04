@@ -66,6 +66,14 @@ struct ContentView: View {
         }
         .tint(Color.brandInteractive)
         .onOpenURL { url in
+            // Handle Privy OAuth callbacks
+            if url.scheme == "nudge" {
+                Task {
+                    await privyService.handleCallback(url: url)
+                }
+                return
+            }
+            
             // Handle deep links for tab navigation
             if url.scheme == "lifelog" {
                 switch url.host {

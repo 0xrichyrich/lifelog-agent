@@ -216,6 +216,21 @@ class PrivyService: ObservableObject {
         UserDefaults.standard.removeObject(forKey: "walletConnected")
     }
     
+    /// Handle OAuth callback URL from Privy
+    func handleCallback(url: URL) async {
+        guard let privy = privy else { return }
+        
+        do {
+            // Let Privy SDK handle the OAuth callback
+            try await privy.handleUrl(url)
+            
+            // Re-check auth status after callback
+            await checkAuthStatus()
+        } catch {
+            self.error = "OAuth callback failed: \(error.localizedDescription)"
+        }
+    }
+    
     // MARK: - Wallet Operations
     
     /// Get the embedded wallet address
