@@ -187,12 +187,12 @@ struct PriceBadge: View {
         Text(price)
             .font(.caption2)
             .fontWeight(.bold)
-            .foregroundStyle(isFree ? Color.white : Color.brandInteractive)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
+            .foregroundStyle(.white)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
             .background(
-                RoundedRectangle(cornerRadius: 6)
-                    .fill(isFree ? Color.success : Color.mintLight)
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(isFree ? Color.success : Color.brandAccent)
             )
     }
 }
