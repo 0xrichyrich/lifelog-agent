@@ -656,6 +656,8 @@ struct ConnectWalletSheet: View {
     @Environment(\.dismiss) private var dismiss
     @State private var email = ""
     @State private var showingEmailLogin = false
+    @State private var showingOtpEntry = false
+    @State private var otpCode = ""
     
     var body: some View {
         NavigationStack {
@@ -723,41 +725,93 @@ struct ConnectWalletSheet: View {
                 
                 if showingEmailLogin {
                     VStack(spacing: 12) {
-                        TextField("Email address", text: $email)
-                            .textContentType(.emailAddress)
-                            .keyboardType(.emailAddress)
-                            .autocapitalization(.none)
-                            .padding()
-                            .background(Color.inputBackground)
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                        
-                        Button {
-                            Task {
-                                try? await privyService.loginWithEmail(email)
-                                if privyService.isAuthenticated {
-                                    walletState.isConnected = true
-                                    walletState.walletAddress = privyService.walletAddress
-                                    walletState.save()
-                                    dismiss()
+                        if showingOtpEntry {
+                            // OTP Code Entry
+                            Text("Enter the code sent to \(email)")
+                                .font(.subheadline)
+                                .foregroundStyle(Color.textSecondary)
+                            
+                            TextField("6-digit code", text: $otpCode)
+                                .textContentType(.oneTimeCode)
+                                .keyboardType(.numberPad)
+                                .multilineTextAlignment(.center)
+                                .font(.title2.monospaced())
+                                .padding()
+                                .background(Color.inputBackground)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                            
+                            Button {
+                                Task {
+                                    try? await privyService.verifyEmailCode(otpCode)
+                                    if privyService.isAuthenticated {
+                                        walletState.isConnected = true
+                                        walletState.walletAddress = privyService.walletAddress
+                                        walletState.save()
+                                        dismiss()
+                                    }
                                 }
-                            }
-                        } label: {
-                            HStack {
-                                if privyService.isLoading {
-                                    ProgressView()
-                                        .tint(.white)
-                                } else {
-                                    Text("Sign In")
+                            } label: {
+                                HStack {
+                                    if privyService.isLoading {
+                                        ProgressView()
+                                            .tint(.white)
+                                    } else {
+                                        Text("Verify Code")
+                                    }
                                 }
+                                .font(.headline)
+                                .foregroundStyle(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(otpCode.count < 6 ? Color.gray : Color.brandAccent)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
                             }
-                            .font(.headline)
-                            .foregroundStyle(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(email.isEmpty ? Color.gray : Color.brandAccent)
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .disabled(otpCode.count < 6 || privyService.isLoading)
+                            
+                            Button("Use different email") {
+                                showingOtpEntry = false
+                                otpCode = ""
+                            }
+                            .font(.subheadline)
+                            .foregroundStyle(Color.brandAccent)
+                        } else {
+                            // Email Entry
+                            TextField("Email address", text: $email)
+                                .textContentType(.emailAddress)
+                                .keyboardType(.emailAddress)
+                                .autocapitalization(.none)
+                                .padding()
+                                .background(Color.inputBackground)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                            
+                            Button {
+                                Task {
+                                    try? await privyService.loginWithEmail(email)
+                                    // Show OTP entry after email is sent
+                                    if privyService.error == nil {
+                                        withAnimation {
+                                            showingOtpEntry = true
+                                        }
+                                    }
+                                }
+                            } label: {
+                                HStack {
+                                    if privyService.isLoading {
+                                        ProgressView()
+                                            .tint(.white)
+                                    } else {
+                                        Text("Send Code")
+                                    }
+                                }
+                                .font(.headline)
+                                .foregroundStyle(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(email.isEmpty ? Color.gray : Color.brandAccent)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                            }
+                            .disabled(email.isEmpty || privyService.isLoading)
                         }
-                        .disabled(email.isEmpty || privyService.isLoading)
                     }
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
