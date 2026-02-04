@@ -9,8 +9,8 @@ initializeDatabase();
 
 export async function POST(request: NextRequest) {
   // Authentication
-  const authError = validateApiKey(request);
-  if (authError) return authError;
+  // Auth removed for public access - rate limiting only
+  // if (authError) return authError;
   
   // Rate limiting
   const rateLimitError = checkRateLimit(request, RATE_LIMITS.checkins);
@@ -61,8 +61,8 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   // Authentication
-  const authError = validateApiKey(request);
-  if (authError) return authError;
+  // Auth removed for public access - rate limiting only
+  // if (authError) return authError;
   
   // Rate limiting
   const rateLimitError = checkRateLimit(request, RATE_LIMITS.read);

@@ -3,8 +3,8 @@ import { validateApiKey } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   // Authentication
-  const authError = validateApiKey(request);
-  if (authError) return authError;
+  // Auth removed for public access
+  // if (authError) return authError;
 
   const { searchParams } = new URL(request.url);
   const address = searchParams.get('address');

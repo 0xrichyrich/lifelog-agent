@@ -7,8 +7,8 @@ import path from 'path';
 
 export async function GET(request: NextRequest) {
   // Authentication
-  const authError = validateApiKey(request);
-  if (authError) return authError;
+  // Auth removed for public access - rate limiting only
+  // if (authError) return authError;
   
   // Rate limiting
   const rateLimitError = checkRateLimit(request, RATE_LIMITS.read);

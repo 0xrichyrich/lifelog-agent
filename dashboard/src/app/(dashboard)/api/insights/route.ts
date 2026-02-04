@@ -94,8 +94,8 @@ function generateInsights(activities: Activity[]): InsightData {
 
 export async function GET(request: NextRequest) {
   // Authentication
-  const authError = validateApiKey(request);
-  if (authError) return authError;
+  // Auth removed for public access
+  // if (authError) return authError;
   
   // Rate limiting
   const rateLimitError = checkRateLimit(request, RATE_LIMITS.read);
