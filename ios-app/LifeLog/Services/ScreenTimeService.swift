@@ -2,21 +2,27 @@
 //  ScreenTimeService.swift
 //  LifeLog
 //
-//  Screen Time tracking using FamilyControls and DeviceActivity frameworks
-//  Requires iOS 16+ and Family Controls entitlement
+//  Screen Time tracking - COMING SOON
+//  FamilyControls integration disabled pending App Store review
+//
+//  To re-enable:
+//  1. Uncomment FamilyControls, DeviceActivity, ManagedSettings imports
+//  2. Restore AuthorizationCenter calls
+//  3. Add com.apple.developer.family-controls entitlement back
+//  4. Set isComingSoon = false
 //
 
 import Foundation
 import SwiftUI
-import FamilyControls
-import DeviceActivity
-import ManagedSettings
 
-// MARK: - Screen Time Service
+// MARK: - Screen Time Service (Stubbed - Coming Soon)
 
 @MainActor
 final class ScreenTimeService: ObservableObject {
     static let shared = ScreenTimeService()
+    
+    /// Feature flag - set to false when FamilyControls is re-enabled
+    let isComingSoon: Bool = true
     
     @Published var todayData: ScreenTimeData?
     @Published var weeklyData: [ScreenTimeData] = []
@@ -27,92 +33,45 @@ final class ScreenTimeService: ObservableObject {
     private let defaults = UserDefaults(suiteName: AppState.appGroup)
     
     private init() {
-        loadCachedData()
-        Task {
-            await checkAuthorizationStatus()
+        // Don't load cached data or check auth when feature is disabled
+        if !isComingSoon {
+            loadCachedData()
         }
     }
     
-    // MARK: - Authorization
+    // MARK: - Authorization (Stubbed)
     
-    /// Check current authorization status
-    private func checkAuthorizationStatus() async {
-        let status = AuthorizationCenter.shared.authorizationStatus
-        switch status {
-        case .approved:
-            isAuthorized = true
-            authorizationError = nil
-        case .denied:
-            isAuthorized = false
-            authorizationError = "Screen Time access was denied. Please enable in Settings > Screen Time."
-        case .notDetermined:
-            isAuthorized = false
-            authorizationError = nil
-        @unknown default:
-            isAuthorized = false
-            authorizationError = "Unknown authorization status"
-        }
-    }
-    
-    /// Request authorization for Screen Time access
+    /// Request authorization - returns false when feature is disabled
     func requestAuthorization() async -> Bool {
-        do {
-            // Request authorization for individual (personal device) access
-            // Run on a non-isolated task to avoid Swift 6 concurrency issues
-            try await Task { @Sendable in
-                try await AuthorizationCenter.shared.requestAuthorization(for: .individual)
-            }.value
-            
-            isAuthorized = true
-            authorizationError = nil
-            
-            // Fetch data now that we're authorized
-            await fetchTodayScreenTime()
-            await fetchWeeklyScreenTime()
-            
-            return true
-        } catch let error as FamilyControlsError {
-            isAuthorized = false
-            switch error {
-            case .restricted:
-                authorizationError = "Screen Time is restricted on this device"
-            case .unavailable:
-                authorizationError = "Screen Time is not available on this device"
-            case .invalidAccountType:
-                authorizationError = "Invalid account type for Screen Time"
-            case .invalidArgument:
-                authorizationError = "Invalid argument provided"
-            case .authorizationConflict:
-                authorizationError = "Authorization conflict - another app is managing Screen Time"
-            case .authorizationCanceled:
-                authorizationError = "Authorization was canceled by user"
-            case .networkError:
-                authorizationError = "Network error while authorizing"
-            case .authenticationMethodUnavailable:
-                authorizationError = "Authentication method is not available"
-            @unknown default:
-                authorizationError = "Authorization failed: \(error.localizedDescription)"
-            }
+        if isComingSoon {
+            authorizationError = "Screen Time Insights coming soon!"
             return false
-        } catch {
-            isAuthorized = false
-            authorizationError = "Authorization failed: \(error.localizedDescription)"
-            return false
-        }
-    }
-    
-    // MARK: - Data Fetching
-    
-    /// Fetch today's screen time data
-    func fetchTodayScreenTime() async {
-        if isAuthorized {
-            // Use real DeviceActivity data when authorized
-            await fetchRealScreenTimeData(for: Date())
-        } else {
-            // Fall back to simulated data for demo/development
-            await fetchSimulatedScreenTimeData(for: Date())
         }
         
+        // Original implementation would go here when re-enabled
+        // try await AuthorizationCenter.shared.requestAuthorization(for: .individual)
+        return false
+    }
+    
+    // MARK: - Data Fetching (Stubbed)
+    
+    /// Fetch today's screen time data - returns placeholder when disabled
+    func fetchTodayScreenTime() async {
+        if isComingSoon {
+            // Return empty/placeholder data
+            todayData = ScreenTimeData(
+                date: Date(),
+                totalMinutes: 0,
+                socialMediaMinutes: 0,
+                productivityMinutes: 0,
+                entertainmentMinutes: 0,
+                categories: [],
+                isRealData: false
+            )
+            return
+        }
+        
+        // Original implementation would go here
         lastSyncDate = Date()
         saveToCache()
         syncToSharedDefaults()
@@ -120,125 +79,20 @@ final class ScreenTimeService: ObservableObject {
     
     /// Fetch weekly screen time data
     func fetchWeeklyScreenTime() async {
-        var weekData: [ScreenTimeData] = []
-        
-        for dayOffset in 0..<7 {
-            guard let date = Calendar.current.date(byAdding: .day, value: -dayOffset, to: Date()) else { continue }
-            
-            if isAuthorized {
-                // Fetch real data for each day
-                if let data = await fetchRealScreenTimeDataSync(for: date) {
-                    weekData.append(data)
-                }
-            } else {
-                // Generate simulated data for demo
-                weekData.append(generateSimulatedData(for: date))
-            }
-        }
-        
-        weeklyData = weekData
-        saveToCache()
-    }
-    
-    /// Fetch real screen time data using DeviceActivity framework
-    private func fetchRealScreenTimeData(for date: Date) async {
-        // DeviceActivityReport provides the actual screen time data
-        // Note: Full implementation requires a DeviceActivityReportExtension
-        // which runs as a separate extension target
-        
-        // For the main app, we can query basic device activity metrics
-        let calendar = Calendar.current
-        let startOfDay = calendar.startOfDay(for: date)
-        guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else {
-            await fetchSimulatedScreenTimeData(for: date)
+        if isComingSoon {
+            weeklyData = []
             return
         }
         
-        // Create a date interval for the day (for future use when DeviceActivityReport is implemented)
-        _ = DateInterval(start: startOfDay, end: min(endOfDay, Date()))
-        
-        // In a full implementation, you would use:
-        // 1. DeviceActivityReportExtension to render usage reports
-        // 2. ManagedSettingsStore to read shield configurations
-        // 3. DeviceActivitySchedule for monitoring schedules
-        
-        // Since DeviceActivityReport requires an extension, we use
-        // the available data from the authorization and provide
-        // enhanced simulated data based on time patterns
-        await fetchSimulatedScreenTimeData(for: date, enhanced: true)
+        // Original implementation would go here
     }
     
-    /// Synchronous version for batch fetching
-    private func fetchRealScreenTimeDataSync(for date: Date) async -> ScreenTimeData? {
-        // Same as above - full implementation needs extension
-        return generateSimulatedData(for: date, enhanced: isAuthorized)
-    }
-    
-    /// Fetch simulated screen time data (fallback when not authorized or on simulator)
-    private func fetchSimulatedScreenTimeData(for date: Date, enhanced: Bool = false) async {
-        todayData = generateSimulatedData(for: date, enhanced: enhanced)
-    }
-    
-    /// Generate simulated data based on time of day
-    private func generateSimulatedData(for date: Date, enhanced: Bool = false) -> ScreenTimeData {
-        let calendar = Calendar.current
-        let hour = calendar.component(.hour, from: date)
-        let isToday = calendar.isDateInToday(date)
-        
-        // Calculate base minutes based on time of day
-        let baseMinutes: Int
-        if isToday {
-            // For today, scale based on current hour
-            baseMinutes = hour * 8 + Int.random(in: -10...20)
-        } else {
-            // For past days, generate full day data
-            baseMinutes = Int.random(in: 180...420) // 3-7 hours
-        }
-        
-        // Vary ratios slightly for more realistic data
-        let socialRatio = Double.random(in: 0.25...0.4)
-        let productivityRatio = Double.random(in: 0.2...0.35)
-        let entertainmentRatio = 1.0 - socialRatio - productivityRatio
-        
-        return ScreenTimeData(
-            date: date,
-            totalMinutes: max(0, baseMinutes),
-            socialMediaMinutes: Int(Double(baseMinutes) * socialRatio),
-            productivityMinutes: Int(Double(baseMinutes) * productivityRatio),
-            entertainmentMinutes: Int(Double(baseMinutes) * entertainmentRatio),
-            categories: generateCategoryBreakdown(totalMinutes: baseMinutes),
-            isRealData: enhanced && isAuthorized
-        )
-    }
-    
-    // MARK: - Category Breakdown
-    
-    private func generateCategoryBreakdown(totalMinutes: Int) -> [AppCategoryUsage] {
-        let categories: [(AppCategory, Double, [String])] = [
-            (.socialMedia, 0.30, ["Instagram", "TikTok", "X"]),
-            (.entertainment, 0.25, ["YouTube", "Netflix", "Spotify"]),
-            (.productivity, 0.20, ["Notes", "Calendar", "Mail"]),
-            (.communication, 0.15, ["Messages", "WhatsApp", "Slack"]),
-            (.games, 0.05, ["Games"]),
-            (.other, 0.05, ["Other"])
-        ]
-        
-        return categories.map { category, ratio, apps in
-            let variance = Double.random(in: -0.05...0.05)
-            let adjustedRatio = max(0, ratio + variance)
-            return AppCategoryUsage(
-                category: category,
-                minutes: Int(Double(totalMinutes) * adjustedRatio),
-                topApps: apps
-            )
-        }
-    }
-    
-    // MARK: - Insights
+    // MARK: - Insights (Stubbed)
     
     func getSocialMediaInsight() -> String? {
-        guard let data = todayData else { return nil }
+        if isComingSoon { return nil }
         
+        guard let data = todayData else { return nil }
         let hours = data.socialMediaHours
         
         if hours >= 3 {
@@ -251,9 +105,10 @@ final class ScreenTimeService: ObservableObject {
     }
     
     func getProductivityInsight() -> String? {
+        if isComingSoon { return nil }
+        
         guard let today = todayData else { return nil }
         
-        // Compare to weekly average
         let weeklyAvg = weeklyData.isEmpty ? 0 :
             weeklyData.map(\.productivityMinutes).reduce(0, +) / weeklyData.count
         
@@ -266,6 +121,8 @@ final class ScreenTimeService: ObservableObject {
     }
     
     func getWeeklyTrend() -> (direction: String, percentage: Int)? {
+        if isComingSoon { return nil }
+        
         guard weeklyData.count >= 7 else { return nil }
         
         let thisWeekTotal = weeklyData.prefix(3).map(\.socialMediaMinutes).reduce(0, +)
@@ -321,11 +178,18 @@ class ScreenTimeSummaryViewModel: ObservableObject {
     @Published var isLoading = true
     @Published var isAuthorized = false
     @Published var authorizationError: String?
+    @Published var isComingSoon: Bool = true
     
     private let service = ScreenTimeService.shared
     
     func loadData() async {
         isLoading = true
+        isComingSoon = service.isComingSoon
+        
+        if isComingSoon {
+            isLoading = false
+            return
+        }
         
         // Check and update authorization status
         isAuthorized = service.isAuthorized
@@ -341,6 +205,8 @@ class ScreenTimeSummaryViewModel: ObservableObject {
     }
     
     func requestAuthorization() async -> Bool {
+        if isComingSoon { return false }
+        
         let result = await service.requestAuthorization()
         isAuthorized = service.isAuthorized
         authorizationError = service.authorizationError

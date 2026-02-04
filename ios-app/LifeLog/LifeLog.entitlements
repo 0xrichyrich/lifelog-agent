@@ -12,7 +12,10 @@
 	<array>
 		<string>group.com.skynet.nudge</string>
 	</array>
+	<!-- Family Controls entitlement removed - Screen Time feature marked as Coming Soon -->
+	<!-- To re-enable, uncomment the following:
 	<key>com.apple.developer.family-controls</key>
 	<true/>
+	-->
 </dict>
 </plist>

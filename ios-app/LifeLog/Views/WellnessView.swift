@@ -18,7 +18,10 @@ struct WellnessView: View {
             ScrollView {
                 VStack(spacing: 20) {
                     // Today's Balance
-                    if let screenData = viewModel.screenTimeData {
+                    if viewModel.screenTimeComingSoon {
+                        // Simplified balance without screen time
+                        OutdoorOnlyBalanceCard(outdoorStats: viewModel.outdoorStats)
+                    } else if let screenData = viewModel.screenTimeData {
                         BalanceCard(
                             screenMinutes: screenData.totalMinutes,
                             outdoorMinutes: viewModel.outdoorStats.todayMinutes,
@@ -51,7 +54,9 @@ struct WellnessView: View {
                     quickActionsSection
                     
                     // Screen Time Breakdown
-                    if let screenData = viewModel.screenTimeData {
+                    if viewModel.screenTimeComingSoon {
+                        screenTimeComingSoonSection
+                    } else if let screenData = viewModel.screenTimeData {
                         screenTimeBreakdownSection(screenData)
                     }
                 }
@@ -158,6 +163,58 @@ struct WellnessView: View {
         }
     }
     
+    // MARK: - Screen Time Coming Soon
+    
+    private var screenTimeComingSoonSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("Screen Time")
+                    .font(.headline)
+                    .foregroundStyle(Color.textPrimary)
+                
+                Spacer()
+                
+                HStack(spacing: 4) {
+                    Image(systemName: "lock.fill")
+                        .font(.caption)
+                    Text("Coming Soon")
+                        .font(.caption)
+                        .fontWeight(.medium)
+                }
+                .foregroundStyle(Color.brandAccent)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(Color.brandAccent.opacity(0.15))
+                .clipShape(Capsule())
+            }
+            
+            VStack(spacing: 16) {
+                Image(systemName: "hourglass.circle.fill")
+                    .font(.system(size: 48))
+                    .foregroundStyle(Color.brandAccent.opacity(0.6))
+                
+                Text("Screen Time Insights")
+                    .font(.headline)
+                    .foregroundStyle(Color.textPrimary)
+                
+                Text("Track your app usage and get insights to help balance your screen time.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                
+                Text("This feature is being fine-tuned and will be available in a future update.")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+                    .multilineTextAlignment(.center)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 24)
+            .padding(.horizontal)
+            .background(Color.cardBackground)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+        }
+    }
+    
     // MARK: - Screen Time Breakdown
     
     private func screenTimeBreakdownSection(_ data: ScreenTimeData) -> some View {
@@ -212,6 +269,7 @@ class WellnessViewModel: ObservableObject {
     @Published var outdoorStats: OutdoorStats = OutdoorStats()
     @Published var insights: [WellnessInsight] = []
     @Published var isLoading = true
+    @Published var screenTimeComingSoon: Bool = true
     
     private let screenTimeService = ScreenTimeService.shared
     private let outdoorService = OutdoorActivityService.shared
@@ -220,7 +278,10 @@ class WellnessViewModel: ObservableObject {
     func loadData() async {
         isLoading = true
         
-        // Fetch screen time
+        // Check if screen time feature is available
+        screenTimeComingSoon = screenTimeService.isComingSoon
+        
+        // Fetch screen time (returns placeholder when coming soon)
         await screenTimeService.fetchTodayScreenTime()
         await screenTimeService.fetchWeeklyScreenTime()
         screenTimeData = screenTimeService.todayData
@@ -382,6 +443,110 @@ struct CategoryRow: View {
                 .foregroundStyle(.secondary)
                 .frame(width: 40, alignment: .trailing)
         }
+    }
+}
+
+// MARK: - Outdoor Only Balance Card (when Screen Time is Coming Soon)
+
+struct OutdoorOnlyBalanceCard: View {
+    let outdoorStats: OutdoorStats
+    
+    private var emoji: String {
+        if outdoorStats.todayMinutes >= 60 { return "🌟" }
+        if outdoorStats.todayMinutes >= 30 { return "☀️" }
+        if outdoorStats.todayMinutes > 0 { return "🌱" }
+        return "💪"
+    }
+    
+    private var message: String {
+        if outdoorStats.todayMinutes >= 60 { return "Amazing outdoor time!" }
+        if outdoorStats.todayMinutes >= 30 { return "Great job getting outside!" }
+        if outdoorStats.todayMinutes > 0 { return "Every minute counts!" }
+        return "Ready for some fresh air?"
+    }
+    
+    var body: some View {
+        VStack(spacing: 16) {
+            // Header
+            HStack {
+                Text("Today's Activity")
+                    .font(.headline)
+                    .foregroundStyle(Color.textPrimary)
+                
+                Spacer()
+                
+                Text(emoji)
+                    .font(.title2)
+            }
+            
+            // Outdoor stats
+            HStack(spacing: 24) {
+                VStack(spacing: 4) {
+                    Image(systemName: "sun.max.fill")
+                        .font(.title3)
+                        .foregroundStyle(Color.success)
+                    
+                    Text(formatMinutes(outdoorStats.todayMinutes))
+                        .font(.headline)
+                        .fontWeight(.bold)
+                        .foregroundStyle(Color.textPrimary)
+                    
+                    Text("Outside")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity)
+                
+                VStack(spacing: 4) {
+                    Image(systemName: "flame.fill")
+                        .font(.title3)
+                        .foregroundStyle(Color.warning)
+                    
+                    Text("\(outdoorStats.streakDays)")
+                        .font(.headline)
+                        .fontWeight(.bold)
+                        .foregroundStyle(Color.textPrimary)
+                    
+                    Text("Day Streak")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity)
+                
+                VStack(spacing: 4) {
+                    Image(systemName: "calendar")
+                        .font(.title3)
+                        .foregroundStyle(Color.brandAccent)
+                    
+                    Text(formatMinutes(outdoorStats.weekMinutes))
+                        .font(.headline)
+                        .fontWeight(.bold)
+                        .foregroundStyle(Color.textPrimary)
+                    
+                    Text("This Week")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity)
+            }
+            
+            // Positive message
+            Text(message)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+        .padding()
+        .background(Color.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+    }
+    
+    private func formatMinutes(_ minutes: Int) -> String {
+        if minutes >= 60 {
+            let hours = minutes / 60
+            let mins = minutes % 60
+            return mins > 0 ? "\(hours)h \(mins)m" : "\(hours)h"
+        }
+        return "\(minutes)m"
     }
 }
 
