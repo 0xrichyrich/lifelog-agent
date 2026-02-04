@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { randomUUID } from 'crypto';
+import { verifyPaymentOnChain, isValidTxHash, TOKENS } from '@/lib/payment-verification';
 
 /**
  * Agent Message Endpoint
  * Sends a message to an AI agent and returns the response
  * Supports x402 micropayments for paid agents
+ * 
+ * Payment verification: Real on-chain verification on Monad Testnet
  */
 
 // Agent pricing configuration (matches /api/agents)
@@ -89,74 +92,76 @@ interface PaymentRequest {
 }
 
 /**
- * ============================================================================
- * ⚠️  DEMO MODE - Payment verification is simplified for hackathon demo
- * ============================================================================
+ * On-chain payment verification via Monad Testnet RPC
  * 
- * TODO: Production implementation requires:
- * 1. On-chain verification via Base RPC to confirm tx exists and amount matches
- * 2. Signature verification using ethers.js or viem to validate wallet ownership
- * 3. Redis/PostgreSQL storage for processed payment IDs (replay protection)
- * 4. Webhook integration for async payment confirmation
- * 
- * Current implementation accepts well-formed proofs without on-chain validation.
- * This is ONLY acceptable for hackathon demonstration purposes.
- * ============================================================================
+ * Verifies:
+ * 1. Transaction exists and succeeded on-chain
+ * 2. Payment sent to platform wallet
+ * 3. Amount meets required amount
+ * 4. Replay protection via processed tx hashes
  */
 
-// In-memory payment ID tracking for replay protection (demo only)
+// In-memory tracking of processed transaction hashes for replay protection
 // TODO: For production, use Redis or database for persistence across instances
-const processedPaymentIds = new Set<string>();
+const processedTxHashes = new Set<string>();
 
-function verifyPaymentProof(proof: PaymentProof, agentId: string): boolean {
+async function verifyPaymentProof(proof: PaymentProof, agentId: string): Promise<{ valid: boolean; error?: string }> {
   // Basic validation
-  if (!proof.signature || !proof.paymentId || !proof.timestamp || !proof.chain) {
-    console.warn('[Payment] Invalid proof structure:', proof);
-    return false;
+  if (!proof.txHash) {
+    console.warn('[Payment] No txHash in proof:', proof);
+    return { valid: false, error: 'Transaction hash required for verification' };
   }
 
-  // REPLAY PROTECTION: Check if payment ID was already used
-  if (processedPaymentIds.has(proof.paymentId)) {
-    console.warn('[Payment] Replay attack detected - payment ID already used:', proof.paymentId);
-    return false;
+  // Quick format validation
+  if (!isValidTxHash(proof.txHash)) {
+    console.warn('[Payment] Invalid txHash format:', proof.txHash);
+    return { valid: false, error: 'Invalid transaction hash format' };
   }
 
-  // Check timestamp is recent (within 5 minutes)
-  const proofTime = new Date(proof.timestamp).getTime();
-  const now = Date.now();
-  const fiveMinutes = 5 * 60 * 1000;
-  
-  if (Math.abs(now - proofTime) > fiveMinutes) {
-    console.warn('[Payment] Proof timestamp too old:', proof.timestamp);
-    return false;
+  // REPLAY PROTECTION: Check if tx hash was already used
+  if (processedTxHashes.has(proof.txHash.toLowerCase())) {
+    console.warn('[Payment] Replay attack detected - tx already used:', proof.txHash);
+    return { valid: false, error: 'This transaction has already been used' };
   }
 
-  // Check chain is Base
-  if (proof.chain !== 'base') {
+  // Check chain is monad (or monad-testnet)
+  if (proof.chain && !proof.chain.toLowerCase().includes('monad')) {
     console.warn('[Payment] Invalid chain:', proof.chain);
-    return false;
+    return { valid: false, error: 'Payment must be on Monad network' };
   }
 
-  // DEMO MODE: Accept well-formed proof without on-chain verification
-  // TODO: Production should verify:
-  // - Signature matches expected message format using ethers.verifyMessage()
-  // - Transaction exists on Base via eth_getTransactionReceipt
-  // - Payment amount matches expected amount
-  // - Recipient matches PLATFORM_WALLET
+  // Get expected amount for this agent
+  const pricing = AGENT_PRICING[agentId];
+  const expectedAmount = pricing?.perMessage || 10000;
+
+  // On-chain verification via Monad Testnet RPC
+  // Use $NUDGE token for payment verification
+  const verification = await verifyPaymentOnChain(
+    proof.txHash,
+    expectedAmount,
+    TOKENS.NUDGE // Use $NUDGE token
+  );
+
+  if (!verification.valid) {
+    console.warn('[Payment] On-chain verification failed:', verification.error);
+    return { valid: false, error: verification.error };
+  }
+
+  // Mark tx hash as processed (replay protection)
+  processedTxHashes.add(proof.txHash.toLowerCase());
   
-  // Mark payment ID as processed (replay protection)
-  processedPaymentIds.add(proof.paymentId);
-  
-  // Cleanup old payment IDs periodically (prevent memory leak in demo)
-  if (processedPaymentIds.size > 10000) {
-    const iterator = processedPaymentIds.values();
+  // Cleanup old tx hashes periodically (prevent memory leak)
+  if (processedTxHashes.size > 10000) {
+    const iterator = processedTxHashes.values();
     for (let i = 0; i < 5000; i++) {
-      processedPaymentIds.delete(iterator.next().value);
+      const next = iterator.next();
+      if (next.done) break;
+      processedTxHashes.delete(next.value);
     }
   }
   
-  console.log('[Payment] DEMO MODE - Proof accepted for agent:', agentId, 'paymentId:', proof.paymentId);
-  return true;
+  console.log('[Payment] On-chain verification SUCCESS for agent:', agentId, 'txHash:', proof.txHash, 'amount:', verification.amount?.toString());
+  return { valid: true };
 }
 
 /**
@@ -214,15 +219,16 @@ export async function POST(
         return NextResponse.json(paymentRequest, { status: 402 });
       }
       
-      // Verify payment proof
-      if (!verifyPaymentProof(paymentProof, agentId)) {
+      // Verify payment proof on-chain
+      const verification = await verifyPaymentProof(paymentProof, agentId);
+      if (!verification.valid) {
         return NextResponse.json(
-          { error: 'Invalid payment proof' },
+          { error: verification.error || 'Invalid payment proof' },
           { status: 400 }
         );
       }
       
-      console.log('[x402] Payment verified for', agentId, 'user:', userId);
+      console.log('[x402] Payment verified on-chain for', agentId, 'user:', userId);
     }
 
     // Check for OpenAI API key

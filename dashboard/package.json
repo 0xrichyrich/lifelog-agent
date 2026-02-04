@@ -16,7 +16,8 @@
     "next": "^16.1.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "recharts": "^2.14.1"
+    "recharts": "^2.14.1",
+    "viem": "^2.45.1"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.12",

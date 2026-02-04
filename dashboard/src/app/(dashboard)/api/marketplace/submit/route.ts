@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { verifyPaymentOnChain, isValidTxHash, TOKENS } from '@/lib/payment-verification';
 
 /**
  * Agent Marketplace Submission Endpoint
@@ -180,17 +181,42 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Payment proof provided - process submission
-    // ============================================================================
-    // ⚠️  DEMO MODE - Payment verification is simplified for hackathon demo
-    // ============================================================================
-    // TODO: Production implementation requires:
-    // 1. On-chain verification via Base RPC (eth_getTransactionReceipt)
-    // 2. Verify payment amount matches LISTING_FEE_USDC
-    // 3. Verify recipient is PLATFORM_WALLET
-    // 4. Store processed payment IDs in database to prevent replay attacks
-    // 5. Consider using a payment processor or indexer service
-    // ============================================================================
+    // Payment proof provided - verify on-chain before processing
+    
+    // Validate tx hash format
+    if (!isValidTxHash(body.paymentProof)) {
+      return NextResponse.json(
+        { error: 'Invalid transaction hash format' },
+        { status: 400 }
+      );
+    }
+
+    // On-chain verification via Monad Testnet RPC
+    console.log('[Marketplace] Verifying payment on-chain:', body.paymentProof);
+    
+    const verification = await verifyPaymentOnChain(
+      body.paymentProof,
+      LISTING_FEE_USDC, // Expected listing fee amount
+      TOKENS.NUDGE // Use $NUDGE token for payment
+    );
+
+    if (!verification.valid) {
+      console.warn('[Marketplace] Payment verification failed:', verification.error);
+      return NextResponse.json(
+        { 
+          error: 'Payment verification failed',
+          details: verification.error 
+        },
+        { status: 400 }
+      );
+    }
+
+    console.log('[Marketplace] Payment verified on-chain:', {
+      txHash: body.paymentProof,
+      amount: verification.amount?.toString(),
+      from: verification.from,
+      to: verification.to
+    });
     
     // Load existing agents
     const agents = loadCommunityAgents();
