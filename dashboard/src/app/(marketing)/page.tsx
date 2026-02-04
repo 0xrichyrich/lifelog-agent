@@ -187,7 +187,7 @@ export default function LandingPage() {
             <a href="#token" className="text-text-muted hover:text-accent transition">Token</a>
             <a href="/docs" className="text-text-muted hover:text-accent transition">Docs</a>
             <a href="/marketplace" className="btn btn-primary flex items-center gap-2">
-              Try Web App
+              Marketplace
               <ChevronRight className="w-4 h-4" />
             </a>
           </div>
@@ -254,7 +254,7 @@ export default function LandingPage() {
                 href="/marketplace" 
                 className="btn btn-primary text-lg px-8 py-4 flex items-center gap-3 rounded-xl shadow-lg"
               >
-                Try Web App
+                Marketplace
                 <ChevronRight className="w-5 h-5" />
               </a>
             </div>
