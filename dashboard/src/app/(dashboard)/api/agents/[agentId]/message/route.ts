@@ -64,9 +64,6 @@ const AGENT_NAMES: Record<string, string> = {
 // In production, use a database
 const conversations: Map<string, { role: string; content: string }[]> = new Map();
 
-// In-memory usage tracking for free tier
-const dailyUsage: Map<string, { date: string; count: number }> = new Map();
-
 interface PaymentProof {
   signature: string;
   paymentId: string;
@@ -89,43 +86,6 @@ interface PaymentRequest {
   description: string;
   expiresAt: string;
   nonce: string;
-}
-
-/**
- * Check if user has remaining free tier messages for the day
- */
-function checkFreeTier(userId: string, agentId: string): { hasFreeTier: boolean; remaining: number } {
-  const pricing = AGENT_PRICING[agentId];
-  if (!pricing || pricing.isFree || pricing.freeTierDaily === null) {
-    return { hasFreeTier: true, remaining: -1 }; // -1 = unlimited
-  }
-
-  const today = new Date().toISOString().split('T')[0];
-  const key = `${userId}_${agentId}`;
-  const usage = dailyUsage.get(key);
-
-  if (!usage || usage.date !== today) {
-    return { hasFreeTier: true, remaining: pricing.freeTierDaily };
-  }
-
-  const remaining = pricing.freeTierDaily - usage.count;
-  return { hasFreeTier: remaining > 0, remaining };
-}
-
-/**
- * Increment free tier usage for user
- */
-function incrementUsage(userId: string, agentId: string): void {
-  const today = new Date().toISOString().split('T')[0];
-  const key = `${userId}_${agentId}`;
-  const usage = dailyUsage.get(key);
-
-  if (!usage || usage.date !== today) {
-    dailyUsage.set(key, { date: today, count: 1 });
-  } else {
-    usage.count += 1;
-    dailyUsage.set(key, usage);
-  }
 }
 
 /**
@@ -202,37 +162,30 @@ export async function POST(
       );
     }
 
-    // Check pricing and payment
+    // Check pricing and payment for paid agents
     const pricing = AGENT_PRICING[agentId];
     const isPaidAgent = pricing && !pricing.isFree;
     
     if (isPaidAgent) {
-      const { hasFreeTier, remaining } = checkFreeTier(userId, agentId);
-      
-      if (!hasFreeTier) {
-        // Check if payment proof was provided
-        if (!paymentProof) {
-          // Return 402 Payment Required
-          const paymentRequest = createPaymentRequest(agentId);
-          console.log('[x402] Payment required for', agentId, 'user:', userId);
-          
-          return NextResponse.json(paymentRequest, { status: 402 });
-        }
+      // For paid agents, always require payment unless proof is provided
+      // (In production, free tier would use database/KV for state tracking)
+      if (!paymentProof) {
+        // Return 402 Payment Required
+        const paymentRequest = createPaymentRequest(agentId);
+        console.log('[x402] Payment required for', agentId, 'user:', userId);
         
-        // Verify payment proof
-        if (!verifyPaymentProof(paymentProof, agentId)) {
-          return NextResponse.json(
-            { error: 'Invalid payment proof' },
-            { status: 400 }
-          );
-        }
-        
-        console.log('[x402] Payment verified for', agentId, 'user:', userId);
-      } else {
-        // Using free tier - track usage
-        incrementUsage(userId, agentId);
-        console.log('[x402] Free tier message for', agentId, 'user:', userId, 'remaining:', remaining - 1);
+        return NextResponse.json(paymentRequest, { status: 402 });
       }
+      
+      // Verify payment proof
+      if (!verifyPaymentProof(paymentProof, agentId)) {
+        return NextResponse.json(
+          { error: 'Invalid payment proof' },
+          { status: 400 }
+        );
+      }
+      
+      console.log('[x402] Payment verified for', agentId, 'user:', userId);
     }
 
     // Check for OpenAI API key
