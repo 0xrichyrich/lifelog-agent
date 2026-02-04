@@ -133,7 +133,7 @@ export default function WellnessPage() {
       <span className="text-yellow-400">
         {'★'.repeat(fullStars)}
         {hasHalf && '☆'}
-        <span className="text-gray-400 ml-1">{rating.toFixed(1)}</span>
+        <span className="text-text-muted ml-1">{rating.toFixed(1)}</span>
       </span>
     );
   };

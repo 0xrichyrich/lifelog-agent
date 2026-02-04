@@ -80,7 +80,7 @@ export default function MarketplacePage() {
             className={`w-4 h-4 ${
               star <= Math.round(rating)
                 ? 'text-amber-400 fill-amber-400'
-                : 'text-gray-300'
+                : 'text-gray-200'
             }`}
           />
         ))}
