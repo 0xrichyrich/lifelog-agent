@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { promises as fs } from 'fs';
-import path from 'path';
 
 /**
  * Agent Marketplace Endpoint
@@ -26,20 +24,18 @@ interface MarketplaceAgent {
   isCommunity?: boolean;
   creatorWallet?: string;
   systemPrompt?: string;
+  status?: 'pending' | 'approved' | 'live';
 }
 
-// Load community agents from file
-async function loadCommunityAgents(): Promise<MarketplaceAgent[]> {
-  try {
-    const dataPath = path.join(process.cwd(), 'data', 'community-agents.json');
-    const data = await fs.readFile(dataPath, 'utf-8');
-    const agents = JSON.parse(data);
-    // Only return live agents
-    return agents.filter((a: { status: string }) => a.status === 'live');
-  } catch {
-    // File doesn't exist yet or error reading
-    return [];
-  }
+// Access shared global storage for community agents
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const globalForAgents = globalThis as typeof globalThis & { communityAgents?: MarketplaceAgent[] };
+
+// Load community agents from global memory
+function loadCommunityAgents(): MarketplaceAgent[] {
+  const agents = globalForAgents.communityAgents || [];
+  // Only return live agents
+  return agents.filter((a) => a.status === 'live');
 }
 
 // Marketplace agent catalog
@@ -269,7 +265,7 @@ export async function GET(request: NextRequest) {
   const search = searchParams.get('search')?.toLowerCase();
 
   // Load community agents and merge with hardcoded ones
-  const communityAgents = await loadCommunityAgents();
+  const communityAgents = loadCommunityAgents();
   const allAgents: MarketplaceAgent[] = [
     ...MARKETPLACE_AGENTS,
     ...communityAgents.map(agent => ({

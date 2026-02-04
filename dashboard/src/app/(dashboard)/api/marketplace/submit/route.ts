@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { promises as fs } from 'fs';
-import path from 'path';
 
 /**
  * Agent Marketplace Submission Endpoint
@@ -29,9 +27,13 @@ import path from 'path';
 const PLATFORM_WALLET = '0x2390C495896C78668416859d9dE84212fCB10801';
 const LISTING_FEE_USDC = 100000; // $0.10 USDC (6 decimals)
 
-// Data directory for persistent storage
-const DATA_DIR = path.join(process.cwd(), 'data');
-const AGENTS_FILE = path.join(DATA_DIR, 'community-agents.json');
+// In-memory storage for MVP (will be replaced with database later)
+// Note: This persists across warm function invocations but resets on cold starts
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const globalForAgents = globalThis as typeof globalThis & { communityAgents?: SubmittedAgent[] };
+if (!globalForAgents.communityAgents) {
+  globalForAgents.communityAgents = [];
+}
 
 interface SubmittedAgent {
   id: string;
@@ -76,31 +78,14 @@ interface SubmissionRequest {
   paymentProof?: string;
 }
 
-// Ensure data directory exists
-async function ensureDataDir() {
-  try {
-    await fs.mkdir(DATA_DIR, { recursive: true });
-  } catch {
-    // Directory exists
-  }
+// Load community agents from memory
+function loadCommunityAgents(): SubmittedAgent[] {
+  return globalForAgents.communityAgents || [];
 }
 
-// Load community agents from file
-async function loadCommunityAgents(): Promise<SubmittedAgent[]> {
-  try {
-    await ensureDataDir();
-    const data = await fs.readFile(AGENTS_FILE, 'utf-8');
-    return JSON.parse(data);
-  } catch {
-    // File doesn't exist yet
-    return [];
-  }
-}
-
-// Save community agents to file
-async function saveCommunityAgents(agents: SubmittedAgent[]): Promise<void> {
-  await ensureDataDir();
-  await fs.writeFile(AGENTS_FILE, JSON.stringify(agents, null, 2));
+// Save community agents to memory
+function saveCommunityAgents(agents: SubmittedAgent[]): void {
+  globalForAgents.communityAgents = agents;
 }
 
 // Generate unique ID
@@ -199,7 +184,7 @@ export async function POST(request: NextRequest) {
     // In production, you would verify the payment on-chain here
     
     // Load existing agents
-    const agents = await loadCommunityAgents();
+    const agents = loadCommunityAgents();
 
     // Check for duplicate names
     const existingNames = agents.map(a => a.name.toLowerCase());
@@ -238,7 +223,7 @@ export async function POST(request: NextRequest) {
 
     // Add to agents list
     agents.push(newAgent);
-    await saveCommunityAgents(agents);
+    saveCommunityAgents(agents);
 
     return NextResponse.json({
       success: true,
@@ -266,7 +251,7 @@ export async function GET(request: NextRequest) {
   const wallet = searchParams.get('wallet');
   const agentId = searchParams.get('id');
 
-  const agents = await loadCommunityAgents();
+  const agents = loadCommunityAgents();
 
   // Get specific agent by ID
   if (agentId) {
