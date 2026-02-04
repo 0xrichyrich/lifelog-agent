@@ -186,13 +186,13 @@ export default function LandingPage() {
             <a href="#agents" className="text-text-muted hover:text-accent transition">Agents</a>
             <a href="#token" className="text-text-muted hover:text-accent transition">Token</a>
             <a href="/docs" className="text-text-muted hover:text-accent transition">Docs</a>
-            <a href="/marketplace" className="btn btn-primary flex items-center gap-2">
-              Marketplace
+            <a href="/submit-agent" className="btn btn-primary flex items-center gap-2">
+              Add Agent
               <ChevronRight className="w-4 h-4" />
             </a>
           </div>
           {/* Mobile CTA only */}
-          <a href="/marketplace" className="md:hidden btn btn-primary text-sm px-4 py-2 flex items-center gap-1">
+          <a href="/submit-agent" className="md:hidden btn btn-primary text-sm px-4 py-2 flex items-center gap-1">
             Get Started
             <ChevronRight className="w-4 h-4" />
           </a>
@@ -251,10 +251,10 @@ export default function LandingPage() {
                 Download on TestFlight
               </a>
               <a 
-                href="/marketplace" 
+                href="/submit-agent" 
                 className="btn btn-primary text-lg px-8 py-4 flex items-center gap-3 rounded-xl shadow-lg"
               >
-                Marketplace
+                Add Agent
                 <ChevronRight className="w-5 h-5" />
               </a>
             </div>
@@ -289,7 +289,7 @@ export default function LandingPage() {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             <FeatureCard
               emoji="🤖"
-              title="AI Agent Marketplace"
+              title="AI Agent Add Agent"
               description="Chat with specialized wellness agents — fitness coaches, meditation guides, nutrition experts, and more."
             />
             <FeatureCard
@@ -355,13 +355,13 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Agent Marketplace Preview */}
+      {/* Agent Add Agent Preview */}
       <section id="agents" className="py-20 px-6">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-purple-500/10 border border-purple-500/20 rounded-full text-purple-600 text-sm mb-4">
               <Bot className="w-4 h-4" />
-              Agent Marketplace
+              Agent Add Agent
             </div>
             <h2 className="text-4xl font-bold mb-4">Meet Your Wellness Agents</h2>
             <p className="text-xl text-text-muted">Specialized AI agents ready to help you thrive</p>
@@ -378,7 +378,7 @@ export default function LandingPage() {
               <span className="text-accent font-medium">Anyone can create agents!</span>{' '}
               Build your own wellness agent and earn $NUDGE when users chat.
             </p>
-            <a href="/marketplace" className="btn btn-secondary inline-flex items-center gap-2">
+            <a href="/submit-agent" className="btn btn-secondary inline-flex items-center gap-2">
               Explore All Agents
               <ChevronRight className="w-4 h-4" />
             </a>
@@ -459,7 +459,7 @@ export default function LandingPage() {
                 TestFlight (Coming Soon)
               </a>
               <a 
-                href="/marketplace" 
+                href="/submit-agent" 
                 className="btn btn-primary px-6 py-3 flex items-center gap-2 rounded-xl"
               >
                 <ExternalLink className="w-5 h-5" />
