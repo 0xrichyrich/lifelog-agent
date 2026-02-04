@@ -130,7 +130,7 @@ const DOC_SECTIONS: DocSection[] = [
           </li>
         </ul>
         <Link 
-          href="/dashboard" 
+          href="/marketplace" 
           className="btn btn-primary inline-flex items-center gap-2 mt-4"
         >
           Go to Dashboard
@@ -342,12 +342,12 @@ export default function DocsPage() {
           <div className="hidden md:flex items-center gap-6">
             <Link href="/docs" className="text-accent font-medium">Docs</Link>
             <Link href="/faq" className="text-text-muted hover:text-accent transition">FAQ</Link>
-            <Link href="/dashboard" className="btn btn-primary flex items-center gap-2">
+            <Link href="/marketplace" className="btn btn-primary flex items-center gap-2">
               Dashboard
               <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
-          <Link href="/dashboard" className="md:hidden btn btn-primary text-sm px-4 py-2">
+          <Link href="/marketplace" className="md:hidden btn btn-primary text-sm px-4 py-2">
             Dashboard
           </Link>
         </div>

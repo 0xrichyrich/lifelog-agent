@@ -186,13 +186,13 @@ export default function LandingPage() {
             <a href="#agents" className="text-text-muted hover:text-accent transition">Agents</a>
             <a href="#token" className="text-text-muted hover:text-accent transition">Token</a>
             <a href="/docs" className="text-text-muted hover:text-accent transition">Docs</a>
-            <a href="/dashboard" className="btn btn-primary flex items-center gap-2">
+            <a href="/marketplace" className="btn btn-primary flex items-center gap-2">
               Try Web App
               <ChevronRight className="w-4 h-4" />
             </a>
           </div>
           {/* Mobile CTA only */}
-          <a href="/dashboard" className="md:hidden btn btn-primary text-sm px-4 py-2 flex items-center gap-1">
+          <a href="/marketplace" className="md:hidden btn btn-primary text-sm px-4 py-2 flex items-center gap-1">
             Get Started
             <ChevronRight className="w-4 h-4" />
           </a>
@@ -251,7 +251,7 @@ export default function LandingPage() {
                 Download on TestFlight
               </a>
               <a 
-                href="/dashboard" 
+                href="/marketplace" 
                 className="btn btn-primary text-lg px-8 py-4 flex items-center gap-3 rounded-xl shadow-lg"
               >
                 Try Web App
@@ -378,7 +378,7 @@ export default function LandingPage() {
               <span className="text-accent font-medium">Anyone can create agents!</span>{' '}
               Build your own wellness agent and earn $NUDGE when users chat.
             </p>
-            <a href="/dashboard" className="btn btn-secondary inline-flex items-center gap-2">
+            <a href="/marketplace" className="btn btn-secondary inline-flex items-center gap-2">
               Explore All Agents
               <ChevronRight className="w-4 h-4" />
             </a>
@@ -459,7 +459,7 @@ export default function LandingPage() {
                 TestFlight (Coming Soon)
               </a>
               <a 
-                href="/dashboard" 
+                href="/marketplace" 
                 className="btn btn-primary px-6 py-3 flex items-center gap-2 rounded-xl"
               >
                 <ExternalLink className="w-5 h-5" />
