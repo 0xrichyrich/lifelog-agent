@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { promises as fs } from 'fs';
+import path from 'path';
 
 /**
  * Agent Marketplace Endpoint
  * Returns all public agents with ratings, usage stats, category filtering, and search
+ * Now includes community-submitted agents!
  */
 
 interface MarketplaceAgent {
@@ -19,6 +22,24 @@ interface MarketplaceAgent {
   featured: boolean;
   triggers: string[];
   capabilities: string[];
+  // Community agent fields
+  isCommunity?: boolean;
+  creatorWallet?: string;
+  systemPrompt?: string;
+}
+
+// Load community agents from file
+async function loadCommunityAgents(): Promise<MarketplaceAgent[]> {
+  try {
+    const dataPath = path.join(process.cwd(), 'data', 'community-agents.json');
+    const data = await fs.readFile(dataPath, 'utf-8');
+    const agents = JSON.parse(data);
+    // Only return live agents
+    return agents.filter((a: { status: string }) => a.status === 'live');
+  } catch {
+    // File doesn't exist yet or error reading
+    return [];
+  }
 }
 
 // Marketplace agent catalog
@@ -247,7 +268,17 @@ export async function GET(request: NextRequest) {
   const category = searchParams.get('category');
   const search = searchParams.get('search')?.toLowerCase();
 
-  let filteredAgents = [...MARKETPLACE_AGENTS];
+  // Load community agents and merge with hardcoded ones
+  const communityAgents = await loadCommunityAgents();
+  const allAgents: MarketplaceAgent[] = [
+    ...MARKETPLACE_AGENTS,
+    ...communityAgents.map(agent => ({
+      ...agent,
+      isCommunity: true,
+    })),
+  ];
+
+  let filteredAgents = [...allAgents];
 
   // Filter by category
   if (category && category !== 'all') {

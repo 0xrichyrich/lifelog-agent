@@ -10,7 +10,8 @@ import {
   Activity,
   Users,
   Wallet,
-  Store
+  Store,
+  PlusCircle
 } from 'lucide-react';
 
 const navItems = [
@@ -18,6 +19,7 @@ const navItems = [
   { href: '/goals', label: 'Goals', icon: Target },
   { href: '/insights', label: 'Insights', icon: BarChart3 },
   { href: '/marketplace', label: 'Marketplace', icon: Store },
+  { href: '/submit-agent', label: 'Submit Agent', icon: PlusCircle },
   { href: '/wellness', label: 'Wellness Agents', icon: Users },
   { href: '/wallet', label: 'Wallet', icon: Wallet },
   { href: '/settings', label: 'Settings', icon: Settings },

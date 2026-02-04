@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Search, Star, Sparkles, ArrowRight, Zap, Heart, Briefcase, Music } from 'lucide-react';
+import { Search, Star, Sparkles, ArrowRight, Zap, Heart, Briefcase, Music, Users, Plus } from 'lucide-react';
 
 interface MarketplaceAgent {
   id: string;
@@ -18,6 +18,9 @@ interface MarketplaceAgent {
   featured: boolean;
   triggers: string[];
   capabilities: string[];
+  // Community agent fields
+  isCommunity?: boolean;
+  creatorWallet?: string;
 }
 
 const CATEGORIES = [
@@ -91,14 +94,28 @@ export default function MarketplacePage() {
     return count.toString();
   };
 
+  const truncateWallet = (wallet: string) => {
+    if (!wallet) return '';
+    return `${wallet.slice(0, 6)}...${wallet.slice(-4)}`;
+  };
+
   return (
     <div className="p-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-text mb-2">🏪 Agent Marketplace</h1>
-        <p className="text-text-muted">
-          Discover AI agents to enhance your Nudge experience. From wellness coaches to productivity boosters.
-        </p>
+      <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-text mb-2">🏪 Agent Marketplace</h1>
+          <p className="text-text-muted">
+            Discover AI agents to enhance your Nudge experience. From wellness coaches to productivity boosters.
+          </p>
+        </div>
+        <Link
+          href="/submit-agent"
+          className="inline-flex items-center gap-2 bg-accent hover:bg-accent-dark text-white px-5 py-3 rounded-xl font-medium transition shadow-md whitespace-nowrap"
+        >
+          <Plus className="w-5 h-5" />
+          Submit Agent
+        </Link>
       </div>
 
       {/* Search Bar */}
@@ -210,7 +227,15 @@ export default function MarketplacePage() {
                       <div className="flex items-center gap-3">
                         <span className="text-3xl">{agent.icon}</span>
                         <div>
-                          <h3 className="text-lg font-bold text-text">{agent.name}</h3>
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-lg font-bold text-text">{agent.name}</h3>
+                            {agent.isCommunity && (
+                              <span className="inline-flex items-center gap-1 bg-purple-100 text-purple-700 text-xs px-2 py-0.5 rounded-full font-medium">
+                                <Users className="w-3 h-3" />
+                                Community
+                              </span>
+                            )}
+                          </div>
                           <span className="text-xs text-text-muted capitalize flex items-center gap-1">
                             {getCategoryIcon(agent.category)} {agent.category}
                           </span>
@@ -241,6 +266,15 @@ export default function MarketplacePage() {
                         )}
                       </div>
                     </div>
+
+                    {/* Show creator wallet for community agents */}
+                    {agent.isCommunity && agent.creatorWallet && (
+                      <div className="mt-3 pt-3 border-t border-card-border">
+                        <span className="text-xs text-text-muted">
+                          Created by <code className="bg-surface-light px-1.5 py-0.5 rounded">{truncateWallet(agent.creatorWallet)}</code>
+                        </span>
+                      </div>
+                    )}
                     
                     <Link
                       href={`/wellness?agent=${agent.id}`}
@@ -260,15 +294,15 @@ export default function MarketplacePage() {
               <div>
                 <h3 className="text-2xl font-bold text-white mb-2">🛠️ Build Your Own Agent</h3>
                 <p className="text-emerald-100">
-                  Have an idea for an AI agent? Submit your agent to the marketplace and earn NUDGE tokens.
+                  Have an idea for an AI agent? Submit your agent to the marketplace and earn NUDGE tokens when others use it.
                 </p>
               </div>
               <Link
-                href="https://github.com/0xrichyrich/nudge-agents-sdk"
-                target="_blank"
+                href="/submit-agent"
                 className="flex items-center gap-2 bg-white text-accent font-semibold px-6 py-3 rounded-lg hover:bg-gray-50 transition whitespace-nowrap shadow-md"
               >
-                Submit Your Agent <ArrowRight className="w-5 h-5" />
+                <Plus className="w-5 h-5" />
+                Submit Your Agent
               </Link>
             </div>
           </div>
