@@ -179,13 +179,13 @@ struct ConnectWalletResponse: Codable {
 
 // MARK: - Token Constants
 enum NudgeToken {
-    // Placeholder for Monad testnet - address TBD
-    static let contractAddress = "0x0000000000000000000000000000000000000000"
+    // Monad testnet - deployed contract
+    static let contractAddress = "0xaEb52D53b6c3265580B91Be08C620Dc45F57a35F"
     static let symbol = "NUDGE"
     static let decimals = 18
-    static let chainId = 10143 // Monad testnet chain ID (placeholder)
+    static let chainId = 10143 // Monad testnet
     static let chainName = "Monad Testnet"
-    static let rpcUrl = "https://testnet.monad.xyz/rpc"
+    static let rpcUrl = "https://testnet-rpc.monad.xyz/"
     static let explorerUrl = "https://testnet.monad.xyz"
 }
 
