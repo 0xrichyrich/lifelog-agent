@@ -10,6 +10,8 @@ import { NextRequest, NextResponse } from 'next/server';
 const ALLOWED_ORIGINS = [
   'https://dashboard-flame-five-76.vercel.app',
   'https://lifelog-dashboard.vercel.app',
+  'https://www.littlenudge.app',
+  'https://littlenudge.app',
   'http://localhost:3000',
   'http://localhost:3001',
 ];
@@ -35,7 +37,7 @@ const SECURITY_HEADERS = {
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: https:",
     "font-src 'self' data:",
-    "connect-src 'self' https://api.openai.com https://*.vercel.app",
+    "connect-src 'self' https://api.openai.com https://*.vercel.app https://*.privy.io https://auth.privy.io https://*.walletconnect.com https://*.walletconnect.org wss://*.walletconnect.com wss://*.walletconnect.org https://explorer-api.walletconnect.com",
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",
