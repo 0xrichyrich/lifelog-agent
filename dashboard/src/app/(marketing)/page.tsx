@@ -509,7 +509,7 @@ export default function LandingPage() {
           
           {/* Bottom */}
           <div className="mt-6 pt-6 border-t border-card-border flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-text-muted">
-            <p>© 2025 Nudge. Built with ❤️ for better wellness.</p>
+            <p>© 2026 Nudge. Built with ❤️ for better wellness.</p>
             <div className="flex items-center gap-4">
               <span>Powered by</span>
               <span className="font-medium text-text">Monad</span>
