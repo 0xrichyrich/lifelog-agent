@@ -62,7 +62,7 @@ struct ContentView: View {
                 }
                 .tag(Tab.settings)
         }
-        .tint(Color.brandAccent)
+        .tint(Color.brandInteractive)
         .onOpenURL { url in
             // Handle deep links for tab navigation
             if url.scheme == "lifelog" {

@@ -235,6 +235,7 @@ extension Color {
     static let textSecondary = Color(hex: "6B7280")!       // Medium gray for secondary text
     static let brandAccent = Color(hex: "A8E6CF")!         // Mint green (mascot color)
     static let brandAccentDark = Color(hex: "7DD3B0")!     // Darker mint for contrast
+    static let brandInteractive = Color(hex: "1D7A5F")!    // Dark mint for buttons/links (WCAG AA compliant)
     static let success = Color(hex: "6FCF97")!             // Soft green (complementary)
     static let warning = Color(hex: "F2C94C")!             // Warm yellow
     static let danger = Color(hex: "EB5757")!              // Soft red
