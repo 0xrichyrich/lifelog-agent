@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { ChevronRight, FileText, AlertTriangle, User, Bot, Copyright, Scale } from 'lucide-react';
+import { ChevronRight, FileText, AlertTriangle, User, Bot, Copyright, Scale, Award, Github } from 'lucide-react';
 
 export default function TermsPage() {
   return (
@@ -14,16 +14,21 @@ export default function TermsPage() {
             <Image src="/mascot.png" alt="Nudge mascot" width={40} height={40} className="rounded-xl" />
             <span className="text-xl font-bold">Nudge</span>
           </Link>
+          {/* Desktop nav */}
           <div className="hidden md:flex items-center gap-6">
+            <a href="/#features" className="text-text-muted hover:text-accent transition">Features</a>
+            <a href="/#agents" className="text-text-muted hover:text-accent transition">Agents</a>
+            <a href="/#token" className="text-text-muted hover:text-accent transition">Token</a>
             <Link href="/docs" className="text-text-muted hover:text-accent transition">Docs</Link>
-            <Link href="/faq" className="text-text-muted hover:text-accent transition">FAQ</Link>
-            <Link href="/marketplace" className="btn btn-primary flex items-center gap-2">
-              Dashboard
+            <Link href="/add-agent" className="btn btn-primary flex items-center gap-2">
+              Add Agent
               <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
-          <Link href="/marketplace" className="md:hidden btn btn-primary text-sm px-4 py-2">
-            Dashboard
+          {/* Mobile CTA */}
+          <Link href="/add-agent" className="md:hidden btn btn-primary text-sm px-4 py-2 flex items-center gap-1">
+            Get Started
+            <ChevronRight className="w-4 h-4" />
           </Link>
         </div>
       </nav>
@@ -243,15 +248,37 @@ export default function TermsPage() {
                 <p className="text-sm text-text-muted">Sometimes you need a little nudge.</p>
               </div>
             </Link>
-            <div className="flex items-center gap-6 text-sm text-text-muted">
-              <Link href="/privacy" className="hover:text-accent transition">Privacy</Link>
-              <Link href="/terms" className="hover:text-accent transition">Terms</Link>
-              <Link href="/faq" className="hover:text-accent transition">FAQ</Link>
-              <Link href="/docs" className="hover:text-accent transition">Docs</Link>
+            <div className="flex items-center gap-2 px-4 py-2 bg-purple-50 rounded-xl border border-purple-200">
+              <Award className="w-5 h-5 text-purple-500" />
+              <span className="text-sm">
+                Built for <span className="font-bold text-purple-600">Moltiverse Hackathon</span>
+              </span>
             </div>
+            <a 
+              href="https://github.com/0xrichyrich/lifelog-agent" 
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-text-muted hover:text-text transition p-2 hover:bg-surface-light rounded-lg"
+            >
+              <Github className="w-5 h-5" />
+            </a>
           </div>
-          <div className="mt-8 pt-6 border-t border-card-border text-center text-sm text-text-muted">
+          <div className="mt-8 pt-6 border-t border-card-border flex flex-wrap justify-center gap-6 text-sm text-text-muted">
+            <Link href="/docs" className="hover:text-accent transition">Docs</Link>
+            <Link href="/faq" className="hover:text-accent transition">FAQ</Link>
+            <Link href="/privacy" className="hover:text-accent transition">Privacy</Link>
+            <Link href="/terms" className="hover:text-accent transition">Terms</Link>
+          </div>
+          <div className="mt-6 pt-6 border-t border-card-border flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-text-muted">
             <p>© 2025 Nudge. Built with ❤️ for better wellness.</p>
+            <div className="flex items-center gap-4">
+              <span>Powered by</span>
+              <span className="font-medium text-text">Monad</span>
+              <span>•</span>
+              <span className="font-medium text-text">Privy</span>
+              <span>•</span>
+              <span className="font-medium text-text">x402</span>
+            </div>
           </div>
         </div>
       </footer>
