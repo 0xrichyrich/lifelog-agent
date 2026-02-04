@@ -16,12 +16,6 @@ class PrivyService: ObservableObject {
     /// Shared singleton instance
     static let shared = PrivyService()
     
-    /// Preview instance for SwiftUI previews
-    static let preview: PrivyService = {
-        let service = PrivyService(skipInit: true)
-        return service
-    }()
-    
     @Published var isInitialized: Bool = false
     @Published var isAuthenticated: Bool = false
     @Published var isLoading: Bool = false
@@ -43,7 +37,7 @@ class PrivyService: ObservableObject {
     // Track if SDK was already initialized
     private static var sdkInitialized = false
     
-    private init(skipInit: Bool = false) {
+    fileprivate init(skipInit: Bool = false) {
         if !skipInit && !PrivyService.sdkInitialized {
             initializePrivy()
             PrivyService.sdkInitialized = true
@@ -331,7 +325,7 @@ enum PrivyError: LocalizedError {
 // MARK: - Preview Helper
 extension PrivyService {
     static var preview: PrivyService {
-        let service = PrivyService()
+        let service = PrivyService(skipInit: true)
         service.isAuthenticated = true
         service.walletAddress = "0x1234567890abcdef1234567890abcdef12345678"
         service.userId = "preview_user"
