@@ -129,7 +129,15 @@ export default function WalletPage() {
 
   const hasPendingRewards = parseFloat(balance.pendingRewards) > 0;
 
-  if (!ready) {
+  // Show loading for max 3 seconds, then show connect button anyway
+  const [loadingTimeout, setLoadingTimeout] = useState(false);
+  
+  useEffect(() => {
+    const timer = setTimeout(() => setLoadingTimeout(true), 3000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (!ready && !loadingTimeout) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <Loader2 className="w-8 h-8 animate-spin text-accent" />
