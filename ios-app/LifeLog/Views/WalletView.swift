@@ -45,6 +45,10 @@ struct WalletView: View {
                 await refreshWalletData()
             }
             .sheet(isPresented: $showingConnectSheet) {
+                // Reset loading state on dismiss
+                privyService.isLoading = false
+                privyService.error = nil
+            } content: {
                 ConnectWalletSheet(privyService: privyService, walletState: $walletState)
             }
             .alert("Disconnect Wallet", isPresented: $showingDisconnectAlert) {
