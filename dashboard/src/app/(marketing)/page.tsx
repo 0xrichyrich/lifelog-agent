@@ -244,7 +244,7 @@ export default function LandingPage() {
             {/* CTA Buttons */}
             <div className="flex flex-wrap justify-center gap-4 mb-12">
               <a 
-                href="https://testflight.apple.com/join/PLACEHOLDER" 
+                href="https://testflight.apple.com/join/Z1jsa5wH" 
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn bg-black text-white hover:bg-gray-800 text-lg px-8 py-4 flex items-center gap-3 rounded-xl shadow-lg"
@@ -454,7 +454,7 @@ export default function LandingPage() {
             
             <div className="flex flex-wrap justify-center gap-4 mb-8">
               <a 
-                href="https://testflight.apple.com/join/PLACEHOLDER" 
+                href="https://testflight.apple.com/join/Z1jsa5wH" 
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn bg-black text-white hover:bg-gray-800 px-6 py-3 flex items-center gap-2 rounded-xl"
