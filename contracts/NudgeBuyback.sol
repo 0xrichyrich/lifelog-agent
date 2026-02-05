@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/utils/Pausable.sol";
 
 /**
  * @title NudgeBuyback
- * @notice Buys $NUDGE from nad.fun curve and distributes to users
+ * @notice Buys $NUDGE from nad.fun curve and distributes to users based on weight
  * @dev Treasury calls this to convert fees into $NUDGE rewards
  * @custom:security-contact security@littlenudge.app
  */
@@ -38,6 +38,17 @@ interface ILens {
 contract NudgeBuyback is Ownable, ReentrancyGuard, Pausable {
     using SafeERC20 for IERC20;
 
+    // ═══════════════════════════════════════════════════════════════════════
+    // Constants
+    // ═══════════════════════════════════════════════════════════════════════
+    
+    uint256 public constant MAX_RECIPIENTS = 10000;
+    uint256 public constant WEIGHT_PRECISION = 1e18;
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // State Variables
+    // ═══════════════════════════════════════════════════════════════════════
+
     // nad.fun contracts (configurable for testnet/mainnet)
     address public bondingCurveRouter;
     address public lens;
@@ -46,28 +57,44 @@ contract NudgeBuyback is Ownable, ReentrancyGuard, Pausable {
     address public nudgeToken;
     
     // Configuration
-    uint256 public minBuybackAmount = 0.01 ether; // Minimum MON for buyback
-    uint256 public buybackDeadlineSeconds = 300;   // 5 minutes default
+    uint256 public minBuybackAmount = 0.01 ether;
+    uint256 public buybackDeadlineSeconds = 300;
     
     // Rewards distribution
     mapping(address => uint256) public pendingRewards;
     uint256 public totalPendingRewards;
     
+    // Weighted distribution system
+    mapping(address => uint256) public userWeight;
+    uint256 public totalWeight;
+    
     // Eligible users for rewards
     address[] public rewardRecipients;
     mapping(address => bool) public isRecipient;
-    mapping(address => uint256) private recipientIndex; // For O(1) removal
+    mapping(address => uint256) private recipientIndex;
     
+    // Statistics
+    uint256 public totalBuybacks;
+    uint256 public totalDistributed;
+    
+    // ═══════════════════════════════════════════════════════════════════════
     // Events
+    // ═══════════════════════════════════════════════════════════════════════
+
     event BuybackExecuted(uint256 monSpent, uint256 nudgeReceived);
-    event RewardsDistributed(uint256 totalAmount, uint256 recipientCount);
+    event RewardsDistributed(uint256 totalAmount, uint256 recipientCount, bool weighted);
     event RewardsClaimed(address indexed user, uint256 amount);
-    event RecipientAdded(address indexed user);
+    event RecipientAdded(address indexed user, uint256 weight);
     event RecipientRemoved(address indexed user);
+    event WeightUpdated(address indexed user, uint256 oldWeight, uint256 newWeight);
     event NudgeTokenSet(address token);
     event RouterUpdated(address oldRouter, address newRouter);
     event LensUpdated(address oldLens, address newLens);
     event ConfigUpdated(uint256 minBuyback, uint256 deadline);
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // Constructor
+    // ═══════════════════════════════════════════════════════════════════════
 
     constructor(
         address _owner,
@@ -80,20 +107,16 @@ contract NudgeBuyback is Ownable, ReentrancyGuard, Pausable {
         lens = _lens;
     }
 
-    /**
-     * @notice Set the $NUDGE token address (after deployment on nad.fun)
-     * @param _nudgeToken The $NUDGE token contract address
-     */
+    // ═══════════════════════════════════════════════════════════════════════
+    // Configuration Functions
+    // ═══════════════════════════════════════════════════════════════════════
+
     function setNudgeToken(address _nudgeToken) external onlyOwner {
         require(_nudgeToken != address(0), "Invalid token");
         nudgeToken = _nudgeToken;
         emit NudgeTokenSet(_nudgeToken);
     }
 
-    /**
-     * @notice Update nad.fun router address
-     * @param _router New router address
-     */
     function setRouter(address _router) external onlyOwner {
         require(_router != address(0), "Invalid router");
         address old = bondingCurveRouter;
@@ -101,10 +124,6 @@ contract NudgeBuyback is Ownable, ReentrancyGuard, Pausable {
         emit RouterUpdated(old, _router);
     }
 
-    /**
-     * @notice Update nad.fun lens address
-     * @param _lens New lens address
-     */
     function setLens(address _lens) external onlyOwner {
         require(_lens != address(0), "Invalid lens");
         address old = lens;
@@ -112,17 +131,16 @@ contract NudgeBuyback is Ownable, ReentrancyGuard, Pausable {
         emit LensUpdated(old, _lens);
     }
 
-    /**
-     * @notice Update buyback configuration
-     * @param _minBuyback Minimum MON amount for buyback
-     * @param _deadline Deadline in seconds for buyback tx
-     */
     function setConfig(uint256 _minBuyback, uint256 _deadline) external onlyOwner {
         require(_deadline >= 60, "Deadline too short");
         minBuybackAmount = _minBuyback;
         buybackDeadlineSeconds = _deadline;
         emit ConfigUpdated(_minBuyback, _deadline);
     }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // Buyback Functions
+    // ═══════════════════════════════════════════════════════════════════════
 
     /**
      * @notice Execute buyback - swap MON for $NUDGE on nad.fun
@@ -131,26 +149,21 @@ contract NudgeBuyback is Ownable, ReentrancyGuard, Pausable {
     function executeBuyback(uint256 slippageBps) external onlyOwner nonReentrant whenNotPaused {
         require(nudgeToken != address(0), "NUDGE token not set");
         require(address(this).balance >= minBuybackAmount, "Below minimum buyback");
-        require(slippageBps <= 1000, "Slippage too high"); // Max 10%
+        require(slippageBps <= 1000, "Slippage too high");
         
         uint256 monAmount = address(this).balance;
-        
-        // Track balance before buyback (FIX: HIGH-1)
         uint256 balanceBefore = IERC20(nudgeToken).balanceOf(address(this));
         
-        // Get quote from Lens
         (, uint256 expectedOut) = ILens(lens).getAmountOut(
             nudgeToken,
             monAmount,
-            true // isBuy
+            true
         );
         
         require(expectedOut > 0, "No liquidity");
         
-        // Calculate minimum with slippage
         uint256 minOut = (expectedOut * (10000 - slippageBps)) / 10000;
         
-        // Execute buy on nad.fun
         IBondingCurveRouter.BuyParams memory params = IBondingCurveRouter.BuyParams({
             amountOutMin: minOut,
             token: nudgeToken,
@@ -160,26 +173,62 @@ contract NudgeBuyback is Ownable, ReentrancyGuard, Pausable {
         
         IBondingCurveRouter(bondingCurveRouter).buy{value: monAmount}(params);
         
-        // Calculate actual tokens received (FIX: HIGH-1)
         uint256 balanceAfter = IERC20(nudgeToken).balanceOf(address(this));
         uint256 nudgeReceived = balanceAfter - balanceBefore;
         
         require(nudgeReceived > 0, "Buyback failed");
+        totalBuybacks += monAmount;
         
         emit BuybackExecuted(monAmount, nudgeReceived);
     }
 
+    // ═══════════════════════════════════════════════════════════════════════
+    // Distribution Functions
+    // ═══════════════════════════════════════════════════════════════════════
+
     /**
-     * @notice Distribute bought $NUDGE to eligible users
-     * @dev Equal distribution to all recipients
+     * @notice Distribute rewards weighted by user weight
+     * @dev Users with higher weight get proportionally more rewards
      */
-    function distributeRewards() external onlyOwner nonReentrant whenNotPaused {
+    function distributeRewardsWeighted() external onlyOwner nonReentrant whenNotPaused {
         require(nudgeToken != address(0), "NUDGE token not set");
+        require(rewardRecipients.length > 0, "No recipients");
+        require(totalWeight > 0, "No weight assigned");
         
         uint256 balance = IERC20(nudgeToken).balanceOf(address(this));
         uint256 distributable = balance - totalPendingRewards;
         require(distributable > 0, "No rewards to distribute");
+        
+        uint256 distributed = 0;
+        for (uint256 i = 0; i < rewardRecipients.length; i++) {
+            address user = rewardRecipients[i];
+            if (userWeight[user] > 0) {
+                // Calculate proportional share based on weight
+                uint256 userShare = (distributable * userWeight[user]) / totalWeight;
+                if (userShare > 0) {
+                    pendingRewards[user] += userShare;
+                    distributed += userShare;
+                }
+            }
+        }
+        
+        require(distributed > 0, "Nothing distributed");
+        totalPendingRewards += distributed;
+        totalDistributed += distributed;
+        
+        emit RewardsDistributed(distributed, rewardRecipients.length, true);
+    }
+
+    /**
+     * @notice Distribute rewards equally (legacy method)
+     */
+    function distributeRewardsEqual() external onlyOwner nonReentrant whenNotPaused {
+        require(nudgeToken != address(0), "NUDGE token not set");
         require(rewardRecipients.length > 0, "No recipients");
+        
+        uint256 balance = IERC20(nudgeToken).balanceOf(address(this));
+        uint256 distributable = balance - totalPendingRewards;
+        require(distributable > 0, "No rewards to distribute");
         
         uint256 perUser = distributable / rewardRecipients.length;
         require(perUser > 0, "Amount too small");
@@ -191,14 +240,13 @@ contract NudgeBuyback is Ownable, ReentrancyGuard, Pausable {
         }
         
         totalPendingRewards += distributed;
+        totalDistributed += distributed;
         
-        emit RewardsDistributed(distributed, rewardRecipients.length);
+        emit RewardsDistributed(distributed, rewardRecipients.length, false);
     }
 
     /**
      * @notice Distribute with custom amounts per user
-     * @param users Array of user addresses
-     * @param amounts Array of amounts per user
      */
     function distributeRewardsCustom(
         address[] calldata users,
@@ -206,7 +254,7 @@ contract NudgeBuyback is Ownable, ReentrancyGuard, Pausable {
     ) external onlyOwner nonReentrant whenNotPaused {
         require(nudgeToken != address(0), "NUDGE token not set");
         require(users.length == amounts.length, "Length mismatch");
-        require(users.length <= 100, "Too many users"); // Gas limit
+        require(users.length <= 100, "Too many users");
         
         uint256 total = 0;
         for (uint256 i = 0; i < amounts.length; i++) {
@@ -223,8 +271,9 @@ contract NudgeBuyback is Ownable, ReentrancyGuard, Pausable {
         }
         
         totalPendingRewards += total;
+        totalDistributed += total;
         
-        emit RewardsDistributed(total, users.length);
+        emit RewardsDistributed(total, users.length, false);
     }
 
     /**
@@ -242,43 +291,141 @@ contract NudgeBuyback is Ownable, ReentrancyGuard, Pausable {
         emit RewardsClaimed(msg.sender, amount);
     }
 
+    // ═══════════════════════════════════════════════════════════════════════
+    // Recipient & Weight Management
+    // ═══════════════════════════════════════════════════════════════════════
+
     /**
-     * @notice Add user to reward recipients list
+     * @notice Add user with weight
      * @param user Address to add
+     * @param weight User's weight (use WEIGHT_PRECISION as base, e.g., 1e18 = 1x)
      */
-    function addRecipient(address user) external onlyOwner {
+    function addRecipient(address user, uint256 weight) external onlyOwner {
         require(!isRecipient[user], "Already recipient");
         require(user != address(0), "Invalid address");
+        require(rewardRecipients.length < MAX_RECIPIENTS, "Max recipients reached");
+        require(weight > 0, "Weight must be > 0");
         
         isRecipient[user] = true;
         recipientIndex[user] = rewardRecipients.length;
         rewardRecipients.push(user);
         
-        emit RecipientAdded(user);
+        userWeight[user] = weight;
+        totalWeight += weight;
+        
+        emit RecipientAdded(user, weight);
     }
 
     /**
-     * @notice Batch add recipients
-     * @param users Array of addresses to add
+     * @notice Add user with default weight (1x)
+     */
+    function addRecipientDefault(address user) external onlyOwner {
+        require(!isRecipient[user], "Already recipient");
+        require(user != address(0), "Invalid address");
+        require(rewardRecipients.length < MAX_RECIPIENTS, "Max recipients reached");
+        
+        isRecipient[user] = true;
+        recipientIndex[user] = rewardRecipients.length;
+        rewardRecipients.push(user);
+        
+        userWeight[user] = WEIGHT_PRECISION; // 1x weight
+        totalWeight += WEIGHT_PRECISION;
+        
+        emit RecipientAdded(user, WEIGHT_PRECISION);
+    }
+
+    /**
+     * @notice Batch add recipients with default weight
      */
     function addRecipientsBatch(address[] calldata users) external onlyOwner {
         require(users.length <= 100, "Too many users");
+        require(rewardRecipients.length + users.length <= MAX_RECIPIENTS, "Would exceed max");
+        
         for (uint256 i = 0; i < users.length; i++) {
             if (!isRecipient[users[i]] && users[i] != address(0)) {
                 isRecipient[users[i]] = true;
                 recipientIndex[users[i]] = rewardRecipients.length;
                 rewardRecipients.push(users[i]);
-                emit RecipientAdded(users[i]);
+                
+                userWeight[users[i]] = WEIGHT_PRECISION;
+                totalWeight += WEIGHT_PRECISION;
+                
+                emit RecipientAdded(users[i], WEIGHT_PRECISION);
+            }
+        }
+    }
+
+    /**
+     * @notice Batch add recipients with custom weights
+     */
+    function addRecipientsBatchWeighted(
+        address[] calldata users,
+        uint256[] calldata weights
+    ) external onlyOwner {
+        require(users.length == weights.length, "Length mismatch");
+        require(users.length <= 100, "Too many users");
+        require(rewardRecipients.length + users.length <= MAX_RECIPIENTS, "Would exceed max");
+        
+        for (uint256 i = 0; i < users.length; i++) {
+            if (!isRecipient[users[i]] && users[i] != address(0) && weights[i] > 0) {
+                isRecipient[users[i]] = true;
+                recipientIndex[users[i]] = rewardRecipients.length;
+                rewardRecipients.push(users[i]);
+                
+                userWeight[users[i]] = weights[i];
+                totalWeight += weights[i];
+                
+                emit RecipientAdded(users[i], weights[i]);
+            }
+        }
+    }
+
+    /**
+     * @notice Update user's weight
+     * @param user Address to update
+     * @param newWeight New weight value
+     */
+    function updateWeight(address user, uint256 newWeight) external onlyOwner {
+        require(isRecipient[user], "Not a recipient");
+        require(newWeight > 0, "Weight must be > 0");
+        
+        uint256 oldWeight = userWeight[user];
+        totalWeight = totalWeight - oldWeight + newWeight;
+        userWeight[user] = newWeight;
+        
+        emit WeightUpdated(user, oldWeight, newWeight);
+    }
+
+    /**
+     * @notice Batch update weights
+     */
+    function updateWeightsBatch(
+        address[] calldata users,
+        uint256[] calldata weights
+    ) external onlyOwner {
+        require(users.length == weights.length, "Length mismatch");
+        require(users.length <= 100, "Too many users");
+        
+        for (uint256 i = 0; i < users.length; i++) {
+            if (isRecipient[users[i]] && weights[i] > 0) {
+                uint256 oldWeight = userWeight[users[i]];
+                totalWeight = totalWeight - oldWeight + weights[i];
+                userWeight[users[i]] = weights[i];
+                
+                emit WeightUpdated(users[i], oldWeight, weights[i]);
             }
         }
     }
 
     /**
      * @notice Remove user from recipients (O(1) removal)
-     * @param user Address to remove
      */
     function removeRecipient(address user) external onlyOwner {
         require(isRecipient[user], "Not a recipient");
+        
+        // Remove weight
+        totalWeight -= userWeight[user];
+        delete userWeight[user];
         
         isRecipient[user] = false;
         
@@ -298,25 +445,30 @@ contract NudgeBuyback is Ownable, ReentrancyGuard, Pausable {
         emit RecipientRemoved(user);
     }
 
-    /**
-     * @notice Get recipient count
-     */
+    // ═══════════════════════════════════════════════════════════════════════
+    // View Functions
+    // ═══════════════════════════════════════════════════════════════════════
+
     function getRecipientCount() external view returns (uint256) {
         return rewardRecipients.length;
     }
 
-    /**
-     * @notice Check pending rewards for a user
-     */
     function getPendingRewards(address user) external view returns (uint256) {
         return pendingRewards[user];
     }
 
+    function getUserWeight(address user) external view returns (uint256) {
+        return userWeight[user];
+    }
+
     /**
-     * @notice Get all recipients (paginated)
-     * @param offset Start index
-     * @param limit Max items to return
+     * @notice Get user's share percentage (in basis points)
      */
+    function getUserShareBps(address user) external view returns (uint256) {
+        if (totalWeight == 0 || userWeight[user] == 0) return 0;
+        return (userWeight[user] * 10000) / totalWeight;
+    }
+
     function getRecipients(uint256 offset, uint256 limit) external view returns (address[] memory) {
         uint256 total = rewardRecipients.length;
         if (offset >= total) {
@@ -336,22 +488,36 @@ contract NudgeBuyback is Ownable, ReentrancyGuard, Pausable {
     }
 
     /**
-     * @notice Pause contract
+     * @notice Get contract stats
      */
+    function getStats() external view returns (
+        uint256 _totalBuybacks,
+        uint256 _totalDistributed,
+        uint256 _totalPending,
+        uint256 _recipientCount,
+        uint256 _totalWeight
+    ) {
+        return (
+            totalBuybacks,
+            totalDistributed,
+            totalPendingRewards,
+            rewardRecipients.length,
+            totalWeight
+        );
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // Admin Functions
+    // ═══════════════════════════════════════════════════════════════════════
+
     function pause() external onlyOwner {
         _pause();
     }
 
-    /**
-     * @notice Unpause contract
-     */
     function unpause() external onlyOwner {
         _unpause();
     }
 
-    /**
-     * @notice Emergency withdraw
-     */
     function emergencyWithdraw(
         address token,
         address to,
@@ -367,6 +533,5 @@ contract NudgeBuyback is Ownable, ReentrancyGuard, Pausable {
         }
     }
 
-    // Receive MON from treasury
     receive() external payable {}
 }

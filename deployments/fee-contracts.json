@@ -2,10 +2,11 @@
   "network": "monadTestnet",
   "chainId": 10143,
   "environment": "testnet",
-  "timestamp": "2026-02-05T01:46:19.541Z",
+  "timestamp": "2026-02-05T01:50:00.000Z",
+  "version": "v3",
   "contracts": {
-    "FeeSplitter": "0xeA163C0732a6EB2ab79240785BDA06B90Bf503bC",
-    "NudgeBuyback": "0xA49AfB43DEB77594F4102675b2bAaF3463c27103"
+    "FeeSplitter": "0xA3c103809d995a0e4d698b69f3DB9f2da643c053",
+    "NudgeBuyback": "0x4E7825D923Cc09aA8be74C08B14c7Cd4A48522bc"
   },
   "nadfun": {
     "router": "0x865054F0F6A288adaAc30261731361EA7E908003",
@@ -16,7 +17,9 @@
     "nudgeToken": "0xaEb52D53b6c3265580B91Be08C620Dc45F57a35F",
     "owner": "0xD95CA95467E0EfeDd027c7119E55C6BD5Ba2F6EA",
     "agentShareBps": 8000,
-    "treasuryShareBps": 2000
+    "treasuryShareBps": 2000,
+    "maxRecipients": 10000,
+    "weightPrecision": "1000000000000000000"
   },
   "features": [
     "pausable",
@@ -25,6 +28,9 @@
     "statistics",
     "o1-removal",
     "min-buyback",
-    "slippage-protection"
-  ]
+    "slippage-protection",
+    "weighted-distribution",
+    "max-recipients-cap"
+  ],
+  "auditScore": "A"
 }

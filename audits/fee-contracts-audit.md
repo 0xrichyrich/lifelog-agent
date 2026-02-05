@@ -17,7 +17,7 @@
 | 🔵 Low | 4 | ✅ |
 | ℹ️ Info | 3 | ✅ |
 
-**Overall Score: A-** (upgraded from B+ after mainnet fixes)
+**Overall Score: A** (upgraded from A- after weighted distribution + max cap)
 
 ## Mainnet-Ready Fixes Applied (v2)
 - ✅ Configurable nad.fun router/lens addresses
@@ -30,6 +30,10 @@
 - ✅ Minimum agent share protection (50%)
 - ✅ Batch operation limits (100 users)
 - ✅ Security contact added
+- ✅ Weighted distribution system (v3)
+- ✅ Max recipients cap (10,000)
+- ✅ User share percentage view function
+- ✅ Contract statistics (totalBuybacks, totalDistributed)
 
 Both contracts follow security best practices with OpenZeppelin imports, reentrancy guards, and proper access controls. One high-severity issue identified in NudgeBuyback requires attention.
 
