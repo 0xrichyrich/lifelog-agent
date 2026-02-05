@@ -86,6 +86,11 @@ export async function initializeDatabase(): Promise<void> {
       sql: `CREATE INDEX IF NOT EXISTS idx_checkins_timestamp ON check_ins(timestamp)`,
     },
     {
+      name: 'add activity_type column to check_ins',
+      sql: `ALTER TABLE check_ins ADD COLUMN activity_type TEXT DEFAULT 'break'`,
+      optional: true, // Will fail if column already exists, that's OK
+    },
+    {
       name: 'activities timestamp index',
       sql: `CREATE INDEX IF NOT EXISTS idx_activities_timestamp ON activities(timestamp)`,
     },
@@ -95,8 +100,13 @@ export async function initializeDatabase(): Promise<void> {
     try {
       await client.execute(stmt.sql);
     } catch (error) {
-      console.error(`Failed to create ${stmt.name}:`, error);
-      throw new Error(`Failed to create ${stmt.name}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      // If statement is optional (like ALTER TABLE ADD COLUMN), log but don't throw
+      if ((stmt as any).optional) {
+        console.log(`Optional migration ${stmt.name} skipped (likely already applied)`);
+      } else {
+        console.error(`Failed to create ${stmt.name}:`, error);
+        throw new Error(`Failed to create ${stmt.name}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
     }
   }
 }
