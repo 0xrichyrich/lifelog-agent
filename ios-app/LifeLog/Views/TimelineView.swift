@@ -287,10 +287,20 @@ struct TimelineView: View {
     private func parseActivitiesToBlocks(_ activities: [Activity]) -> [TimeBlock] {
         var blocks: [TimeBlock] = []
         
+        print("📊 Parsing \(activities.count) activities into time blocks")
+        
         for hour in 0..<24 {
             let hourActivities = activities.filter { activity in
-                guard let date = ISO8601DateFormatter().date(from: activity.timestamp) else { return false }
-                return Calendar.current.component(.hour, from: date) == hour
+                guard let date = ISO8601DateFormatter().date(from: activity.timestamp) else { 
+                    print("⚠️ Failed to parse timestamp: \(activity.timestamp)")
+                    return false 
+                }
+                let activityHour = Calendar.current.component(.hour, from: date)
+                return activityHour == hour
+            }
+            
+            if !hourActivities.isEmpty {
+                print("⏰ Hour \(hour): \(hourActivities.count) activities")
             }
             
             // Give check-ins a default 5-minute duration for display
