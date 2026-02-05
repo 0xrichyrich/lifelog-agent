@@ -64,6 +64,49 @@ export class LifeLogDatabase {
       CREATE INDEX IF NOT EXISTS idx_media_timestamp ON media(timestamp);
       CREATE INDEX IF NOT EXISTS idx_summaries_date ON summaries(date);
     `);
+
+    this.runMigration('002_xp_gamification', `
+      -- User XP tracking
+      CREATE TABLE IF NOT EXISTS user_xp (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        userId TEXT NOT NULL UNIQUE,
+        totalXP INTEGER NOT NULL DEFAULT 0,
+        currentXP INTEGER NOT NULL DEFAULT 0,
+        level INTEGER NOT NULL DEFAULT 0,
+        lastActivityAt TEXT NOT NULL
+      );
+
+      -- XP transaction history
+      CREATE TABLE IF NOT EXISTS xp_transactions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        userId TEXT NOT NULL,
+        amount INTEGER NOT NULL,
+        activity TEXT NOT NULL CHECK (activity IN (
+          'DAILY_CHECKIN', 'MOOD_LOG', 'GOAL_COMPLETE', 
+          'STREAK_7DAY', 'STREAK_30DAY', 'BADGE_EARNED', 'AGENT_INTERACTION'
+        )),
+        metadata TEXT NOT NULL DEFAULT '{}',
+        createdAt TEXT NOT NULL
+      );
+
+      -- XP redemption records
+      CREATE TABLE IF NOT EXISTS xp_redemptions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        userId TEXT NOT NULL,
+        xpSpent INTEGER NOT NULL,
+        nudgeReceived INTEGER NOT NULL,
+        txHash TEXT,
+        createdAt TEXT NOT NULL
+      );
+
+      -- Indexes for XP tables
+      CREATE INDEX IF NOT EXISTS idx_user_xp_userId ON user_xp(userId);
+      CREATE INDEX IF NOT EXISTS idx_user_xp_totalXP ON user_xp(totalXP DESC);
+      CREATE INDEX IF NOT EXISTS idx_xp_transactions_userId ON xp_transactions(userId);
+      CREATE INDEX IF NOT EXISTS idx_xp_transactions_createdAt ON xp_transactions(createdAt);
+      CREATE INDEX IF NOT EXISTS idx_xp_transactions_activity ON xp_transactions(activity);
+      CREATE INDEX IF NOT EXISTS idx_xp_redemptions_userId ON xp_redemptions(userId);
+    `);
   }
 
   private runMigration(name: string, sql: string): void {
@@ -172,6 +215,11 @@ export class LifeLogDatabase {
   // Utility
   close(): void {
     this.db.close();
+  }
+
+  // Get raw database instance (for XP service)
+  getRawDb(): Database.Database {
+    return this.db;
   }
 
   getStats(): { activities: number; checkIns: number; media: number; summaries: number } {
