@@ -289,9 +289,13 @@ struct TimelineView: View {
         
         print("📊 Parsing \(activities.count) activities into time blocks")
         
+        // Create formatter that handles milliseconds
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        
         for hour in 0..<24 {
             let hourActivities = activities.filter { activity in
-                guard let date = ISO8601DateFormatter().date(from: activity.timestamp) else { 
+                guard let date = formatter.date(from: activity.timestamp) else { 
                     print("⚠️ Failed to parse timestamp: \(activity.timestamp)")
                     return false 
                 }
