@@ -286,7 +286,11 @@ struct TimelineView: View {
                 return Calendar.current.component(.hour, from: date) == hour
             }
             
-            let totalMinutes = hourActivities.reduce(0) { $0 + ($1.duration ?? 0) } / 60
+            // Give check-ins a default 5-minute duration for display
+            let totalMinutes = hourActivities.reduce(0) { total, activity in
+                let duration = activity.duration ?? 300 // Default 5 min (300 sec) for check-ins
+                return total + duration
+            } / 60
             
             var dominantCategory: ActivityCategory = .idle
             if !hourActivities.isEmpty {
