@@ -15,16 +15,45 @@ struct SettingsView: View {
     @EnvironmentObject private var privyService: PrivyService
     @State private var showingExportSheet = false
     @State private var showingAboutSheet = false
+    @State private var showingLeaderboard = false
     @State private var notificationStatus: UNAuthorizationStatus = .notDetermined
     @State private var healthAuthorized = false
     @State private var showingHealthAlert = false
     @StateObject private var healthService = HealthKitService()
+    @StateObject private var xpService = XPService()
     
     var body: some View {
         @Bindable var state = appState
         
         NavigationStack {
             List {
+                // XP Progress Section
+                Section {
+                    XPProgressView(
+                        status: xpService.status,
+                        isLoading: xpService.isLoading
+                    ) {
+                        showingLeaderboard = true
+                    }
+                    .listRowInsets(EdgeInsets())
+                    .listRowBackground(Color.clear)
+                } header: {
+                    HStack {
+                        Text("Your Progress")
+                        Spacer()
+                        if xpService.status != nil {
+                            Button {
+                                Task {
+                                    await refreshXP()
+                                }
+                            } label: {
+                                Image(systemName: "arrow.clockwise")
+                                    .font(.caption)
+                            }
+                        }
+                    }
+                }
+                
                 // Wallet
                 Section {
                     NavigationLink {
@@ -272,12 +301,18 @@ struct SettingsView: View {
             .onAppear {
                 checkNotificationStatus()
                 healthService.checkAuthorizationStatus()
+                Task {
+                    await refreshXP()
+                }
             }
             .sheet(isPresented: $showingExportSheet) {
                 ExportSheet()
             }
             .sheet(isPresented: $showingAboutSheet) {
                 AboutSheet()
+            }
+            .sheet(isPresented: $showingLeaderboard) {
+                LeaderboardSheet(xpService: xpService)
             }
             .alert("Apple Health", isPresented: $showingHealthAlert) {
                 Button("Open Settings", role: .none) {
@@ -288,6 +323,14 @@ struct SettingsView: View {
                 Text("Health data access was denied. Please enable it in Settings > Privacy > Health.")
             }
         }
+    }
+    
+    // MARK: - XP Actions
+    private func refreshXP() async {
+        // Use wallet address as userId if available, otherwise use device ID
+        let userId = privyService.walletAddress ?? UIDevice.current.identifierForVendor?.uuidString ?? "anonymous"
+        xpService.updateConfig(baseURL: appState.apiEndpoint, apiKey: appState.apiKey)
+        await xpService.fetchStatus(userId: userId)
     }
     
     // MARK: - Actions
@@ -505,6 +548,122 @@ struct AboutSheet: View {
                     }
                 }
             }
+        }
+    }
+}
+
+// MARK: - Leaderboard Sheet
+struct LeaderboardSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @ObservedObject var xpService: XPService
+    
+    var body: some View {
+        NavigationStack {
+            Group {
+                if xpService.leaderboard.isEmpty {
+                    VStack(spacing: 16) {
+                        ProgressView()
+                        Text("Loading leaderboard...")
+                            .font(.caption)
+                            .foregroundStyle(Color.textSecondary)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    List {
+                        ForEach(xpService.leaderboard) { entry in
+                            LeaderboardRowView(entry: entry)
+                        }
+                    }
+                    .listStyle(.plain)
+                }
+            }
+            .background(Color.background)
+            .navigationTitle("Weekly Leaderboard")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+            .onAppear {
+                Task {
+                    await xpService.fetchLeaderboard()
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
+    }
+}
+
+struct LeaderboardRowView: View {
+    let entry: LeaderboardEntry
+    
+    var body: some View {
+        HStack(spacing: 16) {
+            // Rank
+            ZStack {
+                Circle()
+                    .fill(rankColor)
+                    .frame(width: 36, height: 36)
+                
+                if entry.rank <= 3 {
+                    Image(systemName: rankIcon)
+                        .font(.headline)
+                        .foregroundStyle(.white)
+                } else {
+                    Text("\(entry.rank)")
+                        .font(.headline)
+                        .fontWeight(.bold)
+                        .foregroundStyle(.white)
+                }
+            }
+            
+            // User info
+            VStack(alignment: .leading, spacing: 2) {
+                Text(entry.userId)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .foregroundStyle(Color.textPrimary)
+                
+                Text("Level \(entry.level)")
+                    .font(.caption)
+                    .foregroundStyle(Color.textSecondary)
+            }
+            
+            Spacer()
+            
+            // XP
+            VStack(alignment: .trailing, spacing: 2) {
+                Text("\(entry.totalXP)")
+                    .font(.headline)
+                    .fontWeight(.bold)
+                    .foregroundStyle(Color.brandInteractive)
+                
+                Text("XP")
+                    .font(.caption2)
+                    .foregroundStyle(Color.textSecondary)
+            }
+        }
+        .padding(.vertical, 4)
+    }
+    
+    private var rankColor: Color {
+        switch entry.rank {
+        case 1: return Color(hex: "FFD700")! // Gold
+        case 2: return Color(hex: "C0C0C0")! // Silver
+        case 3: return Color(hex: "CD7F32")! // Bronze
+        default: return Color.brandAccent
+        }
+    }
+    
+    private var rankIcon: String {
+        switch entry.rank {
+        case 1: return "crown.fill"
+        case 2: return "medal.fill"
+        case 3: return "star.fill"
+        default: return ""
         }
     }
 }

@@ -46,6 +46,10 @@
 		A11111110000000000000082 /* AgentsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000082 /* AgentsView.swift */; };
 		A11111110000000000000083 /* AgentChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000083 /* AgentChatView.swift */; };
 		A11111110000000000000084 /* PaymentSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000084 /* PaymentSheet.swift */; };
+		A11111110000000000000090 /* XPModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000090 /* XPModels.swift */; };
+		A11111110000000000000091 /* XPService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000091 /* XPService.swift */; };
+		A11111110000000000000092 /* XPProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000092 /* XPProgressView.swift */; };
+		A11111110000000000000093 /* XPNotificationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000093 /* XPNotificationView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -115,6 +119,10 @@
 		A10000000000000000000082 /* AgentsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentsView.swift; sourceTree = "<group>"; };
 		A10000000000000000000083 /* AgentChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentChatView.swift; sourceTree = "<group>"; };
 		A10000000000000000000084 /* PaymentSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaymentSheet.swift; sourceTree = "<group>"; };
+		A10000000000000000000090 /* XPModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XPModels.swift; sourceTree = "<group>"; };
+		A10000000000000000000091 /* XPService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XPService.swift; sourceTree = "<group>"; };
+		A10000000000000000000092 /* XPProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XPProgressView.swift; sourceTree = "<group>"; };
+		A10000000000000000000093 /* XPNotificationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XPNotificationView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -201,6 +209,7 @@
 				A10000000000000000000050 /* WellnessModels.swift */,
 				A10000000000000000000060 /* WalletModels.swift */,
 				A10000000000000000000080 /* Agent.swift */,
+				A10000000000000000000090 /* XPModels.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -234,6 +243,7 @@
 				A10000000000000000000061 /* PrivyService.swift */,
 				A10000000000000000000062 /* WalletService.swift */,
 				A10000000000000000000081 /* AgentService.swift */,
+				A10000000000000000000091 /* XPService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -254,6 +264,8 @@
 				A10000000000000000000043 /* LoadingStates.swift */,
 				A10000000000000000000054 /* BalanceCard.swift */,
 				A10000000000000000000055 /* WellnessNudgeCard.swift */,
+				A10000000000000000000092 /* XPProgressView.swift */,
+				A10000000000000000000093 /* XPNotificationView.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -396,6 +408,10 @@
 				A11111110000000000000082 /* AgentsView.swift in Sources */,
 				A11111110000000000000083 /* AgentChatView.swift in Sources */,
 				A11111110000000000000084 /* PaymentSheet.swift in Sources */,
+				A11111110000000000000090 /* XPModels.swift in Sources */,
+				A11111110000000000000091 /* XPService.swift in Sources */,
+				A11111110000000000000092 /* XPProgressView.swift in Sources */,
+				A11111110000000000000093 /* XPNotificationView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

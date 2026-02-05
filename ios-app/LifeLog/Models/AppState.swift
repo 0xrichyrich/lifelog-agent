@@ -56,6 +56,11 @@ final class AppState {
     var isLoading = false
     var errorMessage: String?
     
+    // XP State
+    var xpStatus: XPStatus?
+    var xpNotification: XPNotification?
+    var isLoadingXP = false
+    
     init() {
         self.apiEndpoint = "https://www.littlenudge.app"
         self.apiKey = KeychainHelper.load(key: "lifelogApiKey") ?? ""

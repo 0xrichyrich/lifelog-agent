@@ -25,8 +25,10 @@ struct CheckInView: View {
     @State private var isLoadingCheckIns = true
     @State private var showCompletionAnimation = false
     @State private var loadError: Error?
+    @State private var xpNotification: XPNotification?
     
     private let apiClient = APIClient()
+    @StateObject private var xpService = XPService()
     
     var body: some View {
         NavigationStack {
@@ -93,6 +95,7 @@ struct CheckInView: View {
                         .transition(.scale)
                 }
             }
+            .xpNotification($xpNotification)
         }
     }
     
@@ -300,6 +303,10 @@ struct CheckInView: View {
                     recentCheckIns.insert(newCheckIn, at: 0)
                 }
             }
+            
+            // Award XP for quick log
+            await awardXPForCheckIn()
+            
         } catch {
             await MainActor.run {
                 errorMessage = "Failed to log: \(error.localizedDescription)"
@@ -399,6 +406,10 @@ struct CheckInView: View {
                     }
                 }
             }
+            
+            // Award XP for check-in
+            await awardXPForCheckIn()
+            
         } catch {
             await MainActor.run {
                 errorMessage = error.localizedDescription
@@ -409,6 +420,20 @@ struct CheckInView: View {
         
         await MainActor.run {
             isSubmitting = false
+        }
+    }
+    
+    private func awardXPForCheckIn() async {
+        let userId = UIDevice.current.identifierForVendor?.uuidString ?? "anonymous"
+        xpService.updateConfig(baseURL: appState.apiEndpoint, apiKey: appState.apiKey)
+        
+        if let notification = await xpService.awardXP(userId: userId, activity: .dailyCheckin) {
+            await MainActor.run {
+                // Show XP notification after completion animation
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.8) {
+                    self.xpNotification = notification
+                }
+            }
         }
     }
     
