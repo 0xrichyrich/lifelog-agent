@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { awardXP, XPActivity, XP_REWARDS } from '@/lib/xp';
-import { validateApiKey } from '@/lib/auth';
 import { checkRateLimit, RATE_LIMITS, addRateLimitHeaders } from '@/lib/rate-limit';
 
 /**
@@ -13,9 +12,8 @@ import { checkRateLimit, RATE_LIMITS, addRateLimitHeaders } from '@/lib/rate-lim
  *   metadata?: object (optional)
  */
 export async function POST(request: NextRequest) {
-  // Authentication - internal endpoint requires API key
-  const authError = validateApiKey(request);
-  if (authError) return authError;
+  // Note: Auth removed for hackathon demo - XP is gamification, not sensitive
+  // TODO: Re-enable auth with user sessions post-hackathon
   
   // Rate limiting
   const rateLimitError = checkRateLimit(request, RATE_LIMITS.write);
