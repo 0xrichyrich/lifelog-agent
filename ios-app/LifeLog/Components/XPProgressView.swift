@@ -144,6 +144,7 @@ struct XPProgressView: View {
                 emptyState
             }
         }
+        .frame(maxWidth: .infinity)
         .padding(16)
         .background(Color.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: 16))
@@ -229,6 +230,7 @@ struct XPProgressView: View {
                 .foregroundStyle(Color.textSecondary)
                 .multilineTextAlignment(.center)
         }
+        .frame(maxWidth: .infinity)
         .padding(.vertical, 20)
     }
     
