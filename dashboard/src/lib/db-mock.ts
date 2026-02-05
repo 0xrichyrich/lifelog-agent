@@ -71,7 +71,28 @@ export function initializeDatabase() {
 
 export function getActivitiesByDate(date: string): Activity[] {
   initMockData();
-  return mockActivities.filter(a => a.timestamp.startsWith(date));
+  
+  // Get native activities for this date
+  const nativeActivities = mockActivities.filter(a => a.timestamp.startsWith(date));
+  
+  // Convert check-ins to activities (they're the primary data source)
+  const checkInsForDate = mockCheckIns.filter(c => c.timestamp.startsWith(date));
+  const checkInActivities: Activity[] = checkInsForDate.map(checkIn => ({
+    id: checkIn.id,
+    timestamp: checkIn.timestamp,
+    type: 'break' as const, // Check-ins are logged breaks/moments
+    duration: undefined,
+    metadata_json: JSON.stringify({ 
+      message: checkIn.message,
+      source: checkIn.source,
+      isCheckIn: true 
+    }),
+  }));
+  
+  // Combine and sort by timestamp (newest first)
+  return [...nativeActivities, ...checkInActivities].sort(
+    (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+  );
 }
 
 export function getCheckInsByDate(date: string): CheckIn[] {
