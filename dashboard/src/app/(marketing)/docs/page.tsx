@@ -17,7 +17,14 @@ import {
   Activity,
   MessageCircle,
   Wallet,
-  ExternalLink
+  ExternalLink,
+  Trophy,
+  TrendingUp,
+  Target,
+  Sun,
+  Award,
+  Brain,
+  FileCode
 } from 'lucide-react';
 
 interface DocSection {
@@ -207,42 +214,104 @@ const DOC_SECTIONS: DocSection[] = [
     ),
   },
   {
+    id: 'xp-system',
+    icon: Trophy,
+    title: 'XP Gamification System',
+    content: (
+      <div className="space-y-4">
+        <p>
+          Nudge uses an XP (experience points) system to gamify your wellness journey. 
+          Earn XP from healthy activities, level up for bonuses, and redeem XP for $NUDGE tokens!
+        </p>
+        <div className="space-y-3">
+          <h4 className="font-semibold">Earning XP:</h4>
+          <ul className="space-y-2 text-sm">
+            <li className="flex items-center gap-3 p-2 bg-surface-light rounded-lg">
+              <Heart className="w-4 h-4 text-accent" />
+              <span className="flex-1">Daily check-in</span>
+              <span className="text-yellow-600 font-bold">+10 XP</span>
+            </li>
+            <li className="flex items-center gap-3 p-2 bg-surface-light rounded-lg">
+              <Brain className="w-4 h-4 text-purple-500" />
+              <span className="flex-1">Mood log</span>
+              <span className="text-yellow-600 font-bold">+5 XP</span>
+            </li>
+            <li className="flex items-center gap-3 p-2 bg-surface-light rounded-lg">
+              <Target className="w-4 h-4 text-blue-500" />
+              <span className="flex-1">Goal complete</span>
+              <span className="text-yellow-600 font-bold">+25 XP</span>
+            </li>
+            <li className="flex items-center gap-3 p-2 bg-surface-light rounded-lg">
+              <Sun className="w-4 h-4 text-orange-500" />
+              <span className="flex-1">7-day streak</span>
+              <span className="text-yellow-600 font-bold">+50 XP</span>
+            </li>
+            <li className="flex items-center gap-3 p-2 bg-surface-light rounded-lg">
+              <Award className="w-4 h-4 text-emerald-500" />
+              <span className="flex-1">30-day streak</span>
+              <span className="text-yellow-600 font-bold">+200 XP</span>
+            </li>
+            <li className="flex items-center gap-3 p-2 bg-surface-light rounded-lg">
+              <Trophy className="w-4 h-4 text-yellow-500" />
+              <span className="flex-1">Badge earned</span>
+              <span className="text-yellow-600 font-bold">+100 XP</span>
+            </li>
+          </ul>
+        </div>
+        <div className="space-y-3">
+          <h4 className="font-semibold">Level Bonuses (XP Redemption):</h4>
+          <div className="grid sm:grid-cols-2 gap-3">
+            <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+              <p className="font-medium">Base (Level 1-4)</p>
+              <p className="text-sm text-text-muted">1000 XP = 100 $NUDGE</p>
+            </div>
+            <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+              <p className="font-medium text-blue-700">Level 5+ <span className="text-xs bg-blue-200 px-1.5 py-0.5 rounded-full">+10%</span></p>
+              <p className="text-sm text-text-muted">1000 XP = 110 $NUDGE</p>
+            </div>
+            <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
+              <p className="font-medium text-purple-700">Level 10+ <span className="text-xs bg-purple-200 px-1.5 py-0.5 rounded-full">+25%</span></p>
+              <p className="text-sm text-text-muted">1000 XP = 125 $NUDGE</p>
+            </div>
+            <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-300">
+              <p className="font-medium text-yellow-700">Level 20+ <span className="text-xs bg-yellow-200 px-1.5 py-0.5 rounded-full">+50%</span></p>
+              <p className="text-sm text-text-muted">1000 XP = 150 $NUDGE</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-accent/10 border border-accent/20 rounded-lg p-4 mt-4">
+          <p className="text-sm">
+            <strong className="text-accent">Pro tip:</strong> Maintain daily streaks for the biggest XP bonuses. 
+            A 30-day streak alone earns you 200 XP!
+          </p>
+        </div>
+      </div>
+    ),
+  },
+  {
     id: 'nudge-token',
     icon: Coins,
     title: '$NUDGE Token',
     content: (
       <div className="space-y-4">
         <p>
-          $NUDGE is the utility token powering the Nudge ecosystem. Earn it through healthy habits, 
-          spend it on AI agents.
+          $NUDGE is the utility token powering the Nudge ecosystem. Redeem XP for tokens, 
+          spend tokens on AI agents, and receive buyback distributions.
         </p>
         <div className="space-y-3">
-          <h4 className="font-semibold">Earning $NUDGE:</h4>
+          <h4 className="font-semibold">Token Utility:</h4>
           <ul className="space-y-2 text-sm text-text-muted">
             <li className="flex items-center gap-2">
-              <span className="text-accent font-bold">+10</span>
-              Daily check-in completed
+              <span className="text-accent">✓</span>
+              Redeem XP for $NUDGE tokens
             </li>
             <li className="flex items-center gap-2">
-              <span className="text-accent font-bold">+50</span>
-              7-day streak bonus
+              <span className="text-accent">✓</span>
+              Pay for AI agent messages (3-5 tokens per message)
             </li>
             <li className="flex items-center gap-2">
-              <span className="text-accent font-bold">+5</span>
-              Per outdoor goal achieved
-            </li>
-          </ul>
-        </div>
-        <div className="space-y-3">
-          <h4 className="font-semibold">Spending $NUDGE:</h4>
-          <ul className="space-y-2 text-sm text-text-muted">
-            <li className="flex items-center gap-2">
-              <span className="text-red-500 font-bold">-3 to -5</span>
-              Per message to AI agent
-            </li>
-            <li className="flex items-center gap-2">
-              <span className="text-red-500 font-bold">-10+</span>
-              Premium agent consultations
+              <span className="text-accent">✓</span>
+              Receive buyback distributions as an active user
             </li>
           </ul>
         </div>
@@ -250,6 +319,87 @@ const DOC_SECTIONS: DocSection[] = [
           <p className="text-sm">
             ⚠️ <strong>Testnet only:</strong> $NUDGE currently has no real monetary value. 
             It exists on Monad Testnet for testing purposes.
+          </p>
+        </div>
+      </div>
+    ),
+  },
+  {
+    id: 'tokenomics',
+    icon: TrendingUp,
+    title: 'Tokenomics & Agent Economy',
+    content: (
+      <div className="space-y-4">
+        <p>
+          Nudge features a sustainable token economy with fee splitting and buybacks that 
+          reward both agent creators and active users.
+        </p>
+        <div className="space-y-3">
+          <h4 className="font-semibold">Fee Split Model:</h4>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+              <p className="text-3xl font-bold text-purple-600">80%</p>
+              <p className="font-medium">Agent Creators</p>
+              <p className="text-sm text-text-muted">Earn from every message to their agent</p>
+            </div>
+            <div className="p-4 bg-accent/10 rounded-lg border border-accent/20">
+              <p className="text-3xl font-bold text-accent">20%</p>
+              <p className="font-medium">Treasury (Buybacks)</p>
+              <p className="text-sm text-text-muted">Funds $NUDGE buybacks for users</p>
+            </div>
+          </div>
+        </div>
+        <div className="space-y-3">
+          <h4 className="font-semibold">Buyback Flywheel:</h4>
+          <ol className="list-decimal list-inside space-y-2 text-sm text-text-muted">
+            <li>Users chat with agents, paying $NUDGE per message</li>
+            <li>80% goes to agent creator, 20% to treasury</li>
+            <li>Treasury accumulates and triggers buybacks</li>
+            <li>NudgeBuyback contract purchases $NUDGE from market</li>
+            <li>Purchased tokens distributed to active users</li>
+            <li>More engagement → more buybacks → more rewards!</li>
+          </ol>
+        </div>
+        <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mt-4">
+          <p className="text-sm">
+            <strong className="text-purple-600">Sustainable economy:</strong> The more people use agents, 
+            the more buyback distributions happen. Active users benefit most!
+          </p>
+        </div>
+      </div>
+    ),
+  },
+  {
+    id: 'contracts',
+    icon: FileCode,
+    title: 'Smart Contracts',
+    content: (
+      <div className="space-y-4">
+        <p>
+          Nudge runs on <strong>Monad Testnet</strong>. Here are the deployed contract addresses:
+        </p>
+        <div className="space-y-3">
+          <div className="p-4 bg-surface-light rounded-lg">
+            <p className="text-sm text-text-muted mb-1">$NUDGE Token</p>
+            <code className="text-xs font-mono break-all">0xaEb52D53b6c3265580B91Be08C620Dc45F57a35F</code>
+          </div>
+          <div className="p-4 bg-surface-light rounded-lg">
+            <p className="text-sm text-text-muted mb-1">FeeSplitter</p>
+            <code className="text-xs font-mono break-all">0xA3c103809d995a0e4d698b69f3DB9f2da643c053</code>
+            <p className="text-xs text-text-muted mt-2">Handles 80/20 split between agents and treasury</p>
+          </div>
+          <div className="p-4 bg-surface-light rounded-lg">
+            <p className="text-sm text-text-muted mb-1">NudgeBuyback</p>
+            <code className="text-xs font-mono break-all">0x4E7825D923Cc09aA8be74C08B14c7Cd4A48522bc</code>
+            <p className="text-xs text-text-muted mt-2">Executes buybacks and distributes to active users</p>
+          </div>
+        </div>
+        <div className="bg-accent/10 border border-accent/20 rounded-lg p-4 mt-4">
+          <p className="text-sm">
+            <strong className="text-accent">Open Source:</strong> All contracts are verified and available on{' '}
+            <a href="https://github.com/0xrichyrich/lifelog-agent/tree/main/contracts" target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">
+              GitHub
+            </a>
           </p>
         </div>
       </div>

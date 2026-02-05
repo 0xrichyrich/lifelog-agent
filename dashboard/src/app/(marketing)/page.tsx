@@ -19,7 +19,12 @@ import {
   Sparkles,
   Heart,
   Sun,
-  Brain
+  Brain,
+  Zap,
+  Target,
+  Trophy,
+  TrendingUp,
+  ArrowRight
 } from 'lucide-react';
 import Image from 'next/image';
 
@@ -184,6 +189,7 @@ export default function LandingPage() {
           <div className="hidden md:flex items-center gap-6">
             <a href="#features" className="text-text-muted hover:text-accent transition">Features</a>
             <a href="#agents" className="text-text-muted hover:text-accent transition">Agents</a>
+            <a href="#xp" className="text-text-muted hover:text-accent transition">Earn XP</a>
             <a href="#token" className="text-text-muted hover:text-accent transition">Token</a>
             <a href="/docs" className="text-text-muted hover:text-accent transition">Docs</a>
             <a href="/add-agent" className="btn btn-primary flex items-center gap-2">
@@ -268,8 +274,12 @@ export default function LandingPage() {
                 HealthKit Integration
               </div>
               <div className="flex items-center gap-2">
+                <Trophy className="w-5 h-5 text-yellow-500" />
+                Earn XP & Level Up
+              </div>
+              <div className="flex items-center gap-2">
                 <Coins className="w-5 h-5 text-accent" />
-                Earn $NUDGE
+                Redeem for $NUDGE
               </div>
               <div className="flex items-center gap-2">
                 <Bot className="w-5 h-5 text-purple-500" />
@@ -290,8 +300,13 @@ export default function LandingPage() {
           
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             <FeatureCard
+              emoji="🏆"
+              title="XP Gamification"
+              description="Earn XP for every healthy habit — check-ins, mood logs, goals, and streaks. Level up for better token redemption rates!"
+            />
+            <FeatureCard
               emoji="🤖"
-              title="AI Agent Add Agent"
+              title="AI Agent Marketplace"
               description="Chat with specialized wellness agents — fitness coaches, meditation guides, nutrition experts, and more."
             />
             <FeatureCard
@@ -305,14 +320,9 @@ export default function LandingPage() {
               description="Native app with HealthKit integration, daily check-ins, and seamless tracking of your wellness journey."
             />
             <FeatureCard
-              emoji="🔗"
-              title="Agent Economy"
-              description="Anyone can submit agents — even AI agents! Create and monetize your own wellness expertise."
-            />
-            <FeatureCard
-              emoji="🏥"
-              title="Wellness Tracking"
-              description="Track steps, outdoor time, mood check-ins, sleep, and more. Your data, beautifully visualized."
+              emoji="🔄"
+              title="Token Flywheel"
+              description="80% of agent fees go to creators, 20% funds buybacks distributed to active users. Sustainable token economy."
             />
             <FeatureCard
               emoji="💳"
@@ -388,47 +398,215 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Token Section */}
-      <section id="token" className="py-20 px-6 bg-white">
-        <div className="max-w-4xl mx-auto">
-          <div className="card border-accent/30 bg-gradient-to-br from-emerald-50 to-teal-50">
-            <div className="text-center mb-8">
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-accent/10 border border-accent/20 rounded-full text-accent text-sm mb-4">
-                <Coins className="w-4 h-4" />
-                $NUDGE Token
-              </div>
-              <h2 className="text-4xl font-bold mb-4">The Wellness Token</h2>
-              <p className="text-xl text-text-muted">
-                Earn tokens for check-ins and streaks. Spend them on AI agents.
-              </p>
+      {/* XP Gamification Section */}
+      <section id="xp" className="py-20 px-6 bg-white">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-500/10 border border-yellow-500/20 rounded-full text-yellow-600 text-sm mb-4">
+              <Trophy className="w-4 h-4" />
+              Gamification
             </div>
-            
-            <div className="grid md:grid-cols-3 gap-6 mb-8">
-              <div className="text-center p-4 bg-white rounded-xl">
-                <Heart className="w-8 h-8 text-accent mx-auto mb-2" />
-                <p className="font-bold">+10 $NUDGE</p>
-                <p className="text-sm text-text-muted">Daily check-in</p>
-              </div>
-              <div className="text-center p-4 bg-white rounded-xl">
-                <Sun className="w-8 h-8 text-emerald-500 mx-auto mb-2" />
-                <p className="font-bold">+50 $NUDGE</p>
-                <p className="text-sm text-text-muted">7-day streak</p>
-              </div>
-              <div className="text-center p-4 bg-white rounded-xl">
-                <Brain className="w-8 h-8 text-purple-500 mx-auto mb-2" />
-                <p className="font-bold">-3-5 $NUDGE</p>
-                <p className="text-sm text-text-muted">Per agent message</p>
-              </div>
-            </div>
-            
-            {/* Contract address */}
-            <div className="bg-white rounded-xl p-4 border border-card-border">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-text-muted mb-1">Contract Address (Monad Testnet)</p>
-                  <code className="text-sm font-mono">{CONTRACT_ADDRESS}</code>
+            <h2 className="text-4xl font-bold mb-4">Earn XP, Level Up, Get Rewards</h2>
+            <p className="text-xl text-text-muted max-w-2xl mx-auto">
+              Every healthy habit earns you XP. Level up for better redemption rates. 
+              Redeem your XP for $NUDGE tokens!
+            </p>
+          </div>
+          
+          <div className="grid lg:grid-cols-2 gap-8 mb-12">
+            {/* Earn XP */}
+            <div className="card border-yellow-500/30">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 bg-yellow-500/10 rounded-xl flex items-center justify-center">
+                  <Zap className="w-6 h-6 text-yellow-500" />
                 </div>
-                <CopyButton text={FULL_CONTRACT} />
+                <h3 className="text-2xl font-bold">Earn XP</h3>
+              </div>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-3 bg-surface-light rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <Heart className="w-5 h-5 text-accent" />
+                    <span>Daily check-in</span>
+                  </div>
+                  <span className="font-bold text-yellow-600">+10 XP</span>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-surface-light rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <Brain className="w-5 h-5 text-purple-500" />
+                    <span>Mood log</span>
+                  </div>
+                  <span className="font-bold text-yellow-600">+5 XP</span>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-surface-light rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <Target className="w-5 h-5 text-blue-500" />
+                    <span>Goal complete</span>
+                  </div>
+                  <span className="font-bold text-yellow-600">+25 XP</span>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-surface-light rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <Sun className="w-5 h-5 text-orange-500" />
+                    <span>7-day streak</span>
+                  </div>
+                  <span className="font-bold text-yellow-600">+50 XP</span>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-surface-light rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <Award className="w-5 h-5 text-emerald-500" />
+                    <span>30-day streak</span>
+                  </div>
+                  <span className="font-bold text-yellow-600">+200 XP</span>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-surface-light rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <Trophy className="w-5 h-5 text-yellow-500" />
+                    <span>Badge earned</span>
+                  </div>
+                  <span className="font-bold text-yellow-600">+100 XP</span>
+                </div>
+              </div>
+            </div>
+            
+            {/* Redeem XP */}
+            <div className="card border-accent/30">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 bg-accent/10 rounded-xl flex items-center justify-center">
+                  <TrendingUp className="w-6 h-6 text-accent" />
+                </div>
+                <h3 className="text-2xl font-bold">Level Up for Bonuses</h3>
+              </div>
+              <div className="space-y-4">
+                <div className="p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-semibold">Base Rate</span>
+                    <span className="text-sm text-text-muted">Level 1-4</span>
+                  </div>
+                  <p className="text-2xl font-bold text-text">1000 XP = 100 $NUDGE</p>
+                </div>
+                <div className="p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border border-blue-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-semibold text-blue-700">Level 5+</span>
+                    <span className="text-sm text-blue-600 bg-blue-200 px-2 py-0.5 rounded-full">+10% bonus</span>
+                  </div>
+                  <p className="text-2xl font-bold text-blue-700">1000 XP = 110 $NUDGE</p>
+                </div>
+                <div className="p-4 bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg border border-purple-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-semibold text-purple-700">Level 10+</span>
+                    <span className="text-sm text-purple-600 bg-purple-200 px-2 py-0.5 rounded-full">+25% bonus</span>
+                  </div>
+                  <p className="text-2xl font-bold text-purple-700">1000 XP = 125 $NUDGE</p>
+                </div>
+                <div className="p-4 bg-gradient-to-r from-yellow-50 to-amber-100 rounded-lg border border-yellow-300">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-semibold text-yellow-700">Level 20+</span>
+                    <span className="text-sm text-yellow-600 bg-yellow-200 px-2 py-0.5 rounded-full">+50% bonus</span>
+                  </div>
+                  <p className="text-2xl font-bold text-yellow-700">1000 XP = 150 $NUDGE</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Token Section */}
+      <section id="token" className="py-20 px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-accent/10 border border-accent/20 rounded-full text-accent text-sm mb-4">
+              <Coins className="w-4 h-4" />
+              $NUDGE Token
+            </div>
+            <h2 className="text-4xl font-bold mb-4">The Wellness Token</h2>
+            <p className="text-xl text-text-muted">
+              A sustainable token economy powered by agent fees and buybacks
+            </p>
+          </div>
+          
+          <div className="grid lg:grid-cols-2 gap-8 mb-12">
+            {/* Token Utility */}
+            <div className="card border-accent/30 bg-gradient-to-br from-emerald-50 to-teal-50">
+              <h3 className="text-xl font-bold mb-6">Token Utility</h3>
+              <div className="grid grid-cols-3 gap-4 mb-6">
+                <div className="text-center p-4 bg-white rounded-xl">
+                  <Heart className="w-8 h-8 text-accent mx-auto mb-2" />
+                  <p className="font-bold">Earn</p>
+                  <p className="text-xs text-text-muted">From XP redemption</p>
+                </div>
+                <div className="text-center p-4 bg-white rounded-xl">
+                  <MessageCircle className="w-8 h-8 text-purple-500 mx-auto mb-2" />
+                  <p className="font-bold">Spend</p>
+                  <p className="text-xs text-text-muted">On AI agents</p>
+                </div>
+                <div className="text-center p-4 bg-white rounded-xl">
+                  <TrendingUp className="w-8 h-8 text-blue-500 mx-auto mb-2" />
+                  <p className="font-bold">Receive</p>
+                  <p className="text-xs text-text-muted">From buybacks</p>
+                </div>
+              </div>
+            </div>
+            
+            {/* Agent Economy */}
+            <div className="card border-purple-500/30 bg-gradient-to-br from-purple-50 to-pink-50">
+              <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
+                <Bot className="w-5 h-5 text-purple-500" />
+                Agent Economy
+              </h3>
+              <div className="space-y-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center text-2xl font-bold text-purple-600">
+                    80%
+                  </div>
+                  <div>
+                    <p className="font-semibold">Agent Creators</p>
+                    <p className="text-sm text-text-muted">Earn 80% of all message fees</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center text-2xl font-bold text-accent">
+                    20%
+                  </div>
+                  <div>
+                    <p className="font-semibold">Treasury Buybacks</p>
+                    <p className="text-sm text-text-muted">Purchases $NUDGE → distributed to active users</p>
+                  </div>
+                </div>
+                <div className="mt-4 p-3 bg-white/50 rounded-lg border border-purple-200">
+                  <p className="text-sm text-text-muted">
+                    <span className="text-purple-600 font-medium">Sustainable flywheel:</span> Agent fees fund buybacks, 
+                    rewarding active users and creating token demand.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Contract Addresses */}
+          <div className="card">
+            <h3 className="text-xl font-bold mb-6">Smart Contracts (Monad Testnet)</h3>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-4 bg-surface-light rounded-xl">
+                <div>
+                  <p className="text-sm text-text-muted mb-1">$NUDGE Token</p>
+                  <code className="text-sm font-mono">0xaEb52D53b6c3265580B91Be08C620Dc45F57a35F</code>
+                </div>
+                <CopyButton text="0xaEb52D53b6c3265580B91Be08C620Dc45F57a35F" />
+              </div>
+              <div className="flex items-center justify-between p-4 bg-surface-light rounded-xl">
+                <div>
+                  <p className="text-sm text-text-muted mb-1">FeeSplitter</p>
+                  <code className="text-sm font-mono">0xA3c103809d995a0e4d698b69f3DB9f2da643c053</code>
+                </div>
+                <CopyButton text="0xA3c103809d995a0e4d698b69f3DB9f2da643c053" />
+              </div>
+              <div className="flex items-center justify-between p-4 bg-surface-light rounded-xl">
+                <div>
+                  <p className="text-sm text-text-muted mb-1">NudgeBuyback</p>
+                  <code className="text-sm font-mono">0x4E7825D923Cc09aA8be74C08B14c7Cd4A48522bc</code>
+                </div>
+                <CopyButton text="0x4E7825D923Cc09aA8be74C08B14c7Cd4A48522bc" />
               </div>
             </div>
           </div>

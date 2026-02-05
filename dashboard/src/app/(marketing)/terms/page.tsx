@@ -79,11 +79,15 @@ export default function TermsPage() {
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-warning font-bold">•</span>
+                  <span><strong className="text-text">XP and token rewards</strong> are part of the gamification system and have no monetary value</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-warning font-bold">•</span>
                   <span>Testnet tokens cannot be exchanged for real cryptocurrency or fiat currency</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-warning font-bold">•</span>
-                  <span>Token balances may be reset at any time during the testing period</span>
+                  <span>Token balances, XP, and levels may be reset at any time during the testing period</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-warning font-bold">•</span>

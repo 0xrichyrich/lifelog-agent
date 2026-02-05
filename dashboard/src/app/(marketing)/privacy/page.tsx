@@ -78,10 +78,11 @@ export default function PrivacyPage() {
                   </p>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-text mb-2">Check-in Data</h3>
+                  <h3 className="font-semibold text-text mb-2">Check-in & XP Data</h3>
                   <p>
                     When you complete daily check-ins, we collect your mood ratings, sleep quality ratings, 
-                    energy levels, and optional notes you provide.
+                    energy levels, and optional notes you provide. We also track your XP balance, level progression,
+                    and redemption history for the gamification system.
                   </p>
                 </div>
                 <div>
@@ -153,7 +154,7 @@ export default function PrivacyPage() {
                 <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
                   <Lock className="w-5 h-5 text-purple-500" />
                 </div>
-                <h2 className="text-2xl font-bold">Blockchain Data</h2>
+                <h2 className="text-2xl font-bold">Blockchain & Token Data</h2>
               </div>
               <div className="text-text-muted leading-relaxed space-y-4">
                 <p>
@@ -161,10 +162,27 @@ export default function PrivacyPage() {
                   Please be aware that blockchain transactions are inherently public and transparent.
                 </p>
                 <p>
-                  This means your wallet address, token balances, and transaction history on the 
+                  This means your wallet address, token balances, XP redemptions, and transaction history on the 
                   Monad testnet are publicly visible. However, this data is not linked to your 
                   personal identity unless you choose to make that connection public.
                 </p>
+                <div className="space-y-2">
+                  <h3 className="font-semibold text-text">Token-related transactions include:</h3>
+                  <ul className="space-y-1 text-sm">
+                    <li className="flex items-center gap-2">
+                      <span className="text-purple-500">•</span>
+                      XP redemptions for $NUDGE tokens
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="text-purple-500">•</span>
+                      Agent message payments via FeeSplitter contract
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="text-purple-500">•</span>
+                      Buyback distributions from NudgeBuyback contract
+                    </li>
+                  </ul>
+                </div>
                 <div className="bg-purple-50 border border-purple-200 rounded-xl p-4">
                   <p className="text-sm">
                     <strong className="text-purple-600">Note:</strong> As a testnet application, 

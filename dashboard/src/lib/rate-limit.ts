@@ -111,6 +111,9 @@ export const RATE_LIMITS = {
   // Read operations: 60 per minute
   read: { limit: 60, windowSeconds: 60, keyPrefix: 'read' },
   
+  // Write operations: 10 per minute
+  write: { limit: 10, windowSeconds: 60, keyPrefix: 'write' },
+  
   // Token operations: 5 per minute
   token: { limit: 5, windowSeconds: 60, keyPrefix: 'token' },
   

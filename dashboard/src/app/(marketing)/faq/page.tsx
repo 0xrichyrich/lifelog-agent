@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ChevronRight, ChevronDown, HelpCircle, Sparkles, Coins, Lock, Bot, Zap, Users, Award, Github } from 'lucide-react';
+import { ChevronRight, ChevronDown, HelpCircle, Sparkles, Coins, Lock, Bot, Zap, Users, Award, Github, Trophy, TrendingUp, Target } from 'lucide-react';
 
 interface FAQItem {
   question: string;
@@ -14,13 +14,33 @@ interface FAQItem {
 const FAQ_ITEMS: FAQItem[] = [
   {
     question: 'What is Nudge?',
-    answer: 'Nudge is your AI-powered wellness companion. It combines health tracking (via HealthKit on iOS), daily check-ins, and a marketplace of specialized AI agents to help you build healthier habits. You earn $NUDGE tokens for completing check-ins and maintaining streaks, which you can spend chatting with AI wellness agents.',
+    answer: 'Nudge is your AI-powered wellness companion. It combines health tracking (via HealthKit on iOS), daily check-ins, and a marketplace of specialized AI agents to help you build healthier habits. Earn XP for every healthy action, level up for bonuses, and redeem XP for $NUDGE tokens to chat with AI wellness agents.',
     icon: Sparkles,
   },
   {
-    question: 'How do I earn $NUDGE tokens?',
-    answer: 'You earn $NUDGE tokens by engaging with the app! Complete a daily check-in to earn 10 $NUDGE. Build a 7-day streak to earn a 50 $NUDGE bonus. Additional rewards are available for hitting health goals, outdoor time, and other wellness achievements. The more consistent you are, the more you earn!',
+    question: 'How do I earn XP?',
+    answer: 'You earn XP by engaging with wellness activities! Daily check-in: +10 XP. Mood log: +5 XP. Goal complete: +25 XP. 7-day streak: +50 XP. 30-day streak: +200 XP. Badge earned: +100 XP. The more consistent you are with your wellness habits, the more XP you accumulate!',
+    icon: Trophy,
+  },
+  {
+    question: 'How do I redeem XP for tokens?',
+    answer: 'Go to the Wallet section in the app and tap "Redeem XP." The base rate is 1000 XP = 100 $NUDGE tokens. Your level determines bonus rates — the higher your level, the more tokens you get per XP! Tokens are sent directly to your Privy wallet.',
     icon: Coins,
+  },
+  {
+    question: 'What are the level bonuses?',
+    answer: 'Higher levels give you better XP-to-token redemption rates! Base (Level 1-4): 1000 XP = 100 $NUDGE. Level 5+: 10% bonus (1000 XP = 110 $NUDGE). Level 10+: 25% bonus (1000 XP = 125 $NUDGE). Level 20+: 50% bonus (1000 XP = 150 $NUDGE). Keep earning XP to level up!',
+    icon: TrendingUp,
+  },
+  {
+    question: 'How does the agent economy work?',
+    answer: 'When you chat with an AI agent, you pay $NUDGE tokens per message. Agent creators earn 80% of these fees — incentivizing high-quality wellness agents. The remaining 20% goes to the treasury for token buybacks, creating a sustainable economy.',
+    icon: Bot,
+  },
+  {
+    question: 'Where do buyback tokens come from?',
+    answer: 'The 20% treasury fee from all agent messages funds token buybacks. The NudgeBuyback contract purchases $NUDGE from the market and distributes it to active users. This creates a flywheel: more agent usage → more buybacks → more rewards for active users → more engagement.',
+    icon: Target,
   },
   {
     question: 'Is this real cryptocurrency?',
@@ -34,12 +54,12 @@ const FAQ_ITEMS: FAQItem[] = [
   },
   {
     question: 'Can I create my own agent?',
-    answer: 'Yes! The Nudge marketplace is open to agent creators — including other AI agents! You can design a wellness agent with a specific personality, expertise, and pricing. When users chat with your agent, you earn the $NUDGE tokens they spend. Documentation for creating agents is available in our Docs.',
+    answer: 'Yes! The Nudge marketplace is open to agent creators — including other AI agents! You can design a wellness agent with a specific personality, expertise, and pricing. When users chat with your agent, you earn 80% of the $NUDGE tokens they spend. Documentation for creating agents is available in our Docs.',
     icon: Bot,
   },
   {
     question: 'Is my data private?',
-    answer: 'Privacy is a core principle of Nudge. Your health data and check-ins are stored locally on your device by default. We don\'t sell your data to third parties or use it for advertising. Your wallet address and blockchain transactions are public (that\'s how blockchains work), but they\'re not linked to your personal identity unless you choose to make that connection.',
+    answer: 'Privacy is a core principle of Nudge. Your health data, XP balance, and check-ins are stored locally on your device by default. We don\'t sell your data to third parties or use it for advertising. Your wallet address and blockchain transactions are public (that\'s how blockchains work), but they\'re not linked to your personal identity unless you choose to make that connection.',
     icon: Lock,
   },
   {
