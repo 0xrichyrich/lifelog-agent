@@ -16,7 +16,7 @@ struct TimelineView: View {
     @State private var isLoading = true
     @State private var selectedBlock: TimeBlock?
     @State private var loadError: Error?
-    @State private var lastLoadTime: Date?
+    @State private var loadTask: Task<Void, Never>?
     
     private let apiClient = APIClient()
     
@@ -42,13 +42,15 @@ struct TimelineView: View {
                 await loadActivities()
             }
             .onAppear {
-                // Reload if never loaded or >2 seconds since last load (debounce rapid tab switches)
-                let shouldReload = lastLoadTime == nil || Date().timeIntervalSince(lastLoadTime!) > 2
-                if shouldReload {
-                    Task {
-                        await loadActivities()
-                    }
+                // Cancel any existing load and start fresh
+                loadTask?.cancel()
+                loadTask = Task {
+                    await loadActivities()
                 }
+            }
+            .onDisappear {
+                // Cancel load if view disappears
+                loadTask?.cancel()
             }
             .onChange(of: selectedDate) { _, _ in
                 Task {
@@ -229,15 +231,25 @@ struct TimelineView: View {
     
     // MARK: - Actions
     private func loadActivities() async {
+        // Check if cancelled before starting
+        guard !Task.isCancelled else { return }
+        
         isLoading = true
         loadError = nil
-        lastLoadTime = Date()
         
         do {
             let endpoint = appState.apiEndpoint
             print("📡 Timeline loading from: \(endpoint)")
             await apiClient.updateBaseURL(endpoint)
+            
+            // Check cancellation before network call
+            guard !Task.isCancelled else { return }
+            
             let fetchedActivities = try await apiClient.fetchActivities(for: selectedDate)
+            
+            // Check cancellation before updating UI
+            guard !Task.isCancelled else { return }
+            
             print("✅ Loaded \(fetchedActivities.count) activities")
             
             await MainActor.run {
@@ -246,13 +258,20 @@ struct TimelineView: View {
                 appState.activities = fetchedActivities
                 appState.syncToSharedDefaults()
             }
+        } catch is CancellationError {
+            // Task was cancelled, this is expected behavior
+            print("📡 Timeline load cancelled (tab switched)")
         } catch {
+            // Only show error if not cancelled
+            guard !Task.isCancelled else { return }
             print("❌ Failed to load activities from \(appState.apiEndpoint): \(error)")
             await MainActor.run {
                 loadError = error
             }
         }
         
+        // Only update loading state if not cancelled
+        guard !Task.isCancelled else { return }
         await MainActor.run {
             isLoading = false
         }
