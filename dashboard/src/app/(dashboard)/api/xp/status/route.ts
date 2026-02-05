@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getStatus } from '@/lib/xp';
+import { getStatus } from '@/lib/xp-turso';
 import { checkRateLimit, RATE_LIMITS, addRateLimitHeaders } from '@/lib/rate-limit';
 
 /**
@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
   }
   
   try {
-    const status = getStatus(userId);
+    const status = await getStatus(userId);
     const response = NextResponse.json({
       success: true,
       data: status,

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { awardXP, XPActivity, XP_REWARDS } from '@/lib/xp';
+import { awardXP, XPActivity, XP_REWARDS } from '@/lib/xp-turso';
 import { checkRateLimit, RATE_LIMITS, addRateLimitHeaders } from '@/lib/rate-limit';
 
 /**
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    const result = awardXP(userId, activity as XPActivity, metadata);
+    const result = await awardXP(userId, activity as XPActivity, metadata);
     
     const response = NextResponse.json({
       success: true,

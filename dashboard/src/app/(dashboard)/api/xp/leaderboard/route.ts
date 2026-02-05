@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getLeaderboard } from '@/lib/xp';
+import { getLeaderboard } from '@/lib/xp-turso';
 import { checkRateLimit, RATE_LIMITS, addRateLimitHeaders } from '@/lib/rate-limit';
 
 /**
@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
   const limit = Math.min(parseInt(searchParams.get('limit') || '10'), 50);
   
   try {
-    const leaderboard = getLeaderboard(limit);
+    const leaderboard = await getLeaderboard(limit);
     
     // Mask userIds for privacy (show only first/last chars)
     const maskedLeaderboard = leaderboard.map(entry => ({

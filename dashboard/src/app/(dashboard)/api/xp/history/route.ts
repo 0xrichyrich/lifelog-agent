@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getHistory, XP_REWARDS } from '@/lib/xp';
+import { getHistory } from '@/lib/xp-turso';
 import { checkRateLimit, RATE_LIMITS, addRateLimitHeaders } from '@/lib/rate-limit';
 
 /**
@@ -9,7 +9,6 @@ import { checkRateLimit, RATE_LIMITS, addRateLimitHeaders } from '@/lib/rate-lim
  * Query params:
  *   userId: string (required)
  *   limit?: number (default 50, max 100)
- *   offset?: number (default 0)
  */
 export async function GET(request: NextRequest) {
   // Rate limiting
@@ -19,7 +18,6 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const userId = searchParams.get('userId');
   const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100);
-  const offset = parseInt(searchParams.get('offset') || '0');
   
   if (!userId) {
     return NextResponse.json(
@@ -29,10 +27,10 @@ export async function GET(request: NextRequest) {
   }
   
   try {
-    const transactions = getHistory(userId, limit, offset);
+    const { history, total } = await getHistory(userId, limit);
     
     // Enrich with activity descriptions
-    const enrichedTransactions = transactions.map(tx => ({
+    const enrichedHistory = history.map(tx => ({
       ...tx,
       activityDescription: getActivityDescription(tx.activity),
     }));
@@ -40,12 +38,8 @@ export async function GET(request: NextRequest) {
     const response = NextResponse.json({
       success: true,
       data: {
-        transactions: enrichedTransactions,
-        pagination: {
-          limit,
-          offset,
-          hasMore: transactions.length === limit,
-        },
+        history: enrichedHistory,
+        total,
       },
     });
     return addRateLimitHeaders(response, RATE_LIMITS.read, request);
