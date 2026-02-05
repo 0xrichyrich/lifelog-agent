@@ -426,16 +426,24 @@ struct CheckInView: View {
     
     private func awardXPForCheckIn() async {
         // Use wallet address as userId if available (matches SettingsView)
-        let userId = privyService.walletAddress ?? UIDevice.current.identifierForVendor?.uuidString ?? "anonymous"
+        let walletAddr = privyService.walletAddress
+        let deviceId = UIDevice.current.identifierForVendor?.uuidString
+        let userId = walletAddr ?? deviceId ?? "anonymous"
+        
+        print("🎮 XP Award - wallet: \(walletAddr ?? "nil"), device: \(deviceId ?? "nil"), using: \(userId)")
+        
         xpService.updateConfig(baseURL: appState.apiEndpoint, apiKey: appState.apiKey)
         
         if let notification = await xpService.awardXP(userId: userId, activity: .dailyCheckin) {
+            print("🎮 XP Award success: +\(notification.amount) XP")
             await MainActor.run {
                 // Show XP notification after completion animation
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.8) {
                     self.xpNotification = notification
                 }
             }
+        } else {
+            print("🎮 XP Award returned nil notification")
         }
     }
     
