@@ -1,0 +1,16 @@
+{
+  "network": "monad-testnet",
+  "chainId": 10143,
+  "timestamp": "2026-02-05T01:38:25.412Z",
+  "contracts": {
+    "FeeSplitter": "0xd8935f0a0056f027475a379CD6a8AE1B38b93f19",
+    "NudgeBuyback": "0x6Ee8312080a7BDf3626931e7bcE7c89C7eC0C181"
+  },
+  "config": {
+    "treasury": "0x2390C495896C78668416859d9dE84212fCB10801",
+    "nudgeToken": "0xaEb52D53b6c3265580B91Be08C620Dc45F57a35F",
+    "owner": "0xD95CA95467E0EfeDd027c7119E55C6BD5Ba2F6EA",
+    "agentShareBps": 8000,
+    "treasuryShareBps": 2000
+  }
+}
