@@ -39,6 +39,10 @@ struct TimelineView: View {
             .navigationTitle("Timeline")
             .navigationBarTitleDisplayMode(.large)
             .refreshable {
+                print("🔃 Pull to refresh triggered")
+                // Cancel any existing task and load fresh
+                loadTask?.cancel()
+                loadTask = nil
                 await loadActivities()
             }
             .onAppear {
