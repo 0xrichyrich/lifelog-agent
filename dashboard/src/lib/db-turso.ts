@@ -37,40 +37,67 @@ export function isDatabaseConfigured(): boolean {
 export async function initializeDatabase(): Promise<void> {
   const client = getClient();
   
-  await client.batch([
-    `CREATE TABLE IF NOT EXISTS check_ins (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      timestamp TEXT NOT NULL,
-      message TEXT NOT NULL,
-      source TEXT DEFAULT 'api',
-      user_id TEXT
-    )`,
-    `CREATE TABLE IF NOT EXISTS activities (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      timestamp TEXT NOT NULL,
-      type TEXT NOT NULL,
-      duration_minutes INTEGER,
-      metadata_json TEXT,
-      user_id TEXT
-    )`,
-    `CREATE TABLE IF NOT EXISTS media (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      timestamp TEXT NOT NULL,
-      type TEXT NOT NULL,
-      file_path TEXT NOT NULL,
-      analysis_json TEXT,
-      user_id TEXT
-    )`,
-    `CREATE TABLE IF NOT EXISTS summaries (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      date TEXT UNIQUE NOT NULL,
-      content_json TEXT NOT NULL,
-      user_id TEXT
-    )`,
-    // Create indexes for common queries
-    `CREATE INDEX IF NOT EXISTS idx_checkins_timestamp ON check_ins(timestamp)`,
-    `CREATE INDEX IF NOT EXISTS idx_activities_timestamp ON activities(timestamp)`,
-  ], 'write');
+  // Run each statement separately to get better error messages
+  const statements = [
+    {
+      name: 'check_ins table',
+      sql: `CREATE TABLE IF NOT EXISTS check_ins (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        timestamp TEXT NOT NULL,
+        message TEXT NOT NULL,
+        source TEXT DEFAULT 'api',
+        user_id TEXT
+      )`,
+    },
+    {
+      name: 'activities table',
+      sql: `CREATE TABLE IF NOT EXISTS activities (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        timestamp TEXT NOT NULL,
+        type TEXT NOT NULL,
+        duration_minutes INTEGER,
+        metadata_json TEXT,
+        user_id TEXT
+      )`,
+    },
+    {
+      name: 'media table',
+      sql: `CREATE TABLE IF NOT EXISTS media (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        timestamp TEXT NOT NULL,
+        type TEXT NOT NULL,
+        file_path TEXT NOT NULL,
+        analysis_json TEXT,
+        user_id TEXT
+      )`,
+    },
+    {
+      name: 'summaries table',
+      sql: `CREATE TABLE IF NOT EXISTS summaries (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        date TEXT UNIQUE NOT NULL,
+        content_json TEXT NOT NULL,
+        user_id TEXT
+      )`,
+    },
+    {
+      name: 'checkins timestamp index',
+      sql: `CREATE INDEX IF NOT EXISTS idx_checkins_timestamp ON check_ins(timestamp)`,
+    },
+    {
+      name: 'activities timestamp index',
+      sql: `CREATE INDEX IF NOT EXISTS idx_activities_timestamp ON activities(timestamp)`,
+    },
+  ];
+
+  for (const stmt of statements) {
+    try {
+      await client.execute(stmt.sql);
+    } catch (error) {
+      console.error(`Failed to create ${stmt.name}:`, error);
+      throw new Error(`Failed to create ${stmt.name}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
 }
 
 // Check-ins

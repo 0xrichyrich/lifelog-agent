@@ -5,20 +5,30 @@ import { checkRateLimit, RATE_LIMITS, addRateLimitHeaders } from '@/lib/rate-lim
 
 // Initialize database tables on cold start
 let initialized = false;
-async function ensureInitialized() {
+let initError: Error | null = null;
+
+async function ensureInitialized(): Promise<{ ready: boolean; error?: string }> {
   if (!isDatabaseConfigured()) {
-    return false;
+    return { ready: false, error: 'TURSO_DATABASE_URL environment variable is not set' };
   }
+  
+  if (initError) {
+    return { ready: false, error: initError.message };
+  }
+  
   if (!initialized) {
     try {
+      console.log('Initializing database tables...');
       await initializeDatabase();
       initialized = true;
+      console.log('Database initialized successfully');
     } catch (error) {
-      console.error('Failed to initialize database:', error);
-      return false;
+      initError = error instanceof Error ? error : new Error('Unknown initialization error');
+      console.error('Failed to initialize database:', initError);
+      return { ready: false, error: initError.message };
     }
   }
-  return true;
+  return { ready: true };
 }
 
 export async function POST(request: NextRequest) {
@@ -27,12 +37,13 @@ export async function POST(request: NextRequest) {
   if (rateLimitError) return rateLimitError;
   
   try {
-    const dbReady = await ensureInitialized();
-    if (!dbReady) {
+    const initResult = await ensureInitialized();
+    if (!initResult.ready) {
       return NextResponse.json({
-        error: 'Database not configured',
-        message: 'TURSO_DATABASE_URL environment variable is not set. See /docs for setup instructions.',
-        setup: 'https://turso.tech/app - create database, then add TURSO_DATABASE_URL and TURSO_AUTH_TOKEN to Vercel env vars',
+        error: 'Database not ready',
+        message: initResult.error || 'Database initialization failed',
+        setup: 'Visit /api/setup to initialize the database, or check that TURSO_DATABASE_URL and TURSO_AUTH_TOKEN are set in Vercel env vars',
+        docs: 'https://turso.tech/app - create database, then add env vars',
       }, { status: 503 });
     }
     
@@ -85,13 +96,14 @@ export async function GET(request: NextRequest) {
   if (rateLimitError) return rateLimitError;
   
   try {
-    const dbReady = await ensureInitialized();
-    if (!dbReady) {
+    const initResult = await ensureInitialized();
+    if (!initResult.ready) {
       return NextResponse.json({
         checkins: [],
         count: 0,
-        error: 'Database not configured',
-        message: 'TURSO_DATABASE_URL environment variable is not set. See /docs for setup instructions.',
+        error: 'Database not ready',
+        message: initResult.error || 'Database initialization failed',
+        setup: '/api/setup to initialize',
       });
     }
     
