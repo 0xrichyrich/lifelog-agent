@@ -46,7 +46,8 @@ export async function initializeDatabase(): Promise<void> {
         timestamp TEXT NOT NULL,
         message TEXT NOT NULL,
         source TEXT DEFAULT 'api',
-        user_id TEXT
+        user_id TEXT,
+        activity_type TEXT DEFAULT 'break'
       )`,
     },
     {
@@ -105,12 +106,13 @@ export async function createCheckIn(
   timestamp: string, 
   message: string, 
   source: string = 'api',
-  userId?: string
+  userId?: string,
+  activityType: string = 'break'
 ): Promise<number> {
   const client = getClient();
   const result = await client.execute({
-    sql: 'INSERT INTO check_ins (timestamp, message, source, user_id) VALUES (?, ?, ?, ?)',
-    args: [timestamp, message, source, userId ?? null],
+    sql: 'INSERT INTO check_ins (timestamp, message, source, user_id, activity_type) VALUES (?, ?, ?, ?, ?)',
+    args: [timestamp, message, source, userId ?? null, activityType],
   });
   return Number(result.lastInsertRowid);
 }
@@ -123,7 +125,7 @@ export async function getCheckIns(options: {
   const client = getClient();
   const { date, limit = 20, userId } = options;
   
-  let sql = 'SELECT id, timestamp, message, source FROM check_ins';
+  let sql = 'SELECT id, timestamp, message, source, activity_type FROM check_ins';
   const args: (string | number)[] = [];
   const conditions: string[] = [];
   
@@ -150,6 +152,7 @@ export async function getCheckIns(options: {
     timestamp: String(row.timestamp),
     message: String(row.message),
     source: String(row.source) as 'cli' | 'api' | 'auto',
+    activityType: String(row.activity_type || 'break'),
   }));
 }
 
@@ -221,7 +224,7 @@ export async function getActivitiesByDate(date: string): Promise<Activity[]> {
   const checkInActivities: Activity[] = checkIns.map(checkIn => ({
     id: checkIn.id,
     timestamp: checkIn.timestamp,
-    type: 'break' as const,
+    type: (checkIn.activityType || 'break') as Activity['type'],
     duration: undefined,
     metadata_json: JSON.stringify({
       message: checkIn.message,

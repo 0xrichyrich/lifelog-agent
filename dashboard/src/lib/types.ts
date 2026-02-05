@@ -18,6 +18,7 @@ export interface CheckIn {
   timestamp: string;
   message: string;
   source: 'cli' | 'api' | 'auto';
+  activityType?: string;
 }
 
 export interface MediaRecord {

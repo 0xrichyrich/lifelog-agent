@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     }
     
     const body = await request.json();
-    const { message, timestamp } = body;
+    const { message, timestamp, activityType = 'break' } = body;
     
     // Input validation
     const messageResult = validateMessage(message);
@@ -67,10 +67,16 @@ export async function POST(request: NextRequest) {
       );
     }
     
+    // Validate activity type
+    const validTypes = ['focus', 'meeting', 'break', 'wellness'];
+    const normalizedType = validTypes.includes(activityType) ? activityType : 'break';
+    
     const id = await createCheckIn(
       timestampResult.value!,
       messageResult.value!,
-      'api'
+      'api',
+      undefined,
+      normalizedType
     );
     
     const response = NextResponse.json({

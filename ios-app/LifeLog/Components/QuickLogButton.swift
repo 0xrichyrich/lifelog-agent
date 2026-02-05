@@ -59,6 +59,16 @@ enum QuickLogType: String, CaseIterable, Identifiable {
         case .walk: return "Going for a walk 🚶"
         }
     }
+    
+    /// Maps to API activity type for proper categorization
+    var activityType: String {
+        switch self {
+        case .focus, .reading: return "focus"
+        case .meeting: return "meeting"
+        case .exercise, .walk: return "wellness"
+        case .break, .coffee, .lunch: return "break"
+        }
+    }
 }
 
 // MARK: - Quick Log Button

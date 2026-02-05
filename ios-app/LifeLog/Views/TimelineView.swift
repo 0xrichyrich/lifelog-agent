@@ -136,7 +136,7 @@ struct TimelineView: View {
     
     // MARK: - Stats Summary
     private var statsSummary: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 8) {
             AnimatedStatCard(
                 title: "Focus",
                 value: focusMinutes,
@@ -163,24 +163,39 @@ struct TimelineView: View {
                 color: Color(.systemGray),
                 delay: 0.2
             )
+            
+            AnimatedStatCard(
+                title: "Wellness",
+                value: wellnessMinutes,
+                unit: "min",
+                icon: "figure.run",
+                color: .brandAccent,
+                delay: 0.3
+            )
         }
     }
     
     private var focusMinutes: Int {
         activities
-            .filter { $0.category == .focus }
+            .filter { $0.type == .focus || $0.type == .coding }
             .reduce(0) { $0 + ($1.duration ?? 300) } / 60
     }
     
     private var meetingMinutes: Int {
         activities
-            .filter { $0.category == .collaboration }
+            .filter { $0.type == .meeting }
             .reduce(0) { $0 + ($1.duration ?? 300) } / 60
     }
     
     private var breakMinutes: Int {
         activities
-            .filter { $0.category == .break_ }
+            .filter { $0.type == .break_ }
+            .reduce(0) { $0 + ($1.duration ?? 300) } / 60
+    }
+    
+    private var wellnessMinutes: Int {
+        activities
+            .filter { $0.type == .wellness }
             .reduce(0) { $0 + ($1.duration ?? 300) } / 60
     }
     
@@ -498,6 +513,7 @@ extension ActivityCategory {
         case .collaboration: return "person.3.fill"
         case .distraction: return "sparkles.tv"
         case .break_: return "cup.and.saucer.fill"
+        case .wellness: return "figure.run"
         case .idle: return "moon.zzz"
         }
     }

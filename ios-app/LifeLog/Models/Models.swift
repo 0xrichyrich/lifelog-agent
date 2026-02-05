@@ -31,6 +31,8 @@ struct Activity: Codable, Identifiable {
             return .distraction
         case .break_:
             return .break_
+        case .wellness:
+            return .wellness
         case .email:
             return .collaboration
         default:
@@ -73,6 +75,7 @@ enum ActivityType: String, Codable {
     case socialMedia = "social_media"
     case break_ = "break"
     case focus
+    case wellness
 }
 
 enum ActivityCategory: String {
@@ -80,6 +83,7 @@ enum ActivityCategory: String {
     case collaboration
     case distraction
     case break_
+    case wellness
     case idle
     
     var color: Color {
@@ -90,6 +94,8 @@ enum ActivityCategory: String {
             return .warning
         case .distraction:
             return .danger
+        case .wellness:
+            return .brandAccent
         case .break_, .idle:
             return Color(.systemGray)
         }
@@ -101,6 +107,7 @@ enum ActivityCategory: String {
         case .collaboration: return "Collaboration"
         case .distraction: return "Distraction"
         case .break_: return "Break"
+        case .wellness: return "Wellness"
         case .idle: return "Idle"
         }
     }

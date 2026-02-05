@@ -297,7 +297,7 @@ struct CheckInView: View {
     private func quickLog(type: QuickLogType) async {
         do {
             await apiClient.updateBaseURL(appState.apiEndpoint)
-            let newCheckIn = try await apiClient.createCheckIn(message: type.message)
+            let newCheckIn = try await apiClient.createCheckIn(message: type.message, activityType: type.activityType)
             
             await MainActor.run {
                 withAnimation(.smoothBounce) {

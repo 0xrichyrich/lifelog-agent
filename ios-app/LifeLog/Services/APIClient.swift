@@ -125,7 +125,7 @@ actor APIClient {
         return checkInsResponse.checkins
     }
     
-    func createCheckIn(message: String) async throws -> CheckIn {
+    func createCheckIn(message: String, activityType: String = "break") async throws -> CheckIn {
         let url = URL(string: "\(baseURL)/api/checkins")!
         
         // Validate message length client-side
@@ -139,7 +139,8 @@ actor APIClient {
         
         let body: [String: Any] = [
             "message": trimmedMessage,
-            "timestamp": ISO8601DateFormatter().string(from: Date())
+            "timestamp": ISO8601DateFormatter().string(from: Date()),
+            "activityType": activityType
         ]
         let request = try authenticatedPostRequest(url: url, body: body)
         
