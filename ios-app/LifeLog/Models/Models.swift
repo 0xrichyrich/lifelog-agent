@@ -76,6 +76,26 @@ enum ActivityType: String, Codable {
     case break_ = "break"
     case focus
     case wellness
+    
+    /// Type-aware default duration (in seconds) for activities without explicit duration
+    var defaultDuration: Int {
+        switch self {
+        case .meeting:
+            return 1800   // 30 minutes
+        case .wellness:
+            return 1800   // 30 minutes (workouts, exercise)
+        case .focus, .coding:
+            return 3600   // 60 minutes (deep work)
+        case .break_:
+            return 900    // 15 minutes
+        case .email:
+            return 900    // 15 minutes
+        case .socialMedia:
+            return 300    // 5 minutes
+        case .screenRecord, .cameraSnap, .audioRecord, .sessionStart, .sessionStop:
+            return 60     // 1 minute (system events)
+        }
+    }
 }
 
 enum ActivityCategory: String {

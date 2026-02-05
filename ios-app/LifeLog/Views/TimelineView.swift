@@ -178,25 +178,25 @@ struct TimelineView: View {
     private var focusMinutes: Int {
         activities
             .filter { $0.type == .focus || $0.type == .coding }
-            .reduce(0) { $0 + ($1.duration ?? 300) } / 60
+            .reduce(0) { $0 + ($1.duration ?? $1.type.defaultDuration) } / 60
     }
     
     private var meetingMinutes: Int {
         activities
             .filter { $0.type == .meeting }
-            .reduce(0) { $0 + ($1.duration ?? 300) } / 60
+            .reduce(0) { $0 + ($1.duration ?? $1.type.defaultDuration) } / 60
     }
     
     private var breakMinutes: Int {
         activities
             .filter { $0.type == .break_ }
-            .reduce(0) { $0 + ($1.duration ?? 300) } / 60
+            .reduce(0) { $0 + ($1.duration ?? $1.type.defaultDuration) } / 60
     }
     
     private var wellnessMinutes: Int {
         activities
             .filter { $0.type == .wellness }
-            .reduce(0) { $0 + ($1.duration ?? 300) } / 60
+            .reduce(0) { $0 + ($1.duration ?? $1.type.defaultDuration) } / 60
     }
     
     // MARK: - Timeline Grid
@@ -326,9 +326,9 @@ struct TimelineView: View {
                 print("⏰ Hour \(hour): \(hourActivities.count) activities")
             }
             
-            // Give check-ins a default 5-minute duration for display
+            // Use type-aware default durations for check-ins without explicit duration
             let totalMinutes = hourActivities.reduce(0) { total, activity in
-                let duration = activity.duration ?? 300 // Default 5 min (300 sec) for check-ins
+                let duration = activity.duration ?? activity.type.defaultDuration
                 return total + duration
             } / 60
             
