@@ -46,11 +46,13 @@ export async function POST(request: NextRequest) {
       success: true,
       data: {
         xpAwarded: result.xpAwarded,
-        totalXP: result.user.totalXP,
-        currentXP: result.user.currentXP,
-        level: result.user.level,
         leveledUp: result.leveledUp,
         ...(result.leveledUp && { newLevel: result.newLevel }),
+        user: {
+          totalXP: result.user.totalXP,
+          currentXP: result.user.currentXP,
+          level: result.user.level,
+        },
       },
     });
     return addRateLimitHeaders(response, RATE_LIMITS.write, request);
