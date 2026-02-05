@@ -12,6 +12,7 @@ import PhotosUI
 
 struct CheckInView: View {
     @Environment(AppState.self) private var appState
+    @EnvironmentObject private var privyService: PrivyService
     @State private var messageText = ""
     @State private var isRecording = false
     @State private var audioRecorder: AVAudioRecorder?
@@ -424,7 +425,8 @@ struct CheckInView: View {
     }
     
     private func awardXPForCheckIn() async {
-        let userId = UIDevice.current.identifierForVendor?.uuidString ?? "anonymous"
+        // Use wallet address as userId if available (matches SettingsView)
+        let userId = privyService.walletAddress ?? UIDevice.current.identifierForVendor?.uuidString ?? "anonymous"
         xpService.updateConfig(baseURL: appState.apiEndpoint, apiKey: appState.apiKey)
         
         if let notification = await xpService.awardXP(userId: userId, activity: .dailyCheckin) {
