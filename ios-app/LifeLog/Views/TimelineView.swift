@@ -165,19 +165,19 @@ struct TimelineView: View {
     private var focusMinutes: Int {
         activities
             .filter { $0.category == .focus }
-            .reduce(0) { $0 + ($1.duration ?? 0) } / 60
+            .reduce(0) { $0 + ($1.duration ?? 300) } / 60
     }
     
     private var meetingMinutes: Int {
         activities
             .filter { $0.category == .collaboration }
-            .reduce(0) { $0 + ($1.duration ?? 0) } / 60
+            .reduce(0) { $0 + ($1.duration ?? 300) } / 60
     }
     
     private var breakMinutes: Int {
         activities
             .filter { $0.category == .break_ }
-            .reduce(0) { $0 + ($1.duration ?? 0) } / 60
+            .reduce(0) { $0 + ($1.duration ?? 300) } / 60
     }
     
     // MARK: - Timeline Grid
