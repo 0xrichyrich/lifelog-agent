@@ -1,10 +1,15 @@
 {
-  "network": "monad-testnet",
+  "network": "monadTestnet",
   "chainId": 10143,
-  "timestamp": "2026-02-05T01:38:25.412Z",
+  "environment": "testnet",
+  "timestamp": "2026-02-05T01:46:19.541Z",
   "contracts": {
-    "FeeSplitter": "0xd8935f0a0056f027475a379CD6a8AE1B38b93f19",
-    "NudgeBuyback": "0x6Ee8312080a7BDf3626931e7bcE7c89C7eC0C181"
+    "FeeSplitter": "0xeA163C0732a6EB2ab79240785BDA06B90Bf503bC",
+    "NudgeBuyback": "0xA49AfB43DEB77594F4102675b2bAaF3463c27103"
+  },
+  "nadfun": {
+    "router": "0x865054F0F6A288adaAc30261731361EA7E908003",
+    "lens": "0xB056d79CA5257589692699a46623F901a3BB76f1"
   },
   "config": {
     "treasury": "0x2390C495896C78668416859d9dE84212fCB10801",
@@ -12,5 +17,14 @@
     "owner": "0xD95CA95467E0EfeDd027c7119E55C6BD5Ba2F6EA",
     "agentShareBps": 8000,
     "treasuryShareBps": 2000
-  }
+  },
+  "features": [
+    "pausable",
+    "agent-status",
+    "configurable-nadfun",
+    "statistics",
+    "o1-removal",
+    "min-buyback",
+    "slippage-protection"
+  ]
 }

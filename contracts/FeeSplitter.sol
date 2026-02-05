@@ -5,19 +5,22 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/Pausable.sol";
 
 /**
  * @title NudgeFeeSplitter
  * @notice Splits agent fees between creators and platform treasury
  * @dev Platform treasury funds are used for $NUDGE buybacks and user rewards
+ * @custom:security-contact security@littlenudge.app
  */
-contract NudgeFeeSplitter is Ownable, ReentrancyGuard {
+contract NudgeFeeSplitter is Ownable, ReentrancyGuard, Pausable {
     using SafeERC20 for IERC20;
 
     // Fee split configuration (basis points, 10000 = 100%)
     uint256 public agentShareBps = 8000;  // 80% to agent
     uint256 public treasuryShareBps = 2000; // 20% to treasury
     uint256 public constant BPS_DENOMINATOR = 10000;
+    uint256 public constant MIN_AGENT_SHARE = 5000; // Min 50% to agents
 
     // Treasury wallet for buybacks
     address public treasury;
@@ -27,9 +30,15 @@ contract NudgeFeeSplitter is Ownable, ReentrancyGuard {
 
     // Agent wallet registry
     mapping(bytes32 => address) public agentWallets; // agentId => wallet
+    mapping(bytes32 => bool) public agentActive;      // agentId => active status
 
     // Accumulated fees per agent (for claiming)
     mapping(address => mapping(address => uint256)) public pendingFees; // agent => token => amount
+
+    // Statistics
+    uint256 public totalFeesCollected;
+    uint256 public totalTreasuryFees;
+    mapping(address => uint256) public agentTotalEarned; // agent wallet => total earned
 
     // Events
     event PaymentReceived(
@@ -42,6 +51,7 @@ contract NudgeFeeSplitter is Ownable, ReentrancyGuard {
     );
     event AgentRegistered(bytes32 indexed agentId, address wallet);
     event AgentWalletChanged(bytes32 indexed agentId, address oldWallet, address newWallet);
+    event AgentStatusChanged(bytes32 indexed agentId, bool active);
     event FeesClaimed(address indexed agent, address indexed token, uint256 amount);
     event TreasuryUpdated(address oldTreasury, address newTreasury);
     event SplitUpdated(uint256 agentShareBps, uint256 treasuryShareBps);
@@ -64,7 +74,19 @@ contract NudgeFeeSplitter is Ownable, ReentrancyGuard {
             emit AgentWalletChanged(agentId, existing, wallet);
         }
         agentWallets[agentId] = wallet;
+        agentActive[agentId] = true;
         emit AgentRegistered(agentId, wallet);
+    }
+
+    /**
+     * @notice Set agent active status
+     * @param agentId Agent identifier
+     * @param active Whether agent can receive payments
+     */
+    function setAgentActive(bytes32 agentId, bool active) external onlyOwner {
+        require(agentWallets[agentId] != address(0), "Agent not registered");
+        agentActive[agentId] = active;
+        emit AgentStatusChanged(agentId, active);
     }
 
     /**
@@ -77,12 +99,13 @@ contract NudgeFeeSplitter is Ownable, ReentrancyGuard {
         bytes32 agentId,
         address token,
         uint256 amount
-    ) external nonReentrant {
+    ) external nonReentrant whenNotPaused {
         require(acceptedTokens[token], "Token not accepted");
         require(amount > 0, "Amount must be > 0");
         
         address agentWallet = agentWallets[agentId];
         require(agentWallet != address(0), "Agent not registered");
+        require(agentActive[agentId], "Agent not active");
 
         // Transfer tokens from payer
         IERC20(token).safeTransferFrom(msg.sender, address(this), amount);
@@ -94,10 +117,13 @@ contract NudgeFeeSplitter is Ownable, ReentrancyGuard {
         // Transfer to treasury immediately
         if (treasuryAmount > 0) {
             IERC20(token).safeTransfer(treasury, treasuryAmount);
+            totalTreasuryFees += treasuryAmount;
         }
 
         // Accumulate agent fees (they claim later to save gas)
         pendingFees[agentWallet][token] += agentAmount;
+        agentTotalEarned[agentWallet] += agentAmount;
+        totalFeesCollected += amount;
 
         emit PaymentReceived(agentId, msg.sender, token, amount, agentAmount, treasuryAmount);
     }
@@ -106,11 +132,12 @@ contract NudgeFeeSplitter is Ownable, ReentrancyGuard {
      * @notice Pay for agent services (native MON)
      * @param agentId The agent being paid
      */
-    function payAgentNative(bytes32 agentId) external payable nonReentrant {
+    function payAgentNative(bytes32 agentId) external payable nonReentrant whenNotPaused {
         require(msg.value > 0, "Amount must be > 0");
         
         address agentWallet = agentWallets[agentId];
         require(agentWallet != address(0), "Agent not registered");
+        require(agentActive[agentId], "Agent not active");
 
         // Calculate splits
         uint256 agentAmount = (msg.value * agentShareBps) / BPS_DENOMINATOR;
@@ -120,10 +147,13 @@ contract NudgeFeeSplitter is Ownable, ReentrancyGuard {
         if (treasuryAmount > 0) {
             (bool sent, ) = treasury.call{value: treasuryAmount}("");
             require(sent, "Treasury transfer failed");
+            totalTreasuryFees += treasuryAmount;
         }
 
         // Accumulate agent fees
         pendingFees[agentWallet][address(0)] += agentAmount;
+        agentTotalEarned[agentWallet] += agentAmount;
+        totalFeesCollected += msg.value;
 
         emit PaymentReceived(agentId, msg.sender, address(0), msg.value, agentAmount, treasuryAmount);
     }
@@ -132,7 +162,7 @@ contract NudgeFeeSplitter is Ownable, ReentrancyGuard {
      * @notice Agent claims accumulated fees
      * @param token Token to claim (address(0) for native MON)
      */
-    function claimFees(address token) external nonReentrant {
+    function claimFees(address token) external nonReentrant whenNotPaused {
         uint256 amount = pendingFees[msg.sender][token];
         require(amount > 0, "No fees to claim");
 
@@ -152,7 +182,7 @@ contract NudgeFeeSplitter is Ownable, ReentrancyGuard {
      * @notice Batch claim multiple tokens
      * @param tokens Array of token addresses to claim (max 20)
      */
-    function claimFeesBatch(address[] calldata tokens) external nonReentrant {
+    function claimFeesBatch(address[] calldata tokens) external nonReentrant whenNotPaused {
         require(tokens.length <= 20, "Too many tokens");
         for (uint256 i = 0; i < tokens.length; i++) {
             address token = tokens[i];
@@ -174,6 +204,33 @@ contract NudgeFeeSplitter is Ownable, ReentrancyGuard {
     }
 
     // ═══════════════════════════════════════════════════════════════════════
+    // View Functions
+    // ═══════════════════════════════════════════════════════════════════════
+
+    /**
+     * @notice Get agent info
+     * @param agentId Agent identifier
+     */
+    function getAgentInfo(bytes32 agentId) external view returns (
+        address wallet,
+        bool active,
+        uint256 totalEarned
+    ) {
+        wallet = agentWallets[agentId];
+        active = agentActive[agentId];
+        totalEarned = agentTotalEarned[wallet];
+    }
+
+    /**
+     * @notice Get pending fees for an agent
+     * @param agentWallet Agent's wallet address
+     * @param token Token to check
+     */
+    function getPendingFees(address agentWallet, address token) external view returns (uint256) {
+        return pendingFees[agentWallet][token];
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
     // Admin Functions
     // ═══════════════════════════════════════════════════════════════════════
 
@@ -182,6 +239,7 @@ contract NudgeFeeSplitter is Ownable, ReentrancyGuard {
      * @param _agentShareBps Agent share in basis points
      */
     function updateSplit(uint256 _agentShareBps) external onlyOwner {
+        require(_agentShareBps >= MIN_AGENT_SHARE, "Agent share too low");
         require(_agentShareBps <= BPS_DENOMINATOR, "Invalid split");
         agentShareBps = _agentShareBps;
         treasuryShareBps = BPS_DENOMINATOR - _agentShareBps;
@@ -207,6 +265,20 @@ contract NudgeFeeSplitter is Ownable, ReentrancyGuard {
     function setAcceptedToken(address token, bool accepted) external onlyOwner {
         acceptedTokens[token] = accepted;
         emit TokenAccepted(token, accepted);
+    }
+
+    /**
+     * @notice Pause contract
+     */
+    function pause() external onlyOwner {
+        _pause();
+    }
+
+    /**
+     * @notice Unpause contract
+     */
+    function unpause() external onlyOwner {
+        _unpause();
     }
 
     /**

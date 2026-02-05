@@ -5,11 +5,13 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/Pausable.sol";
 
 /**
  * @title NudgeBuyback
  * @notice Buys $NUDGE from nad.fun curve and distributes to users
  * @dev Treasury calls this to convert fees into $NUDGE rewards
+ * @custom:security-contact security@littlenudge.app
  */
 
 // nad.fun BondingCurveRouter interface
@@ -33,15 +35,19 @@ interface ILens {
     ) external view returns (address router, uint256 amountOut);
 }
 
-contract NudgeBuyback is Ownable, ReentrancyGuard {
+contract NudgeBuyback is Ownable, ReentrancyGuard, Pausable {
     using SafeERC20 for IERC20;
 
-    // nad.fun contracts (Monad Mainnet)
-    address public constant BONDING_CURVE_ROUTER = 0x6F6B8F1a20703309951a5127c45B49b1CD981A22;
-    address public constant LENS = 0x7e78A8DE94f21804F7a17F4E8BF9EC2c872187ea;
+    // nad.fun contracts (configurable for testnet/mainnet)
+    address public bondingCurveRouter;
+    address public lens;
     
     // $NUDGE token on nad.fun
     address public nudgeToken;
+    
+    // Configuration
+    uint256 public minBuybackAmount = 0.01 ether; // Minimum MON for buyback
+    uint256 public buybackDeadlineSeconds = 300;   // 5 minutes default
     
     // Rewards distribution
     mapping(address => uint256) public pendingRewards;
@@ -50,6 +56,7 @@ contract NudgeBuyback is Ownable, ReentrancyGuard {
     // Eligible users for rewards
     address[] public rewardRecipients;
     mapping(address => bool) public isRecipient;
+    mapping(address => uint256) private recipientIndex; // For O(1) removal
     
     // Events
     event BuybackExecuted(uint256 monSpent, uint256 nudgeReceived);
@@ -58,8 +65,20 @@ contract NudgeBuyback is Ownable, ReentrancyGuard {
     event RecipientAdded(address indexed user);
     event RecipientRemoved(address indexed user);
     event NudgeTokenSet(address token);
+    event RouterUpdated(address oldRouter, address newRouter);
+    event LensUpdated(address oldLens, address newLens);
+    event ConfigUpdated(uint256 minBuyback, uint256 deadline);
 
-    constructor(address _owner) Ownable(_owner) {}
+    constructor(
+        address _owner,
+        address _router,
+        address _lens
+    ) Ownable(_owner) {
+        require(_router != address(0), "Invalid router");
+        require(_lens != address(0), "Invalid lens");
+        bondingCurveRouter = _router;
+        lens = _lens;
+    }
 
     /**
      * @notice Set the $NUDGE token address (after deployment on nad.fun)
@@ -72,12 +91,47 @@ contract NudgeBuyback is Ownable, ReentrancyGuard {
     }
 
     /**
+     * @notice Update nad.fun router address
+     * @param _router New router address
+     */
+    function setRouter(address _router) external onlyOwner {
+        require(_router != address(0), "Invalid router");
+        address old = bondingCurveRouter;
+        bondingCurveRouter = _router;
+        emit RouterUpdated(old, _router);
+    }
+
+    /**
+     * @notice Update nad.fun lens address
+     * @param _lens New lens address
+     */
+    function setLens(address _lens) external onlyOwner {
+        require(_lens != address(0), "Invalid lens");
+        address old = lens;
+        lens = _lens;
+        emit LensUpdated(old, _lens);
+    }
+
+    /**
+     * @notice Update buyback configuration
+     * @param _minBuyback Minimum MON amount for buyback
+     * @param _deadline Deadline in seconds for buyback tx
+     */
+    function setConfig(uint256 _minBuyback, uint256 _deadline) external onlyOwner {
+        require(_deadline >= 60, "Deadline too short");
+        minBuybackAmount = _minBuyback;
+        buybackDeadlineSeconds = _deadline;
+        emit ConfigUpdated(_minBuyback, _deadline);
+    }
+
+    /**
      * @notice Execute buyback - swap MON for $NUDGE on nad.fun
      * @param slippageBps Slippage tolerance in basis points (e.g., 100 = 1%)
      */
-    function executeBuyback(uint256 slippageBps) external onlyOwner nonReentrant {
+    function executeBuyback(uint256 slippageBps) external onlyOwner nonReentrant whenNotPaused {
         require(nudgeToken != address(0), "NUDGE token not set");
-        require(address(this).balance > 0, "No MON to spend");
+        require(address(this).balance >= minBuybackAmount, "Below minimum buyback");
+        require(slippageBps <= 1000, "Slippage too high"); // Max 10%
         
         uint256 monAmount = address(this).balance;
         
@@ -85,11 +139,13 @@ contract NudgeBuyback is Ownable, ReentrancyGuard {
         uint256 balanceBefore = IERC20(nudgeToken).balanceOf(address(this));
         
         // Get quote from Lens
-        (, uint256 expectedOut) = ILens(LENS).getAmountOut(
+        (, uint256 expectedOut) = ILens(lens).getAmountOut(
             nudgeToken,
             monAmount,
             true // isBuy
         );
+        
+        require(expectedOut > 0, "No liquidity");
         
         // Calculate minimum with slippage
         uint256 minOut = (expectedOut * (10000 - slippageBps)) / 10000;
@@ -99,14 +155,16 @@ contract NudgeBuyback is Ownable, ReentrancyGuard {
             amountOutMin: minOut,
             token: nudgeToken,
             to: address(this),
-            deadline: block.timestamp + 300 // 5 min deadline
+            deadline: block.timestamp + buybackDeadlineSeconds
         });
         
-        IBondingCurveRouter(BONDING_CURVE_ROUTER).buy{value: monAmount}(params);
+        IBondingCurveRouter(bondingCurveRouter).buy{value: monAmount}(params);
         
         // Calculate actual tokens received (FIX: HIGH-1)
         uint256 balanceAfter = IERC20(nudgeToken).balanceOf(address(this));
         uint256 nudgeReceived = balanceAfter - balanceBefore;
+        
+        require(nudgeReceived > 0, "Buyback failed");
         
         emit BuybackExecuted(monAmount, nudgeReceived);
     }
@@ -115,7 +173,7 @@ contract NudgeBuyback is Ownable, ReentrancyGuard {
      * @notice Distribute bought $NUDGE to eligible users
      * @dev Equal distribution to all recipients
      */
-    function distributeRewards() external onlyOwner nonReentrant {
+    function distributeRewards() external onlyOwner nonReentrant whenNotPaused {
         require(nudgeToken != address(0), "NUDGE token not set");
         
         uint256 balance = IERC20(nudgeToken).balanceOf(address(this));
@@ -145,9 +203,10 @@ contract NudgeBuyback is Ownable, ReentrancyGuard {
     function distributeRewardsCustom(
         address[] calldata users,
         uint256[] calldata amounts
-    ) external onlyOwner nonReentrant {
+    ) external onlyOwner nonReentrant whenNotPaused {
         require(nudgeToken != address(0), "NUDGE token not set");
         require(users.length == amounts.length, "Length mismatch");
+        require(users.length <= 100, "Too many users"); // Gas limit
         
         uint256 total = 0;
         for (uint256 i = 0; i < amounts.length; i++) {
@@ -158,7 +217,9 @@ contract NudgeBuyback is Ownable, ReentrancyGuard {
         require(balance - totalPendingRewards >= total, "Insufficient balance");
         
         for (uint256 i = 0; i < users.length; i++) {
-            pendingRewards[users[i]] += amounts[i];
+            if (users[i] != address(0) && amounts[i] > 0) {
+                pendingRewards[users[i]] += amounts[i];
+            }
         }
         
         totalPendingRewards += total;
@@ -169,7 +230,7 @@ contract NudgeBuyback is Ownable, ReentrancyGuard {
     /**
      * @notice User claims their $NUDGE rewards
      */
-    function claimRewards() external nonReentrant {
+    function claimRewards() external nonReentrant whenNotPaused {
         uint256 amount = pendingRewards[msg.sender];
         require(amount > 0, "No rewards to claim");
         
@@ -190,6 +251,7 @@ contract NudgeBuyback is Ownable, ReentrancyGuard {
         require(user != address(0), "Invalid address");
         
         isRecipient[user] = true;
+        recipientIndex[user] = rewardRecipients.length;
         rewardRecipients.push(user);
         
         emit RecipientAdded(user);
@@ -200,9 +262,11 @@ contract NudgeBuyback is Ownable, ReentrancyGuard {
      * @param users Array of addresses to add
      */
     function addRecipientsBatch(address[] calldata users) external onlyOwner {
+        require(users.length <= 100, "Too many users");
         for (uint256 i = 0; i < users.length; i++) {
             if (!isRecipient[users[i]] && users[i] != address(0)) {
                 isRecipient[users[i]] = true;
+                recipientIndex[users[i]] = rewardRecipients.length;
                 rewardRecipients.push(users[i]);
                 emit RecipientAdded(users[i]);
             }
@@ -210,7 +274,7 @@ contract NudgeBuyback is Ownable, ReentrancyGuard {
     }
 
     /**
-     * @notice Remove user from recipients (doesn't affect pending rewards)
+     * @notice Remove user from recipients (O(1) removal)
      * @param user Address to remove
      */
     function removeRecipient(address user) external onlyOwner {
@@ -218,14 +282,18 @@ contract NudgeBuyback is Ownable, ReentrancyGuard {
         
         isRecipient[user] = false;
         
-        // Find and remove from array
-        for (uint256 i = 0; i < rewardRecipients.length; i++) {
-            if (rewardRecipients[i] == user) {
-                rewardRecipients[i] = rewardRecipients[rewardRecipients.length - 1];
-                rewardRecipients.pop();
-                break;
-            }
+        // O(1) removal using swap-and-pop
+        uint256 index = recipientIndex[user];
+        uint256 lastIndex = rewardRecipients.length - 1;
+        
+        if (index != lastIndex) {
+            address lastUser = rewardRecipients[lastIndex];
+            rewardRecipients[index] = lastUser;
+            recipientIndex[lastUser] = index;
         }
+        
+        rewardRecipients.pop();
+        delete recipientIndex[user];
         
         emit RecipientRemoved(user);
     }
@@ -245,6 +313,43 @@ contract NudgeBuyback is Ownable, ReentrancyGuard {
     }
 
     /**
+     * @notice Get all recipients (paginated)
+     * @param offset Start index
+     * @param limit Max items to return
+     */
+    function getRecipients(uint256 offset, uint256 limit) external view returns (address[] memory) {
+        uint256 total = rewardRecipients.length;
+        if (offset >= total) {
+            return new address[](0);
+        }
+        
+        uint256 end = offset + limit;
+        if (end > total) {
+            end = total;
+        }
+        
+        address[] memory result = new address[](end - offset);
+        for (uint256 i = offset; i < end; i++) {
+            result[i - offset] = rewardRecipients[i];
+        }
+        return result;
+    }
+
+    /**
+     * @notice Pause contract
+     */
+    function pause() external onlyOwner {
+        _pause();
+    }
+
+    /**
+     * @notice Unpause contract
+     */
+    function unpause() external onlyOwner {
+        _unpause();
+    }
+
+    /**
      * @notice Emergency withdraw
      */
     function emergencyWithdraw(
@@ -252,6 +357,8 @@ contract NudgeBuyback is Ownable, ReentrancyGuard {
         address to,
         uint256 amount
     ) external onlyOwner {
+        require(to != address(0), "Invalid recipient");
+        
         if (token == address(0)) {
             (bool sent, ) = to.call{value: amount}("");
             require(sent, "Transfer failed");

@@ -21,10 +21,10 @@ module.exports = {
       chainId: 10143,
       accounts: [PRIVATE_KEY],
     },
-    // Monad Mainnet (when available)
+    // Monad Mainnet
     monad: {
       url: "https://rpc.monad.xyz",
-      chainId: 10143,
+      chainId: 143,
       accounts: [PRIVATE_KEY],
     },
     // Local development

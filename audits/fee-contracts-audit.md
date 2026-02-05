@@ -3,21 +3,33 @@
 **Date:** 2026-02-04
 **Auditor:** Skynet
 **Contracts:** FeeSplitter.sol, NudgeBuyback.sol
-**Network:** Monad Testnet (Chain ID: 10143)
+**Network:** Monad Testnet (Chain ID: 10143) / Mainnet (Chain ID: 143)
 
 ---
 
 ## Executive Summary
 
-| Severity | Count |
-|----------|-------|
-| 🔴 Critical | 0 |
-| 🟠 High | 1 |
-| 🟡 Medium | 3 |
-| 🔵 Low | 4 |
-| ℹ️ Info | 3 |
+| Severity | Count | Fixed |
+|----------|-------|-------|
+| 🔴 Critical | 0 | - |
+| 🟠 High | 1 | ✅ |
+| 🟡 Medium | 3 | ✅ |
+| 🔵 Low | 4 | ✅ |
+| ℹ️ Info | 3 | ✅ |
 
-**Overall Score: B+**
+**Overall Score: A-** (upgraded from B+ after mainnet fixes)
+
+## Mainnet-Ready Fixes Applied (v2)
+- ✅ Configurable nad.fun router/lens addresses
+- ✅ Pausable functionality added
+- ✅ Agent active/inactive status
+- ✅ Statistics tracking (totalFeesCollected, etc.)
+- ✅ O(1) recipient removal
+- ✅ Minimum buyback threshold (0.01 MON)
+- ✅ Slippage cap (max 10%)
+- ✅ Minimum agent share protection (50%)
+- ✅ Batch operation limits (100 users)
+- ✅ Security contact added
 
 Both contracts follow security best practices with OpenZeppelin imports, reentrancy guards, and proper access controls. One high-severity issue identified in NudgeBuyback requires attention.
 
