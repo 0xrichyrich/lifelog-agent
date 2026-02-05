@@ -42,6 +42,7 @@ struct TimelineView: View {
                 await loadActivities()
             }
             .onAppear {
+                print("👁️ Timeline onAppear")
                 // Cancel any existing load and start fresh
                 loadTask?.cancel()
                 loadTask = Task {
@@ -49,6 +50,7 @@ struct TimelineView: View {
                 }
             }
             .onDisappear {
+                print("👁️ Timeline onDisappear")
                 // Cancel load if view disappears
                 loadTask?.cancel()
             }
@@ -231,8 +233,13 @@ struct TimelineView: View {
     
     // MARK: - Actions
     private func loadActivities() async {
+        print("🔄 loadActivities called, isCancelled: \(Task.isCancelled)")
+        
         // Check if cancelled before starting
-        guard !Task.isCancelled else { return }
+        guard !Task.isCancelled else {
+            print("⏹️ Task was cancelled, skipping load")
+            return
+        }
         
         isLoading = true
         loadError = nil
