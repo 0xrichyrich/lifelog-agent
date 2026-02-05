@@ -16,7 +16,7 @@ struct TimelineView: View {
     @State private var isLoading = true
     @State private var selectedBlock: TimeBlock?
     @State private var loadError: Error?
-    @State private var hasAppeared = false
+    @State private var lastLoadTime: Date?
     
     private let apiClient = APIClient()
     
@@ -42,9 +42,12 @@ struct TimelineView: View {
                 await loadActivities()
             }
             .onAppear {
-                // Always reload on appear to catch new activities from Check In
-                Task {
-                    await loadActivities()
+                // Reload if never loaded or >2 seconds since last load (debounce rapid tab switches)
+                let shouldReload = lastLoadTime == nil || Date().timeIntervalSince(lastLoadTime!) > 2
+                if shouldReload {
+                    Task {
+                        await loadActivities()
+                    }
                 }
             }
             .onChange(of: selectedDate) { _, _ in
@@ -228,6 +231,7 @@ struct TimelineView: View {
     private func loadActivities() async {
         isLoading = true
         loadError = nil
+        lastLoadTime = Date()
         
         do {
             let endpoint = appState.apiEndpoint
