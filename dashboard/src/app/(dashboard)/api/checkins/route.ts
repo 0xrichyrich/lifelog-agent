@@ -1,22 +1,41 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db, initializeDatabase } from '@/lib/db-mock';
-import { validateApiKey } from '@/lib/auth';
+import { createCheckIn, getCheckIns, initializeDatabase, isDatabaseConfigured } from '@/lib/db-turso';
 import { validateMessage, validateTimestamp, validateDate, validatePositiveInt } from '@/lib/validation';
 import { checkRateLimit, RATE_LIMITS, addRateLimitHeaders } from '@/lib/rate-limit';
 
-// Initialize database on first request
-initializeDatabase();
+// Initialize database tables on cold start
+let initialized = false;
+async function ensureInitialized() {
+  if (!isDatabaseConfigured()) {
+    return false;
+  }
+  if (!initialized) {
+    try {
+      await initializeDatabase();
+      initialized = true;
+    } catch (error) {
+      console.error('Failed to initialize database:', error);
+      return false;
+    }
+  }
+  return true;
+}
 
 export async function POST(request: NextRequest) {
-  // Authentication
-  // Auth removed for public access - rate limiting only
-  // if (authError) return authError;
-  
   // Rate limiting
   const rateLimitError = checkRateLimit(request, RATE_LIMITS.checkins);
   if (rateLimitError) return rateLimitError;
   
   try {
+    const dbReady = await ensureInitialized();
+    if (!dbReady) {
+      return NextResponse.json({
+        error: 'Database not configured',
+        message: 'TURSO_DATABASE_URL environment variable is not set. See /docs for setup instructions.',
+        setup: 'https://turso.tech/app - create database, then add TURSO_DATABASE_URL and TURSO_AUTH_TOKEN to Vercel env vars',
+      }, { status: 503 });
+    }
+    
     const body = await request.json();
     const { message, timestamp } = body;
     
@@ -37,13 +56,14 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    const stmt = db.prepare(
-      'INSERT INTO check_ins (timestamp, message, source) VALUES (?, ?, ?)'
+    const id = await createCheckIn(
+      timestampResult.value!,
+      messageResult.value!,
+      'api'
     );
-    const result = stmt.run(timestampResult.value, messageResult.value, 'api');
     
     const response = NextResponse.json({
-      id: result.lastInsertRowid,
+      id,
       message: messageResult.value,
       timestamp: timestampResult.value,
       source: 'api',
@@ -53,22 +73,28 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Failed to create check-in:', error);
     return NextResponse.json(
-      { error: 'Failed to create check-in' },
+      { error: 'Failed to create check-in', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }
 }
 
 export async function GET(request: NextRequest) {
-  // Authentication
-  // Auth removed for public access - rate limiting only
-  // if (authError) return authError;
-  
   // Rate limiting
   const rateLimitError = checkRateLimit(request, RATE_LIMITS.read);
   if (rateLimitError) return rateLimitError;
   
   try {
+    const dbReady = await ensureInitialized();
+    if (!dbReady) {
+      return NextResponse.json({
+        checkins: [],
+        count: 0,
+        error: 'Database not configured',
+        message: 'TURSO_DATABASE_URL environment variable is not set. See /docs for setup instructions.',
+      });
+    }
+    
     const searchParams = request.nextUrl.searchParams;
     
     // Validate limit
@@ -86,7 +112,7 @@ export async function GET(request: NextRequest) {
     
     // Validate date if provided
     const dateParam = searchParams.get('date');
-    let dateValue: string | null = null;
+    let dateValue: string | undefined;
     if (dateParam) {
       const dateResult = validateDate(dateParam);
       if (!dateResult.valid) {
@@ -98,20 +124,10 @@ export async function GET(request: NextRequest) {
       dateValue = dateResult.value!;
     }
     
-    let query = 'SELECT * FROM check_ins';
-    const params: (string | number)[] = [];
-    
-    if (dateValue) {
-      // Use DATE() function for proper date comparison (prevents SQL injection via LIKE)
-      query += ' WHERE DATE(timestamp) = ?';
-      params.push(dateValue);
-    }
-    
-    query += ' ORDER BY timestamp DESC LIMIT ?';
-    params.push(limitResult.value!);
-    
-    const stmt = db.prepare(query);
-    const checkins = stmt.all(...params);
+    const checkins = await getCheckIns({
+      date: dateValue,
+      limit: limitResult.value!,
+    });
     
     const response = NextResponse.json({
       checkins,
@@ -124,6 +140,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       checkins: [],
       error: 'Service temporarily unavailable',
+      details: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 }

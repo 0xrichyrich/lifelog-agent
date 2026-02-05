@@ -1,8 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSummaryByDate } from '@/lib/db-mock';
+import { getSummaryByDate, initializeDatabase } from '@/lib/db-turso';
 import { validateApiKey } from '@/lib/auth';
 import { validateDate } from '@/lib/validation';
 import { checkRateLimit, RATE_LIMITS, addRateLimitHeaders } from '@/lib/rate-limit';
+
+// Initialize database tables on cold start
+let initialized = false;
+async function ensureInitialized() {
+  if (!initialized) {
+    try {
+      await initializeDatabase();
+      initialized = true;
+    } catch (error) {
+      console.error('Failed to initialize database:', error);
+    }
+  }
+}
 
 export async function GET(request: NextRequest) {
   // Authentication
@@ -26,7 +39,9 @@ export async function GET(request: NextRequest) {
   }
   
   try {
-    const summary = getSummaryByDate(dateResult.value!);
+    await ensureInitialized();
+    
+    const summary = await getSummaryByDate(dateResult.value!);
     
     const response = NextResponse.json({
       date: dateResult.value,

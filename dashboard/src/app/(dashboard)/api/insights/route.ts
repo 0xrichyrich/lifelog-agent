@@ -1,10 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getRecentActivities } from '@/lib/db-mock';
-import { mockInsightData, categorizeActivity } from '@/lib/mock-data';
+import { getRecentActivities, initializeDatabase } from '@/lib/db-turso';
+import { categorizeActivity } from '@/lib/mock-data';
 import { Activity, InsightData } from '@/lib/types';
-import { validateApiKey } from '@/lib/auth';
 import { validatePositiveInt } from '@/lib/validation';
 import { checkRateLimit, RATE_LIMITS, addRateLimitHeaders } from '@/lib/rate-limit';
+
+// Initialize database tables on cold start
+let initialized = false;
+async function ensureInitialized() {
+  if (!initialized) {
+    try {
+      await initializeDatabase();
+      initialized = true;
+    } catch (error) {
+      console.error('Failed to initialize database:', error);
+    }
+  }
+}
 
 function generateInsights(activities: Activity[]): InsightData {
   // Group activities by date
@@ -93,10 +105,6 @@ function generateInsights(activities: Activity[]): InsightData {
 }
 
 export async function GET(request: NextRequest) {
-  // Authentication
-  // Auth removed for public access
-  // if (authError) return authError;
-  
   // Rate limiting
   const rateLimitError = checkRateLimit(request, RATE_LIMITS.read);
   if (rateLimitError) return rateLimitError;
@@ -117,7 +125,9 @@ export async function GET(request: NextRequest) {
   }
   
   try {
-    const activities = getRecentActivities(daysResult.value!);
+    await ensureInitialized();
+    
+    const activities = await getRecentActivities(daysResult.value!);
     
     const insights = activities.length > 0 
       ? generateInsights(activities)
@@ -144,7 +154,8 @@ export async function GET(request: NextRequest) {
         hourlyHeatmap: [],
         weeklyTrends: [],
       },
-      source: 'empty',
+      source: 'error',
+      error: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 }

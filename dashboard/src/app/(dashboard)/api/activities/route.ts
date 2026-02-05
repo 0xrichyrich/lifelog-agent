@@ -1,15 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getActivitiesByDate } from '@/lib/db-mock';
-import { mockActivities } from '@/lib/mock-data';
-import { validateApiKey } from '@/lib/auth';
+import { getActivitiesByDate, initializeDatabase } from '@/lib/db-turso';
 import { validateDate } from '@/lib/validation';
 import { checkRateLimit, RATE_LIMITS, addRateLimitHeaders } from '@/lib/rate-limit';
 
+// Initialize database tables on cold start
+let initialized = false;
+async function ensureInitialized() {
+  if (!initialized) {
+    try {
+      await initializeDatabase();
+      initialized = true;
+    } catch (error) {
+      console.error('Failed to initialize database:', error);
+    }
+  }
+}
+
 export async function GET(request: NextRequest) {
-  // Authentication
-  // Auth removed for public access - rate limiting only
-  // if (authError) return authError;
-  
   // Rate limiting
   const rateLimitError = checkRateLimit(request, RATE_LIMITS.read);
   if (rateLimitError) return rateLimitError;
@@ -27,10 +34,10 @@ export async function GET(request: NextRequest) {
   }
   
   try {
-    // Try to get from database
-    const activities = getActivitiesByDate(dateResult.value!);
+    await ensureInitialized();
     
-    // Return actual data (empty array if none)
+    const activities = await getActivitiesByDate(dateResult.value!);
+    
     const response = NextResponse.json({
       date: dateResult.value,
       activities,
@@ -39,11 +46,11 @@ export async function GET(request: NextRequest) {
     return addRateLimitHeaders(response, RATE_LIMITS.read, request);
   } catch (error) {
     console.error('Failed to fetch activities:', error);
-    // Return empty on error instead of mock data
     const response = NextResponse.json({
       date: dateResult.value,
       activities: [],
-      source: 'empty',
+      source: 'error',
+      error: error instanceof Error ? error.message : 'Unknown error',
     });
     return addRateLimitHeaders(response, RATE_LIMITS.read, request);
   }

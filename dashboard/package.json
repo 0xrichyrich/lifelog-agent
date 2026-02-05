@@ -9,7 +9,9 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@libsql/client": "^0.17.0",
     "@privy-io/react-auth": "^3.13.0",
+    "@vercel/postgres": "^0.10.0",
     "better-sqlite3": "^11.7.0",
     "date-fns": "^4.1.0",
     "lucide-react": "^0.469.0",

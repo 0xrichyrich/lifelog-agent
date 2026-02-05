@@ -1,7 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { exportAllData } from '@/lib/db-mock';
+import { exportAllData, initializeDatabase } from '@/lib/db-turso';
 import { validateApiKey } from '@/lib/auth';
 import { checkRateLimit, RATE_LIMITS, addRateLimitHeaders } from '@/lib/rate-limit';
+
+// Initialize database tables on cold start
+let initialized = false;
+async function ensureInitialized() {
+  if (!initialized) {
+    try {
+      await initializeDatabase();
+      initialized = true;
+    } catch (error) {
+      console.error('Failed to initialize database:', error);
+    }
+  }
+}
 
 export async function GET(request: NextRequest) {
   // Authentication - export is sensitive, always require auth
@@ -13,12 +26,9 @@ export async function GET(request: NextRequest) {
   if (rateLimitError) return rateLimitError;
   
   try {
-    const data = exportAllData();
+    await ensureInitialized();
     
-    // Remove any error fields that might leak info
-    if ('error' in data) {
-      delete (data as any).error;
-    }
+    const data = await exportAllData();
     
     const response = NextResponse.json(data);
     return addRateLimitHeaders(response, RATE_LIMITS.export, request);
@@ -27,6 +37,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       exportedAt: new Date().toISOString(),
       error: 'Export failed',
+      details: error instanceof Error ? error.message : 'Unknown error',
       activities: [],
       checkIns: [],
       media: [],
