@@ -42,11 +42,9 @@ struct TimelineView: View {
                 await loadActivities()
             }
             .onAppear {
-                if !hasAppeared {
-                    hasAppeared = true
-                    Task {
-                        await loadActivities()
-                    }
+                // Always reload on appear to catch new activities from Check In
+                Task {
+                    await loadActivities()
                 }
             }
             .onChange(of: selectedDate) { _, _ in
@@ -232,8 +230,11 @@ struct TimelineView: View {
         loadError = nil
         
         do {
-            await apiClient.updateBaseURL(appState.apiEndpoint)
+            let endpoint = appState.apiEndpoint
+            print("📡 Timeline loading from: \(endpoint)")
+            await apiClient.updateBaseURL(endpoint)
             let fetchedActivities = try await apiClient.fetchActivities(for: selectedDate)
+            print("✅ Loaded \(fetchedActivities.count) activities")
             
             await MainActor.run {
                 activities = fetchedActivities
@@ -242,7 +243,7 @@ struct TimelineView: View {
                 appState.syncToSharedDefaults()
             }
         } catch {
-            print("Failed to load activities: \(error)")
+            print("❌ Failed to load activities from \(appState.apiEndpoint): \(error)")
             await MainActor.run {
                 loadError = error
             }
