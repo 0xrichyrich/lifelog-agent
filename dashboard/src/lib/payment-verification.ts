@@ -1,4 +1,6 @@
 import { createPublicClient, http, parseAbi } from 'viem';
+import { createClient, Client } from '@libsql/client';
+import { PLATFORM_WALLET, NUDGE_TOKEN, MONAD_TESTNET_RPC } from './constants';
 
 /**
  * On-Chain Payment Verification for x402 Protocol
@@ -7,17 +9,14 @@ import { createPublicClient, http, parseAbi } from 'viem';
  * 1. Transaction exists and succeeded
  * 2. Payment was sent to the platform wallet
  * 3. Amount meets or exceeds the expected amount
+ * 4. Payment hash has not been used before (replay protection via Turso)
  * 
  * Supports both native MON transfers and ERC20 token transfers (USDC, $NUDGE)
  */
 
-const MONAD_TESTNET_RPC = 'https://testnet-rpc.monad.xyz/';
-const PLATFORM_WALLET = '0x2390C495896C78668416859d9dE84212fCB10801';
-
-// Known token addresses on Monad Testnet
+// Re-export constants for backward compatibility
 export const TOKENS = {
-  NUDGE: '0xaEb52D53b6c3265580B91Be08C620Dc45F57a35F',
-  // Add USDC when deployed to Monad testnet
+  NUDGE: NUDGE_TOKEN,
 } as const;
 
 // ERC20 Transfer event ABI
@@ -34,10 +33,139 @@ export interface PaymentVerification {
   txHash?: string;
 }
 
-// Create a reusable client
+// Create a reusable viem client
 const getClient = () => createPublicClient({
   transport: http(MONAD_TESTNET_RPC),
 });
+
+// Turso client for persistent payment hash storage
+let _paymentClient: Client | null = null;
+let _tursoAvailable: boolean | null = null;
+
+function getPaymentClient(): Client | null {
+  if (_tursoAvailable === false) return null;
+  
+  if (!_paymentClient) {
+    const url = process.env.TURSO_DATABASE_URL;
+    const authToken = process.env.TURSO_AUTH_TOKEN;
+    
+    if (!url) {
+      _tursoAvailable = false;
+      return null;
+    }
+    
+    try {
+      _paymentClient = createClient({ url, authToken });
+      _tursoAvailable = true;
+    } catch {
+      _tursoAvailable = false;
+      return null;
+    }
+  }
+  return _paymentClient;
+}
+
+// Initialize payment hash table
+let _paymentTableInitialized = false;
+async function ensurePaymentTable(): Promise<boolean> {
+  if (_paymentTableInitialized) return _tursoAvailable === true;
+  
+  const client = getPaymentClient();
+  if (!client) return false;
+  
+  try {
+    await client.execute(`
+      CREATE TABLE IF NOT EXISTS used_payment_hashes (
+        hash TEXT PRIMARY KEY,
+        userId TEXT,
+        context TEXT,
+        createdAt TEXT NOT NULL
+      )
+    `);
+    await client.execute(`CREATE INDEX IF NOT EXISTS idx_payment_hashes_created ON used_payment_hashes(createdAt)`);
+    _paymentTableInitialized = true;
+    return true;
+  } catch (error) {
+    console.error('Failed to initialize used_payment_hashes table:', error);
+    _tursoAvailable = false;
+    return false;
+  }
+}
+
+// In-memory fallback for payment replay protection
+const usedPaymentHashesMemory = new Set<string>();
+const MAX_MEMORY_HASHES = 10000;
+
+/**
+ * Check if a payment hash has been used (replay protection)
+ * Uses Turso for persistence, falls back to in-memory
+ */
+export async function isPaymentHashUsed(txHash: string): Promise<boolean> {
+  const normalizedHash = txHash.toLowerCase();
+  
+  // Check Turso first
+  await ensurePaymentTable();
+  const client = getPaymentClient();
+  
+  if (client) {
+    try {
+      const result = await client.execute({
+        sql: 'SELECT 1 FROM used_payment_hashes WHERE hash = ? LIMIT 1',
+        args: [normalizedHash],
+      });
+      if (result.rows.length > 0) return true;
+    } catch (error) {
+      console.error('Turso payment hash check failed:', error);
+      // Fall through to memory check
+    }
+  }
+  
+  // Check in-memory fallback
+  return usedPaymentHashesMemory.has(normalizedHash);
+}
+
+/**
+ * Mark a payment hash as used
+ * Stores in both Turso (persistent) and memory (fast)
+ */
+export async function markPaymentHashUsed(
+  txHash: string, 
+  userId?: string,
+  context?: string
+): Promise<void> {
+  const normalizedHash = txHash.toLowerCase();
+  const now = new Date().toISOString();
+  
+  // Always add to memory for fast local checks
+  usedPaymentHashesMemory.add(normalizedHash);
+  
+  // Cleanup memory if too large
+  if (usedPaymentHashesMemory.size > MAX_MEMORY_HASHES) {
+    const iterator = usedPaymentHashesMemory.values();
+    for (let i = 0; i < MAX_MEMORY_HASHES / 2; i++) {
+      const next = iterator.next();
+      if (next.done) break;
+      usedPaymentHashesMemory.delete(next.value);
+    }
+  }
+  
+  // Store in Turso for persistence
+  await ensurePaymentTable();
+  const client = getPaymentClient();
+  
+  if (client) {
+    try {
+      await client.execute({
+        sql: `INSERT OR IGNORE INTO used_payment_hashes (hash, userId, context, createdAt) 
+              VALUES (?, ?, ?, ?)`,
+        args: [normalizedHash, userId || null, context || null, now],
+      });
+    } catch (error) {
+      console.error('Failed to store payment hash in Turso:', error);
+      // Memory fallback already added, so we're still protected
+    }
+  }
+}
 
 /**
  * Verify a payment transaction on-chain
@@ -185,4 +313,25 @@ export async function verifyPaymentOnChain(
  */
 export function isValidTxHash(txHash: string): boolean {
   return /^0x[a-fA-F0-9]{64}$/.test(txHash);
+}
+
+/**
+ * Clean up old payment hashes from Turso (older than 30 days)
+ * Call periodically via cron
+ */
+export async function cleanupOldPaymentHashes(): Promise<number> {
+  const client = getPaymentClient();
+  if (!client) return 0;
+  
+  try {
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+    const result = await client.execute({
+      sql: 'DELETE FROM used_payment_hashes WHERE createdAt < ?',
+      args: [thirtyDaysAgo],
+    });
+    return result.rowsAffected;
+  } catch (error) {
+    console.error('Payment hash cleanup failed:', error);
+    return 0;
+  }
 }

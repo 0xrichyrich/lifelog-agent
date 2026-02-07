@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
   if (contentTypeError) return contentTypeError;
   
   // Rate limiting
-  const rateLimitError = checkRateLimit(request, RATE_LIMITS.write);
+  const rateLimitError = await checkRateLimit(request, RATE_LIMITS.write);
   if (rateLimitError) return rateLimitError;
   
   try {

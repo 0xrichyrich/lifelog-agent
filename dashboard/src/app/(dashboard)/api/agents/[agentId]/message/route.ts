@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { randomUUID } from 'crypto';
-import { verifyPaymentOnChain, isValidTxHash, TOKENS } from '@/lib/payment-verification';
+import { verifyPaymentOnChain, isValidTxHash, TOKENS, isPaymentHashUsed, markPaymentHashUsed } from '@/lib/payment-verification';
 import { requireInternalAuth, validateContentType } from '@/lib/auth';
 import { checkRateLimit, RATE_LIMITS, addRateLimitHeaders } from '@/lib/rate-limit';
+import { PLATFORM_WALLET } from '@/lib/constants';
 
 /**
  * Agent Message Endpoint
@@ -24,8 +25,7 @@ const AGENT_PRICING: Record<string, { perMessage: number; isFree: boolean; freeT
   'book-buddy': { perMessage: 10000, isFree: false, freeTierDaily: 3 },
 };
 
-// Platform wallet address for receiving payments (Base network)
-const PLATFORM_WALLET = process.env.PLATFORM_WALLET_ADDRESS || '0x4f9e2dc880328facc0ebc8f3a6b0e9b0f0e0e0e0';
+// PLATFORM_WALLET is now imported from @/lib/constants
 
 // System prompts for each agent - these define their personality
 const AGENT_PROMPTS: Record<string, string> = {
@@ -74,10 +74,8 @@ const AGENT_NAMES: Record<string, string> = {
 const conversations: Map<string, { messages: { role: string; content: string }[]; lastAccess: number }> = new Map();
 const MAX_CONVERSATIONS = 1000;
 
-// In-memory tracking of processed transaction hashes for replay protection
-// TODO: For production, use Turso database for persistence across instances
-const processedTxHashes = new Set<string>();
-const MAX_TX_HASHES = 10000;
+// Payment hash replay protection is now handled by @/lib/payment-verification
+// using persistent Turso database storage
 
 function cleanupOldConversations(): void {
   if (conversations.size <= MAX_CONVERSATIONS) return;
@@ -92,17 +90,7 @@ function cleanupOldConversations(): void {
   }
 }
 
-function cleanupOldTxHashes(): void {
-  if (processedTxHashes.size <= MAX_TX_HASHES) return;
-  
-  const iterator = processedTxHashes.values();
-  const toRemove = Math.floor(processedTxHashes.size / 2);
-  for (let i = 0; i < toRemove; i++) {
-    const next = iterator.next();
-    if (next.done) break;
-    processedTxHashes.delete(next.value);
-  }
-}
+// Tx hash cleanup is now handled automatically by payment-verification.ts
 
 interface PaymentProof {
   signature: string;
@@ -135,7 +123,7 @@ interface PaymentRequest {
  * 1. Transaction exists and succeeded on-chain
  * 2. Payment sent to platform wallet
  * 3. Amount meets required amount
- * 4. Replay protection via processed tx hashes
+ * 4. Replay protection via persistent Turso database
  */
 async function verifyPaymentProof(proof: PaymentProof, agentId: string): Promise<{ valid: boolean; error?: string }> {
   // Basic validation
@@ -148,8 +136,8 @@ async function verifyPaymentProof(proof: PaymentProof, agentId: string): Promise
     return { valid: false, error: 'Invalid transaction hash format' };
   }
 
-  // REPLAY PROTECTION: Check if tx hash was already used
-  if (processedTxHashes.has(proof.txHash.toLowerCase())) {
+  // REPLAY PROTECTION: Check if tx hash was already used (persistent via Turso)
+  if (await isPaymentHashUsed(proof.txHash)) {
     return { valid: false, error: 'This transaction has already been used' };
   }
 
@@ -174,9 +162,8 @@ async function verifyPaymentProof(proof: PaymentProof, agentId: string): Promise
     return { valid: false, error: verification.error };
   }
 
-  // Mark tx hash as processed (replay protection)
-  processedTxHashes.add(proof.txHash.toLowerCase());
-  cleanupOldTxHashes();
+  // Mark tx hash as processed (persistent replay protection)
+  await markPaymentHashUsed(proof.txHash, undefined, `agent:${agentId}`);
   
   return { valid: true };
 }
@@ -215,7 +202,7 @@ export async function POST(
   if (contentTypeError) return contentTypeError;
   
   // Rate limiting
-  const rateLimitError = checkRateLimit(request, RATE_LIMITS.write);
+  const rateLimitError = await checkRateLimit(request, RATE_LIMITS.write);
   if (rateLimitError) return rateLimitError;
   
   try {

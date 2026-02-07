@@ -30,7 +30,7 @@ import Image from 'next/image';
 
 // Contract address
 const CONTRACT_ADDRESS = '0xaEb52D53...a2F6EA';
-const FULL_CONTRACT = '0xaEb52D53b6c3265580B91Be08C620Dc45F57a35F';
+const FULL_CONTRACT = '0x99cDfA46B933ea28Edf4BB620428E24C8EB63367';
 
 // Featured agents for marketplace preview
 const FEATURED_AGENTS = [
@@ -590,9 +590,9 @@ export default function LandingPage() {
               <div className="flex items-center justify-between p-4 bg-surface-light rounded-xl">
                 <div>
                   <p className="text-sm text-text-muted mb-1">$NUDGE Token</p>
-                  <code className="text-sm font-mono">0xaEb52D53b6c3265580B91Be08C620Dc45F57a35F</code>
+                  <code className="text-sm font-mono">0x99cDfA46B933ea28Edf4BB620428E24C8EB63367</code>
                 </div>
-                <CopyButton text="0xaEb52D53b6c3265580B91Be08C620Dc45F57a35F" />
+                <CopyButton text="0x99cDfA46B933ea28Edf4BB620428E24C8EB63367" />
               </div>
               <div className="flex items-center justify-between p-4 bg-surface-light rounded-xl">
                 <div>

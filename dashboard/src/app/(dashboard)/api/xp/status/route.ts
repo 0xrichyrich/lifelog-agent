@@ -14,7 +14,7 @@ import { validateUserId } from '@/lib/auth';
  */
 export async function GET(request: NextRequest) {
   // Rate limiting
-  const rateLimitError = checkRateLimit(request, RATE_LIMITS.read);
+  const rateLimitError = await checkRateLimit(request, RATE_LIMITS.read);
   if (rateLimitError) return rateLimitError;
   
   const { searchParams } = new URL(request.url);

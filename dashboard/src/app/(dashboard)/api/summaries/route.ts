@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
   if (authError) return authError;
   
   // Rate limiting
-  const rateLimitError = checkRateLimit(request, RATE_LIMITS.read);
+  const rateLimitError = await checkRateLimit(request, RATE_LIMITS.read);
   if (rateLimitError) return rateLimitError;
   
   const searchParams = request.nextUrl.searchParams;

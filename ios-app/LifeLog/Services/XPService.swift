@@ -14,7 +14,10 @@ class XPService: ObservableObject {
     @Published var status: XPStatus?
     @Published var history: [XPTransaction] = []
     @Published var leaderboard: [LeaderboardEntry] = []
+    @Published var redemptionStatus: RedemptionStatus?
+    @Published var weeklyPool: WeeklyPoolStatus?
     @Published var isLoading = false
+    @Published var isRedeeming = false
     @Published var error: String?
     @Published var pendingNotification: XPNotification?
     
@@ -195,6 +198,129 @@ class XPService: ObservableObject {
     
     func clearNotification() {
         pendingNotification = nil
+    }
+    
+    // MARK: - Fetch Redemption Status
+    func fetchRedemptionStatus(userId: String) async {
+        do {
+            guard let url = URL(string: "\(baseURL)/api/xp/redeem?userId=\(userId)") else {
+                throw XPError.invalidURL
+            }
+            
+            var request = URLRequest(url: url)
+            if let apiKey = apiKey, !apiKey.isEmpty {
+                request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+            }
+            
+            let (data, response) = try await session.data(for: request)
+            
+            guard let httpResponse = response as? HTTPURLResponse else {
+                throw XPError.invalidResponse
+            }
+            
+            guard httpResponse.statusCode == 200 else {
+                throw XPError.serverError(httpResponse.statusCode)
+            }
+            
+            let decoded = try JSONDecoder().decode(RedemptionStatusResponse.self, from: data)
+            self.redemptionStatus = decoded.data
+        } catch {
+            AppLogger.error("Redemption status fetch error", error: error)
+            self.error = error.localizedDescription
+        }
+    }
+    
+    // MARK: - Redeem XP for NUDGE
+    func redeemXP(userId: String, xpAmount: Int) async -> RedemptionResult? {
+        isRedeeming = true
+        defer { isRedeeming = false }
+        
+        do {
+            guard let url = URL(string: "\(baseURL)/api/xp/redeem") else {
+                throw XPError.invalidURL
+            }
+            
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            // Use internal API key for authenticated POST
+            request.setValue(NudgeConstants.internalAPIKey, forHTTPHeaderField: "X-API-Key")
+            
+            if let apiKey = apiKey, !apiKey.isEmpty {
+                request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+            }
+            
+            let body: [String: Any] = [
+                "userId": userId,
+                "xpAmount": xpAmount
+            ]
+            request.httpBody = try JSONSerialization.data(withJSONObject: body)
+            
+            let (data, response) = try await session.data(for: request)
+            
+            guard let httpResponse = response as? HTTPURLResponse else {
+                throw XPError.invalidResponse
+            }
+            
+            guard httpResponse.statusCode == 200 else {
+                throw XPError.serverError(httpResponse.statusCode)
+            }
+            
+            let decoded = try JSONDecoder().decode(RedemptionResponse.self, from: data)
+            
+            if decoded.success, let result = decoded.data {
+                // Update local redemption status
+                if var currentStatus = self.redemptionStatus {
+                    self.redemptionStatus = RedemptionStatus(
+                        userId: currentStatus.userId,
+                        currentXP: result.newXPBalance,
+                        level: currentStatus.level,
+                        streakMultiplier: currentStatus.streakMultiplier,
+                        redemptionRate: currentStatus.redemptionRate,
+                        dailyCap: currentStatus.dailyCap,
+                        redeemedToday: currentStatus.dailyCap - result.dailyRemaining,
+                        remainingToday: result.dailyRemaining
+                    )
+                }
+                return result
+            } else {
+                self.error = decoded.error ?? "Redemption failed"
+                return nil
+            }
+        } catch {
+            AppLogger.error("XP Redemption error", error: error)
+            self.error = error.localizedDescription
+            return nil
+        }
+    }
+    
+    // MARK: - Fetch Weekly Pool Status
+    func fetchWeeklyPool(userId: String) async {
+        do {
+            guard let url = URL(string: "\(baseURL)/api/xp/pool?userId=\(userId)") else {
+                throw XPError.invalidURL
+            }
+            
+            var request = URLRequest(url: url)
+            if let apiKey = apiKey, !apiKey.isEmpty {
+                request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+            }
+            
+            let (data, response) = try await session.data(for: request)
+            
+            guard let httpResponse = response as? HTTPURLResponse else {
+                throw XPError.invalidResponse
+            }
+            
+            guard httpResponse.statusCode == 200 else {
+                throw XPError.serverError(httpResponse.statusCode)
+            }
+            
+            let decoded = try JSONDecoder().decode(WeeklyPoolResponse.self, from: data)
+            self.weeklyPool = decoded.data
+        } catch {
+            AppLogger.error("Weekly pool fetch error", error: error)
+        }
     }
 }
 

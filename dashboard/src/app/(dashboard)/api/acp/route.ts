@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
   if (authError) return authError;
   
   // Rate limiting
-  const rateLimitError = checkRateLimit(request, RATE_LIMITS.acp);
+  const rateLimitError = await checkRateLimit(request, RATE_LIMITS.acp);
   if (rateLimitError) return rateLimitError;
   
   const { searchParams } = new URL(request.url);
@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
   if (contentTypeError) return contentTypeError;
   
   // Rate limiting
-  const rateLimitError = checkRateLimit(request, RATE_LIMITS.acp);
+  const rateLimitError = await checkRateLimit(request, RATE_LIMITS.acp);
   if (rateLimitError) return rateLimitError;
   
   try {

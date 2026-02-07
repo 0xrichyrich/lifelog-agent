@@ -3,27 +3,10 @@ import { createWalletClient, createPublicClient, http, parseUnits, encodeFunctio
 import { privateKeyToAccount } from 'viem/accounts';
 import { requireInternalAuth, validateContentType } from '@/lib/auth';
 import { checkRateLimit, RATE_LIMITS, addRateLimitHeaders } from '@/lib/rate-limit';
+import { NUDGE_TOKEN, MONAD_TESTNET_CHAIN, MAX_CLAIM_AMOUNT } from '@/lib/constants';
 
-// Monad Testnet configuration
-const monadTestnet = {
-  id: 10143,
-  name: 'Monad Testnet',
-  network: 'monad-testnet',
-  nativeCurrency: { name: 'Monad', symbol: 'MON', decimals: 18 },
-  rpcUrls: {
-    default: { http: ['https://testnet-rpc.monad.xyz/'] },
-    public: { http: ['https://testnet-rpc.monad.xyz/'] },
-  },
-  blockExplorers: {
-    default: { name: 'Monad Explorer', url: 'https://testnet.monad.xyz' },
-  },
-};
-
-// $NUDGE Token contract
-const NUDGE_TOKEN = '0xaEb52D53b6c3265580B91Be08C620Dc45F57a35F' as const;
-
-// Maximum claim amount per request (prevents draining)
-const MAX_CLAIM_AMOUNT = 1000;
+// Monad Testnet configuration (from constants)
+const monadTestnet = MONAD_TESTNET_CHAIN;
 
 // ERC20 transfer ABI
 const erc20TransferAbi = [
@@ -48,7 +31,7 @@ export async function POST(request: NextRequest) {
   if (contentTypeError) return contentTypeError;
   
   // Rate limiting - strict limits for token transfers
-  const rateLimitError = checkRateLimit(request, RATE_LIMITS.token);
+  const rateLimitError = await checkRateLimit(request, RATE_LIMITS.token);
   if (rateLimitError) return rateLimitError;
   
   try {

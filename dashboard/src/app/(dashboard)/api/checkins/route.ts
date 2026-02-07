@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
   if (contentTypeError) return contentTypeError;
   
   // Rate limiting
-  const rateLimitError = checkRateLimit(request, RATE_LIMITS.checkins);
+  const rateLimitError = await checkRateLimit(request, RATE_LIMITS.checkins);
   if (rateLimitError) return rateLimitError;
   
   try {
@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   // Rate limiting
-  const rateLimitError = checkRateLimit(request, RATE_LIMITS.read);
+  const rateLimitError = await checkRateLimit(request, RATE_LIMITS.read);
   if (rateLimitError) return rateLimitError;
   
   try {

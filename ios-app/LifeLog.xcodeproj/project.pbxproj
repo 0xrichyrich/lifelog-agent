@@ -52,6 +52,7 @@
 		A11111110000000000000093 /* XPNotificationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000093 /* XPNotificationView.swift */; };
 		A11111110000000000000094 /* AppLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000094 /* AppLogger.swift */; };
 		A11111110000000000000095 /* NudgeConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000095 /* NudgeConstants.swift */; };
+		A11111110000000000000096 /* XPRedemptionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000096 /* XPRedemptionView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -127,6 +128,7 @@
 		A10000000000000000000093 /* XPNotificationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XPNotificationView.swift; sourceTree = "<group>"; };
 		A10000000000000000000094 /* AppLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLogger.swift; sourceTree = "<group>"; };
 		A10000000000000000000095 /* NudgeConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NudgeConstants.swift; sourceTree = "<group>"; };
+		A10000000000000000000096 /* XPRedemptionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XPRedemptionView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -232,6 +234,7 @@
 				A10000000000000000000082 /* AgentsView.swift */,
 				A10000000000000000000083 /* AgentChatView.swift */,
 				A10000000000000000000084 /* PaymentSheet.swift */,
+				A10000000000000000000096 /* XPRedemptionView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -420,6 +423,7 @@
 				A11111110000000000000093 /* XPNotificationView.swift in Sources */,
 				A11111110000000000000094 /* AppLogger.swift in Sources */,
 				A11111110000000000000095 /* NudgeConstants.swift in Sources */,
+				A11111110000000000000096 /* XPRedemptionView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

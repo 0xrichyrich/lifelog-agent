@@ -13,7 +13,7 @@ import { checkRateLimit, RATE_LIMITS, addRateLimitHeaders } from '@/lib/rate-lim
  */
 export async function GET(request: NextRequest) {
   // Rate limiting
-  const rateLimitError = checkRateLimit(request, RATE_LIMITS.read);
+  const rateLimitError = await checkRateLimit(request, RATE_LIMITS.read);
   if (rateLimitError) return rateLimitError;
   
   const { searchParams } = new URL(request.url);
@@ -26,10 +26,13 @@ export async function GET(request: NextRequest) {
   try {
     const leaderboard = await getLeaderboard(limit);
     
-    // Mask userIds for privacy (show first 6 and last 4 chars for wallet addresses)
+    // Include username if available, otherwise mask userId for privacy
     const maskedLeaderboard = leaderboard.map(entry => ({
       ...entry,
+      // Display username if set, otherwise mask the userId
+      displayName: entry.username || maskUserId(entry.userId),
       userId: maskUserId(entry.userId),
+      username: entry.username || null,
     }));
     
     const response = NextResponse.json({

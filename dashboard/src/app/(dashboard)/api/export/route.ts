@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
   if (authError) return authError;
   
   // Strict rate limiting for export (heavy operation)
-  const rateLimitError = checkRateLimit(request, RATE_LIMITS.export);
+  const rateLimitError = await checkRateLimit(request, RATE_LIMITS.export);
   if (rateLimitError) return rateLimitError;
   
   try {

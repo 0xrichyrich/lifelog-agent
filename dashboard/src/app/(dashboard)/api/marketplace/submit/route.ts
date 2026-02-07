@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyPaymentOnChain, isValidTxHash, TOKENS } from '@/lib/payment-verification';
+import { verifyPaymentOnChain, isValidTxHash, TOKENS, isPaymentHashUsed, markPaymentHashUsed } from '@/lib/payment-verification';
 import { validateContentType } from '@/lib/auth';
+import { PLATFORM_WALLET, LISTING_FEE_USDC } from '@/lib/constants';
 
 /**
  * Agent Marketplace Submission Endpoint
@@ -25,22 +26,17 @@ import { validateContentType } from '@/lib/auth';
  * }
  */
 
-// Platform configuration
-const PLATFORM_WALLET = '0x2390C495896C78668416859d9dE84212fCB10801';
-const LISTING_FEE_USDC = 100000; // $0.10 USDC (6 decimals)
+// Platform configuration now imported from @/lib/constants
 
-// In-memory storage for MVP (will be replaced with database later)
+// In-memory storage for community agents (will be replaced with database later)
 // Note: This persists across warm function invocations but resets on cold starts
+// Payment hash replay protection now uses persistent Turso storage via payment-verification.ts
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const globalForAgents = globalThis as typeof globalThis & { 
   communityAgents?: SubmittedAgent[];
-  usedPaymentHashes?: Set<string>;
 };
 if (!globalForAgents.communityAgents) {
   globalForAgents.communityAgents = [];
-}
-if (!globalForAgents.usedPaymentHashes) {
-  globalForAgents.usedPaymentHashes = new Set();
 }
 
 interface SubmittedAgent {
@@ -233,9 +229,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check for duplicate payment (replay protection)
-    const usedHashes = globalForAgents.usedPaymentHashes!;
-    if (usedHashes.has(body.paymentProof.toLowerCase())) {
+    // Check for duplicate payment (replay protection via persistent Turso)
+    if (await isPaymentHashUsed(body.paymentProof)) {
       return NextResponse.json(
         { error: 'This payment has already been used for a submission' },
         { status: 400 }
@@ -259,18 +254,8 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Mark payment hash as used (replay protection)
-    usedHashes.add(body.paymentProof.toLowerCase());
-    
-    // Cleanup old hashes if too many (prevent memory leak)
-    if (usedHashes.size > 10000) {
-      const iterator = usedHashes.values();
-      for (let i = 0; i < 5000; i++) {
-        const next = iterator.next();
-        if (next.done) break;
-        usedHashes.delete(next.value);
-      }
-    }
+    // Mark payment hash as used (persistent replay protection via Turso)
+    await markPaymentHashUsed(body.paymentProof, body.creatorWallet, 'marketplace:submit');
     
     // Load existing agents
     const agents = loadCommunityAgents();

@@ -34,6 +34,7 @@ const LEVEL_THRESHOLDS = [0, 100, 300, 600, 1000, 1500, 2100, 2800, 3600, 4500, 
 
 export interface UserXP {
   userId: string;
+  username?: string;
   totalXP: number;
   currentXP: number;
   level: number;
@@ -62,6 +63,7 @@ export interface XPStatus {
 
 export interface LeaderboardEntry {
   userId: string;
+  username?: string;
   totalXP: number;
   level: number;
   rank: number;
@@ -128,6 +130,7 @@ export async function initializeXPTables(): Promise<void> {
     CREATE TABLE IF NOT EXISTS user_xp (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       userId TEXT NOT NULL UNIQUE,
+      username TEXT,
       totalXP INTEGER NOT NULL DEFAULT 0,
       currentXP INTEGER NOT NULL DEFAULT 0,
       level INTEGER NOT NULL DEFAULT 1,
@@ -135,6 +138,21 @@ export async function initializeXPTables(): Promise<void> {
       CHECK (currentXP >= 0)
     )
   `);
+  
+  // Add username column if it doesn't exist (migration for existing tables)
+  try {
+    await client.execute(`ALTER TABLE user_xp ADD COLUMN username TEXT`);
+  } catch {
+    // Column already exists, ignore error
+  }
+  
+  // Create unique index for usernames (allowing NULL)
+  try {
+    await client.execute(`CREATE UNIQUE INDEX IF NOT EXISTS idx_user_xp_username ON user_xp(username) WHERE username IS NOT NULL`);
+  } catch {
+    // Index already exists or partial index not supported, try simpler approach
+    // SQLite doesn't support partial unique indexes in all versions
+  }
   
   await client.execute(`
     CREATE TABLE IF NOT EXISTS xp_transactions (
@@ -220,6 +238,7 @@ async function getOrCreateUser(userId: string): Promise<UserXP> {
     const row = result.rows[0];
     return {
       userId: String(row.userId),
+      username: row.username ? String(row.username) : undefined,
       totalXP: Number(row.totalXP),
       currentXP: Number(row.currentXP),
       level: Number(row.level),
@@ -236,6 +255,7 @@ async function getOrCreateUser(userId: string): Promise<UserXP> {
   
   return {
     userId,
+    username: undefined,
     totalXP: 0,
     currentXP: 0,
     level: 1,
@@ -423,12 +443,13 @@ export async function getLeaderboard(limit: number = 10): Promise<LeaderboardEnt
   const safeLimit = Math.min(Math.max(1, limit), 100);
   
   const result = await client.execute({
-    sql: 'SELECT userId, totalXP, level FROM user_xp ORDER BY totalXP DESC LIMIT ?',
+    sql: 'SELECT userId, username, totalXP, level FROM user_xp ORDER BY totalXP DESC LIMIT ?',
     args: [safeLimit],
   });
   
   return result.rows.map((row, index) => ({
     userId: String(row.userId),
+    username: row.username ? String(row.username) : undefined,
     totalXP: Number(row.totalXP),
     level: Number(row.level),
     rank: index + 1,
@@ -994,4 +1015,116 @@ export async function getRedemptionHistory(
     level: Number(row.level),
     createdAt: String(row.createdAt),
   }));
+}
+
+// ============================================
+// USERNAME FUNCTIONS
+// ============================================
+
+// Username validation: 3-20 chars, alphanumeric + underscore only
+const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,20}$/;
+
+export interface SetUsernameResult {
+  success: boolean;
+  username?: string;
+  error?: string;
+}
+
+/**
+ * Validate username format
+ */
+export function isValidUsername(username: string): boolean {
+  return USERNAME_REGEX.test(username);
+}
+
+/**
+ * Set username for a user
+ * 
+ * Requirements:
+ * - 3-20 characters
+ * - Alphanumeric + underscore only
+ * - Must be unique (case-insensitive)
+ */
+export async function setUsername(userId: string, username: string): Promise<SetUsernameResult> {
+  await initializeXPTables();
+  const client = getClient();
+  
+  // Validate format
+  if (!username || !isValidUsername(username)) {
+    return {
+      success: false,
+      error: 'Username must be 3-20 characters, alphanumeric and underscores only',
+    };
+  }
+  
+  // Ensure user exists
+  await getOrCreateUser(userId);
+  
+  // Check uniqueness (case-insensitive)
+  const existingResult = await client.execute({
+    sql: 'SELECT userId FROM user_xp WHERE LOWER(username) = LOWER(?) AND userId != ?',
+    args: [username, userId],
+  });
+  
+  if (existingResult.rows.length > 0) {
+    return {
+      success: false,
+      error: 'Username already taken',
+    };
+  }
+  
+  // Update username
+  try {
+    await client.execute({
+      sql: 'UPDATE user_xp SET username = ? WHERE userId = ?',
+      args: [username, userId],
+    });
+    
+    return {
+      success: true,
+      username,
+    };
+  } catch (error) {
+    console.error('Failed to set username:', error);
+    return {
+      success: false,
+      error: 'Failed to update username',
+    };
+  }
+}
+
+/**
+ * Get username for a user
+ */
+export async function getUsername(userId: string): Promise<string | null> {
+  await initializeXPTables();
+  const client = getClient();
+  
+  const result = await client.execute({
+    sql: 'SELECT username FROM user_xp WHERE userId = ?',
+    args: [userId],
+  });
+  
+  if (result.rows.length === 0 || !result.rows[0].username) {
+    return null;
+  }
+  
+  return String(result.rows[0].username);
+}
+
+/**
+ * Check if a username is available
+ */
+export async function isUsernameAvailable(username: string): Promise<boolean> {
+  if (!isValidUsername(username)) return false;
+  
+  await initializeXPTables();
+  const client = getClient();
+  
+  const result = await client.execute({
+    sql: 'SELECT 1 FROM user_xp WHERE LOWER(username) = LOWER(?) LIMIT 1',
+    args: [username],
+  });
+  
+  return result.rows.length === 0;
 }

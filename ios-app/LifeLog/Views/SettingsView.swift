@@ -16,9 +16,11 @@ struct SettingsView: View {
     @State private var showingExportSheet = false
     @State private var showingAboutSheet = false
     @State private var showingLeaderboard = false
+    @State private var showingWidgetsAlert = false
     @State private var notificationStatus: UNAuthorizationStatus = .notDetermined
     @State private var healthAuthorized = false
     @State private var showingHealthAlert = false
+    @State private var displayName: String = ""
     @StateObject private var healthService = HealthKitService()
     @StateObject private var xpService = XPService()
     
@@ -27,6 +29,31 @@ struct SettingsView: View {
         
         NavigationStack {
             List {
+                // Profile Section
+                Section {
+                    HStack {
+                        Image(systemName: "person.circle.fill")
+                            .foregroundStyle(Color.brandAccent)
+                        TextField("Display Name", text: $displayName)
+                            .textContentType(.nickname)
+                            .autocapitalization(.none)
+                            .autocorrectionDisabled()
+                            .onChange(of: displayName) { _, newValue in
+                                // Validate: max 20 chars, alphanumeric + underscores only
+                                let filtered = String(newValue.prefix(20)).filter { $0.isLetter || $0.isNumber || $0 == "_" }
+                                if filtered != newValue {
+                                    displayName = filtered
+                                }
+                                // Save to Keychain
+                                KeychainHelper.save(key: NudgeConstants.KeychainKeys.username, value: displayName)
+                            }
+                    }
+                } header: {
+                    Text("Profile")
+                } footer: {
+                    Text("Your display name for the leaderboard. Max 20 characters, letters, numbers, and underscores only.")
+                }
+                
                 // XP Progress Section
                 Section {
                     XPProgressView(
@@ -301,6 +328,14 @@ struct SettingsView: View {
             .onAppear {
                 checkNotificationStatus()
                 healthService.checkAuthorizationStatus()
+                // Load saved username
+                displayName = KeychainHelper.load(key: NudgeConstants.KeychainKeys.username) ?? ""
+                if displayName.isEmpty {
+                    // Default to first 6 chars of wallet address if available
+                    if let wallet = privyService.walletAddress, wallet.count >= 6 {
+                        displayName = String(wallet.prefix(6))
+                    }
+                }
                 Task {
                     await refreshXP()
                 }
@@ -321,6 +356,11 @@ struct SettingsView: View {
                 Button("OK", role: .cancel) {}
             } message: {
                 Text("Health data access was denied. Please enable it in Settings > Privacy > Health.")
+            }
+            .alert("Widgets Coming Soon!", isPresented: $showingWidgetsAlert) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text("We're working on Home Screen and Lock Screen widgets for quick check-ins and daily stats. Stay tuned!")
             }
         }
     }
@@ -369,9 +409,8 @@ struct SettingsView: View {
     }
     
     private func openWidgetGallery() {
-        // iOS doesn't have a direct URL to widget gallery, guide user
-        // Show a tip instead
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        showingWidgetsAlert = true
     }
     
     private func requestNotifications() {
@@ -538,7 +577,7 @@ struct AboutSheet: View {
                 }
                 .padding()
             }
-            .background(Color.background)
+            .background(Color.background.ignoresSafeArea())
             .navigationTitle("About")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -549,13 +588,23 @@ struct AboutSheet: View {
                 }
             }
         }
+        .presentationBackground(Color.background)
     }
 }
 
 // MARK: - Leaderboard Sheet
 struct LeaderboardSheet: View {
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var privyService: PrivyService
     @ObservedObject var xpService: XPService
+    
+    private var currentUserId: String {
+        privyService.walletAddress ?? UIDevice.current.identifierForVendor?.uuidString ?? ""
+    }
+    
+    private var localUsername: String {
+        KeychainHelper.load(key: NudgeConstants.KeychainKeys.username) ?? "Anonymous"
+    }
     
     var body: some View {
         NavigationStack {
@@ -571,7 +620,11 @@ struct LeaderboardSheet: View {
                 } else {
                     List {
                         ForEach(xpService.leaderboard) { entry in
-                            LeaderboardRowView(entry: entry)
+                            LeaderboardRowView(
+                                entry: entry,
+                                isCurrentUser: entry.userId == currentUserId,
+                                localUsername: localUsername
+                            )
                         }
                     }
                     .listStyle(.plain)
@@ -599,6 +652,19 @@ struct LeaderboardSheet: View {
 
 struct LeaderboardRowView: View {
     let entry: LeaderboardEntry
+    var isCurrentUser: Bool = false
+    var localUsername: String = "Anonymous"
+    
+    private var displayName: String {
+        if isCurrentUser {
+            return localUsername.isEmpty ? "You" : localUsername
+        }
+        // Mask other users' IDs for privacy
+        if entry.userId.count > 8 {
+            return String(entry.userId.prefix(6)) + "..."
+        }
+        return entry.userId
+    }
     
     var body: some View {
         HStack(spacing: 16) {
@@ -622,10 +688,18 @@ struct LeaderboardRowView: View {
             
             // User info
             VStack(alignment: .leading, spacing: 2) {
-                Text(entry.userId)
-                    .font(.subheadline)
-                    .fontWeight(.medium)
-                    .foregroundStyle(Color.textPrimary)
+                HStack(spacing: 4) {
+                    Text(displayName)
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .foregroundStyle(Color.textPrimary)
+                    
+                    if isCurrentUser {
+                        Text("(You)")
+                            .font(.caption)
+                            .foregroundStyle(Color.brandAccent)
+                    }
+                }
                 
                 Text("Level \(entry.level)")
                     .font(.caption)
@@ -647,6 +721,8 @@ struct LeaderboardRowView: View {
             }
         }
         .padding(.vertical, 4)
+        .background(isCurrentUser ? Color.brandAccent.opacity(0.1) : Color.clear)
+        .clipShape(RoundedRectangle(cornerRadius: 8))
     }
     
     private var rankColor: Color {

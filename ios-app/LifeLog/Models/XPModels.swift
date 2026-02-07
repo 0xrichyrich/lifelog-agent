@@ -161,3 +161,64 @@ struct XPNotification: Identifiable, Equatable {
         lhs.id == rhs.id
     }
 }
+
+// MARK: - XP Redemption
+struct RedemptionStatus: Codable {
+    let userId: String
+    let currentXP: Int
+    let level: Int
+    let streakMultiplier: Double
+    let redemptionRate: Int  // XP per NUDGE (e.g., 10 means 10:1)
+    let dailyCap: Int        // Max NUDGE per day (250)
+    let redeemedToday: Int   // NUDGE already redeemed today
+    let remainingToday: Int  // NUDGE can still redeem today
+    
+    var maxXPRedeemable: Int {
+        remainingToday * redemptionRate
+    }
+    
+    var levelTierName: String {
+        switch redemptionRate {
+        case 1...5: return "Gold"
+        case 6...8: return "Silver"
+        default: return "Bronze"
+        }
+    }
+}
+
+struct RedemptionStatusResponse: Codable {
+    let success: Bool
+    let data: RedemptionStatus
+}
+
+struct RedemptionRequest: Codable {
+    let userId: String
+    let xpAmount: Int
+}
+
+struct RedemptionResult: Codable {
+    let xpSpent: Int
+    let nudgeEarned: Double
+    let newXPBalance: Int
+    let dailyRemaining: Int
+}
+
+struct RedemptionResponse: Codable {
+    let success: Bool
+    let data: RedemptionResult?
+    let error: String?
+}
+
+struct WeeklyPoolStatus: Codable {
+    let poolTotal: Double
+    let participantCount: Int
+    let userShare: Double
+    let estimatedReward: Double
+    let endsAt: String
+    let userContribution: Int  // User's XP contribution this week
+}
+
+struct WeeklyPoolResponse: Codable {
+    let success: Bool
+    let data: WeeklyPoolStatus
+}

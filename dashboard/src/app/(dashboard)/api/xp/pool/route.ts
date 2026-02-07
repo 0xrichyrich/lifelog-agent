@@ -36,7 +36,7 @@ import { requireInternalAuth, validateUserId, validateContentType } from '@/lib/
  */
 export async function GET(request: NextRequest) {
   // Rate limiting
-  const rateLimitError = checkRateLimit(request, RATE_LIMITS.read);
+  const rateLimitError = await checkRateLimit(request, RATE_LIMITS.read);
   if (rateLimitError) return rateLimitError;
   
   try {
@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
   if (contentTypeError) return contentTypeError;
   
   // Rate limiting - use token limit since this modifies state
-  const rateLimitError = checkRateLimit(request, RATE_LIMITS.token);
+  const rateLimitError = await checkRateLimit(request, RATE_LIMITS.token);
   if (rateLimitError) return rateLimitError;
   
   try {

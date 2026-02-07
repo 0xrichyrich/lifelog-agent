@@ -295,6 +295,24 @@ struct WalletView: View {
                     .foregroundStyle(Color.brandAccent.opacity(0.5))
             }
             
+            // XP Redemption Link
+            NavigationLink {
+                XPRedemptionView()
+                    .environment(appState)
+                    .environmentObject(privyService)
+            } label: {
+                HStack {
+                    Image(systemName: "arrow.triangle.2.circlepath")
+                    Text("Redeem XP for $NUDGE")
+                }
+                .font(.headline)
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(Color.brandAccent)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+            }
+            
             Button {
                 showingClaimConfirmation = true
             } label: {
@@ -304,15 +322,17 @@ struct WalletView: View {
                             .tint(.white)
                     } else {
                         Image(systemName: "arrow.down.circle")
-                        Text("Claim Rewards")
+                        Text("Claim Pending Rewards")
                     }
                 }
-                .font(.headline)
-                .foregroundStyle(.white)
+                .font(.subheadline)
+                .foregroundStyle(hasPendingRewards ? Color.brandAccent : Color.textSecondary)
                 .frame(maxWidth: .infinity)
                 .padding()
-                .background(
-                    hasPendingRewards ? Color.brandAccent : Color.gray.opacity(0.3)
+                .background(Color.cardBackground)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(hasPendingRewards ? Color.brandAccent : Color.gray.opacity(0.3), lineWidth: 1)
                 )
                 .clipShape(RoundedRectangle(cornerRadius: 12))
             }

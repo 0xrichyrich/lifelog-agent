@@ -29,6 +29,7 @@ struct CheckInView: View {
     @State private var xpNotification: XPNotification?
     
     private let apiClient = APIClient()
+    private let outdoorService = OutdoorActivityService.shared
     @StateObject private var xpService = XPService()
     
     var body: some View {
@@ -302,6 +303,28 @@ struct CheckInView: View {
             await MainActor.run {
                 withAnimation(.smoothBounce) {
                     recentCheckIns.insert(newCheckIn, at: 0)
+                }
+            }
+            
+            // Sync wellness-type check-ins to outdoor service
+            if type.activityType == "wellness" {
+                let minutes: Int
+                let activityType: OutdoorActivityType
+                
+                switch type {
+                case .exercise:
+                    minutes = 30
+                    activityType = .generalOutdoor
+                case .walk:
+                    minutes = 10
+                    activityType = .walking
+                default:
+                    minutes = 15
+                    activityType = .generalOutdoor
+                }
+                
+                await MainActor.run {
+                    outdoorService.logOutdoorTime(minutes: minutes, type: activityType)
                 }
             }
             

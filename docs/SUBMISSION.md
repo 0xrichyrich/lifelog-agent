@@ -21,7 +21,7 @@
 | 🌐 Dashboard | [littlenudge.app](https://www.littlenudge.app) |
 | 📱 iOS App | TestFlight (com.skynet.nudge) |
 | 💻 GitHub | [github.com/0xrichyrich/lifelog-agent](https://github.com/0xrichyrich/lifelog-agent) |
-| 🪙 $NUDGE Token | `0xaEb52D53b6c3265580B91Be08C620Dc45F57a35F` |
+| 🪙 $NUDGE Token | `0x99cDfA46B933ea28Edf4BB620428E24C8EB63367` |
 | 🔗 Network | Monad Testnet (Chain ID: 10143) |
 
 **Target Track:** Agent+Token ($140K — 10 winners @ $10K + $40K liquidity boost)
@@ -185,7 +185,7 @@ User hires premium agent
 | Network | Monad Testnet |
 | Max Supply | 1,000,000,000 (1B) |
 | Decimals | 18 |
-| Contract | `0xaEb52D53b6c3265580B91Be08C620Dc45F57a35F` |
+| Contract | `0x99cDfA46B933ea28Edf4BB620428E24C8EB63367` |
 
 ### Earning $NUDGE
 
@@ -320,14 +320,14 @@ Content-Type: application/json
 HTTP/1.1 402 Payment Required
 X-Payment-Address: 0x2390C495896C78668416859d9dE84212fCB10801
 X-Payment-Amount: 500000000000000000
-X-Payment-Token: 0xaEb52D53b6c3265580B91Be08C620Dc45F57a35F
+X-Payment-Token: 0x99cDfA46B933ea28Edf4BB620428E24C8EB63367
 X-Payment-Network: monad-testnet
 
 {
   "error": "Payment Required",
   "payTo": "0x2390C495896C78668416859d9dE84212fCB10801",
   "amount": "500000000000000000",
-  "token": "0xaEb52D53b6c3265580B91Be08C620Dc45F57a35F"
+  "token": "0x99cDfA46B933ea28Edf4BB620428E24C8EB63367"
 }
 
 # Step 3: Pay on-chain and retry with proof
@@ -401,7 +401,7 @@ This enables a truly autonomous agent economy where AI agents can:
 
 | Contract | Address | Description |
 |----------|---------|-------------|
-| **NudgeToken** | `0xaEb52D53b6c3265580B91Be08C620Dc45F57a35F` | ERC-20 reward token |
+| **NudgeToken** | `0x99cDfA46B933ea28Edf4BB620428E24C8EB63367` | ERC-20 reward token |
 | **FeeSplitter** | `0xA3c103809d995a0e4d698b69f3DB9f2da643c053` | 80/20 fee distribution |
 | **NudgeBuyback** | `0x4E7825D923Cc09aA8be74C08B14c7Cd4A48522bc` | Treasury → buyback → users |
 | **Platform Wallet** | `0x2390C495896C78668416859d9dE84212fCB10801` | Payment receiver |
@@ -571,9 +571,9 @@ Built with 💚 by the **Skynet** team for the Moltiverse Hackathon.
 
 ### Contract Verification
 - **Network:** Monad Testnet (Chain ID: 10143)
-- **$NUDGE:** [0xaEb52D53b6c3265580B91Be08C620Dc45F57a35F](https://explorer.testnet.monad.xyz/address/0xaEb52D53b6c3265580B91Be08C620Dc45F57a35F)
-- **FeeSplitter:** [0xA3c103809d995a0e4d698b69f3DB9f2da643c053](https://explorer.testnet.monad.xyz/address/0xA3c103809d995a0e4d698b69f3DB9f2da643c053)
-- **NudgeBuyback:** [0x4E7825D923Cc09aA8be74C08B14c7Cd4A48522bc](https://explorer.testnet.monad.xyz/address/0x4E7825D923Cc09aA8be74C08B14c7Cd4A48522bc)
+- **$NUDGE:** [0x99cDfA46B933ea28Edf4BB620428E24C8EB63367](https://monadexplorer.com/address/0x99cDfA46B933ea28Edf4BB620428E24C8EB63367)
+- **FeeSplitter:** [0xA3c103809d995a0e4d698b69f3DB9f2da643c053](https://monadexplorer.com/address/0xA3c103809d995a0e4d698b69f3DB9f2da643c053)
+- **NudgeBuyback:** [0x4E7825D923Cc09aA8be74C08B14c7Cd4A48522bc](https://monadexplorer.com/address/0x4E7825D923Cc09aA8be74C08B14c7Cd4A48522bc)
 
 ### Documentation
 - [Smart Contract Source Code](../contracts/)

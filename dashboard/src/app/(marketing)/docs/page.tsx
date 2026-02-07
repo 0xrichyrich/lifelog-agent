@@ -381,7 +381,7 @@ const DOC_SECTIONS: DocSection[] = [
         <div className="space-y-3">
           <div className="p-4 bg-surface-light rounded-lg">
             <p className="text-sm text-text-muted mb-1">$NUDGE Token</p>
-            <code className="text-xs font-mono break-all">0xaEb52D53b6c3265580B91Be08C620Dc45F57a35F</code>
+            <code className="text-xs font-mono break-all">0x99cDfA46B933ea28Edf4BB620428E24C8EB63367</code>
           </div>
           <div className="p-4 bg-surface-light rounded-lg">
             <p className="text-sm text-text-muted mb-1">FeeSplitter</p>
