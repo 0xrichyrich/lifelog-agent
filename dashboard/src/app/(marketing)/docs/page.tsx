@@ -315,10 +315,13 @@ const DOC_SECTIONS: DocSection[] = [
             </li>
           </ul>
         </div>
-        <div className="bg-warning/10 border border-warning/30 rounded-lg p-4 mt-4">
+        <div className="bg-accent/10 border border-accent/30 rounded-lg p-4 mt-4">
           <p className="text-sm">
-            ⚠️ <strong>Testnet only:</strong> $NUDGE currently has no real monetary value. 
-            It exists on Monad Testnet for testing purposes.
+            🚀 <strong>Live on Monad:</strong> $NUDGE is live via{' '}
+            <a href="https://nad.fun/tokens/0x99cDfA46B933ea28Edf4BB620428E24C8EB63367" 
+               target="_blank" rel="noopener noreferrer" className="text-accent hover:underline font-medium">
+              nad.fun
+            </a>. Trade, earn, and spend tokens in the Nudge ecosystem!
           </p>
         </div>
       </div>
@@ -376,7 +379,7 @@ const DOC_SECTIONS: DocSection[] = [
     content: (
       <div className="space-y-4">
         <p>
-          Nudge runs on <strong>Monad Testnet</strong>. Here are the deployed contract addresses:
+          Nudge runs on <strong>Monad</strong>. Here are the deployed contract addresses:
         </p>
         <div className="space-y-3">
           <div className="p-4 bg-surface-light rounded-lg">
@@ -393,6 +396,26 @@ const DOC_SECTIONS: DocSection[] = [
             <code className="text-xs font-mono break-all">0x4E7825D923Cc09aA8be74C08B14c7Cd4A48522bc</code>
             <p className="text-xs text-text-muted mt-2">Executes buybacks and distributes to active users</p>
           </div>
+        </div>
+        <div className="flex flex-wrap gap-3 mt-4">
+          <a 
+            href="https://nad.fun/tokens/0x99cDfA46B933ea28Edf4BB620428E24C8EB63367" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="inline-flex items-center gap-2 px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent/90 transition-colors text-sm font-medium"
+          >
+            Trade $NUDGE on nad.fun
+            <ExternalLink className="w-4 h-4" />
+          </a>
+          <a 
+            href="https://monadexplorer.com/address/0x99cDfA46B933ea28Edf4BB620428E24C8EB63367" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="inline-flex items-center gap-2 px-4 py-2 bg-surface-light text-text rounded-lg hover:bg-accent/10 transition-colors text-sm font-medium"
+          >
+            View on Explorer
+            <ExternalLink className="w-4 h-4" />
+          </a>
         </div>
         <div className="bg-accent/10 border border-accent/20 rounded-lg p-4 mt-4">
           <p className="text-sm">
@@ -463,7 +486,7 @@ const DOC_SECTIONS: DocSection[] = [
           <ul className="space-y-1 text-sm text-text-muted">
             <li>• <strong>iOS:</strong> Swift, SwiftUI, HealthKit</li>
             <li>• <strong>Web:</strong> Next.js 14, TypeScript, Tailwind CSS</li>
-            <li>• <strong>Blockchain:</strong> Monad Testnet, Solidity, ethers.js</li>
+            <li>• <strong>Blockchain:</strong> Monad, Solidity, ethers.js</li>
             <li>• <strong>Auth:</strong> Privy</li>
             <li>• <strong>Payments:</strong> x402 protocol</li>
           </ul>

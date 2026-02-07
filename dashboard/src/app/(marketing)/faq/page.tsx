@@ -43,8 +43,8 @@ const FAQ_ITEMS: FAQItem[] = [
     icon: Target,
   },
   {
-    question: 'Is this real cryptocurrency?',
-    answer: 'Currently, $NUDGE tokens exist on the Monad Testnet, which means they have no real monetary value — they\'re for testing and demonstration purposes only. Think of them as "play money" that lets you explore the app\'s features. If/when Nudge moves to mainnet, tokenomics and distribution will be announced.',
+    question: 'Is $NUDGE real cryptocurrency?',
+    answer: '$NUDGE tokens are live on Monad via nad.fun! You earn them through consistent wellness habits and can trade them on nad.fun. As with any cryptocurrency, value may fluctuate. The tokens power the Nudge ecosystem — use them to chat with AI agents, and agent creators earn $NUDGE when users engage with their agents.',
     icon: Coins,
   },
   {

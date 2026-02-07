@@ -5,7 +5,7 @@ import { PLATFORM_WALLET, NUDGE_TOKEN, MONAD_TESTNET_RPC } from './constants';
 /**
  * On-Chain Payment Verification for x402 Protocol
  * 
- * Verifies payments on Monad Testnet by checking:
+ * Verifies payments on Monad Mainnet by checking:
  * 1. Transaction exists and succeeded
  * 2. Payment was sent to the platform wallet
  * 3. Amount meets or exceeds the expected amount

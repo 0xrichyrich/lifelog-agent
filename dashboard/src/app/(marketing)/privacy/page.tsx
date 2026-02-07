@@ -158,12 +158,12 @@ export default function PrivacyPage() {
               </div>
               <div className="text-text-muted leading-relaxed space-y-4">
                 <p>
-                  Nudge operates on the <strong className="text-text">Monad testnet blockchain</strong>. 
+                  Nudge operates on the <strong className="text-text">Monad blockchain</strong>. 
                   Please be aware that blockchain transactions are inherently public and transparent.
                 </p>
                 <p>
-                  This means your wallet address, token balances, XP redemptions, and transaction history on the 
-                  Monad testnet are publicly visible. However, this data is not linked to your 
+                  This means your wallet address, token balances, XP redemptions, and transaction history on 
+                  Monad are publicly visible. However, this data is not linked to your 
                   personal identity unless you choose to make that connection public.
                 </p>
                 <div className="space-y-2">
@@ -185,8 +185,11 @@ export default function PrivacyPage() {
                 </div>
                 <div className="bg-purple-50 border border-purple-200 rounded-xl p-4">
                   <p className="text-sm">
-                    <strong className="text-purple-600">Note:</strong> As a testnet application, 
-                    $NUDGE tokens have no real monetary value and are for testing purposes only.
+                    <strong className="text-purple-600">Note:</strong> $NUDGE tokens are live on Monad via{' '}
+                    <a href="https://nad.fun/tokens/0x99cDfA46B933ea28Edf4BB620428E24C8EB63367" 
+                       target="_blank" rel="noopener noreferrer" className="text-purple-600 hover:underline">
+                      nad.fun
+                    </a>. Token value may fluctuate.
                   </p>
                 </div>
               </div>

@@ -171,12 +171,13 @@ $LIFE will be listed on [nad.fun](https://nad.fun), Monad's native token launchp
 ## Roadmap
 
 ### Phase 1: Launch ✅
-- Deploy contract to Monad testnet
+- Deploy contract to Monad
 - Test reward/burn mechanics
 - Verify on explorer
 
-### Phase 2: Mainnet
+### Phase 2: Mainnet ✅
 - Deploy to Monad mainnet
+- Launch on nad.fun: https://nad.fun/tokens/0x99cDfA46B933ea28Edf4BB620428E24C8EB63367
 - List on nad.fun
 - Enable claiming in dashboard
 

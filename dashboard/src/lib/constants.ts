@@ -43,26 +43,36 @@ export function validatePlatformConfig(): void {
   }
 }
 
-// $NUDGE Token contract address on Monad Testnet
+// $NUDGE Token contract address on Monad Mainnet
 export const NUDGE_TOKEN = (process.env.NUDGE_TOKEN_ADDRESS || '0x99cDfA46B933ea28Edf4BB620428E24C8EB63367') as `0x${string}`;
 
-// Monad Testnet RPC
-export const MONAD_TESTNET_RPC = 'https://testnet-rpc.monad.xyz/';
+// $NUDGE nad.fun pool
+export const NUDGE_POOL = '0x861c41D7C04cc9c2A2bFD577cb8a7fc80BB8C663' as `0x${string}`;
+export const NADFUN_URL = 'https://nad.fun/tokens/0x99cDfA46B933ea28Edf4BB620428E24C8EB63367';
+export const GMGN_URL = 'https://gmgn.ai/monad/token/nadfun_0x99cDfA46B933ea28Edf4BB620428E24C8EB63367';
 
-// Monad Testnet chain configuration
-export const MONAD_TESTNET_CHAIN = {
-  id: 10143,
-  name: 'Monad Testnet',
-  network: 'monad-testnet',
+// Monad Mainnet RPC
+export const MONAD_RPC = 'https://monad.drpc.org';
+export const MONAD_RPC_FALLBACK = 'https://monad-mainnet.g.alchemy.com/v2/demo';
+
+// Monad Mainnet chain configuration
+export const MONAD_CHAIN = {
+  id: 143,
+  name: 'Monad',
+  network: 'monad',
   nativeCurrency: { name: 'Monad', symbol: 'MON', decimals: 18 },
   rpcUrls: {
-    default: { http: [MONAD_TESTNET_RPC] },
-    public: { http: [MONAD_TESTNET_RPC] },
+    default: { http: [MONAD_RPC] },
+    public: { http: [MONAD_RPC] },
   },
   blockExplorers: {
-    default: { name: 'Monad Explorer', url: 'https://testnet.monad.xyz' },
+    default: { name: 'Monad Explorer', url: 'https://monadexplorer.com' },
   },
 } as const;
+
+// Legacy aliases for backward compatibility
+export const MONAD_TESTNET_RPC = MONAD_RPC;
+export const MONAD_TESTNET_CHAIN = MONAD_CHAIN;
 
 // Token decimals
 export const NUDGE_DECIMALS = 18;

@@ -176,7 +176,7 @@ export default function WalletPage() {
           </button>
 
           <p className="text-xs text-text-muted mt-6">
-            Powered by Privy • Monad Testnet
+            Powered by Privy • Monad
           </p>
         </div>
       </div>
@@ -227,7 +227,7 @@ export default function WalletPage() {
                   {copied ? <Check className="w-4 h-4 text-success" /> : <Copy className="w-4 h-4" />}
                 </button>
                 <a
-                  href={`https://testnet.monadexplorer.com/address/${walletAddress}`}
+                  href={`https://monadexplorer.com/address/${walletAddress}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-text-muted hover:text-accent transition-colors"
@@ -264,7 +264,7 @@ export default function WalletPage() {
           <div className="flex justify-center gap-8 mt-6 pt-6 border-t border-surface-light">
             <div>
               <p className="text-sm text-text-muted">Network</p>
-              <p className="font-medium">Monad Testnet</p>
+              <p className="font-medium">Monad</p>
             </div>
             <div>
               <p className="text-sm text-text-muted">Token</p>

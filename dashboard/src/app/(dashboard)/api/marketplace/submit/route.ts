@@ -242,7 +242,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // On-chain verification via Monad Testnet RPC
+    // On-chain verification via Monad Mainnet RPC
     const verification = await verifyPaymentOnChain(
       body.paymentProof,
       LISTING_FEE_USDC, // Expected listing fee amount

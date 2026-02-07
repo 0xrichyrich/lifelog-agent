@@ -3,22 +3,22 @@
 import { PrivyProvider as Privy } from '@privy-io/react-auth';
 import { ReactNode } from 'react';
 
-// Monad Testnet chain config
-const monadTestnet = {
-  id: 10143,
-  name: 'Monad Testnet',
-  network: 'monad-testnet',
+// Monad Mainnet chain config
+const monadMainnet = {
+  id: 143,
+  name: 'Monad',
+  network: 'monad',
   nativeCurrency: {
     name: 'MON',
     symbol: 'MON',
     decimals: 18,
   },
   rpcUrls: {
-    default: { http: ['https://testnet-rpc.monad.xyz'] },
-    public: { http: ['https://testnet-rpc.monad.xyz'] },
+    default: { http: ['https://monad.drpc.org'] },
+    public: { http: ['https://monad.drpc.org'] },
   },
   blockExplorers: {
-    default: { name: 'Monad Explorer', url: 'https://testnet.monadexplorer.com' },
+    default: { name: 'Monad Explorer', url: 'https://monadexplorer.com' },
   },
 } as const;
 
@@ -46,8 +46,8 @@ export default function PrivyProvider({ children }: { children: ReactNode }) {
             createOnLogin: 'users-without-wallets',
           },
         },
-        defaultChain: monadTestnet,
-        supportedChains: [monadTestnet],
+        defaultChain: monadMainnet,
+        supportedChains: [monadMainnet],
       }}
     >
       {children}

@@ -59,39 +59,39 @@ export default function TermsPage() {
               </p>
             </div>
 
-            {/* Section 1 - Testnet Disclaimer */}
+            {/* Section 1 - Token Disclaimer */}
             <div className="mb-10">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 bg-warning/20 rounded-xl flex items-center justify-center">
                   <AlertTriangle className="w-5 h-5 text-warning" />
                 </div>
-                <h2 className="text-2xl font-bold">Testnet Disclaimer</h2>
+                <h2 className="text-2xl font-bold">Token Disclaimer</h2>
               </div>
               <div className="bg-warning/10 border border-warning/30 rounded-xl p-6 mb-4">
                 <p className="text-text leading-relaxed font-medium">
-                  ⚠️ Nudge currently operates on the Monad Testnet. This is a testing environment.
+                  ⚠️ $NUDGE is a utility token on Monad. Please read carefully before using.
                 </p>
               </div>
               <ul className="space-y-3 text-text-muted">
                 <li className="flex items-start gap-3">
                   <span className="text-warning font-bold">•</span>
-                  <span><strong className="text-text">$NUDGE tokens have no real monetary value</strong> — they are for testing purposes only</span>
+                  <span><strong className="text-text">$NUDGE tokens are not investment advice</strong> — value may fluctuate significantly</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-warning font-bold">•</span>
-                  <span><strong className="text-text">XP and token rewards</strong> are part of the gamification system and have no monetary value</span>
+                  <span><strong className="text-text">XP and token rewards</strong> are part of the wellness gamification system</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-warning font-bold">•</span>
-                  <span>Testnet tokens cannot be exchanged for real cryptocurrency or fiat currency</span>
+                  <span>You can trade $NUDGE on <a href="https://nad.fun/tokens/0x99cDfA46B933ea28Edf4BB620428E24C8EB63367" target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">nad.fun</a></span>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-warning font-bold">•</span>
-                  <span>Token balances, XP, and levels may be reset at any time during the testing period</span>
+                  <span>Cryptocurrency investments carry risk — only use funds you can afford to lose</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-warning font-bold">•</span>
-                  <span>Features and functionality may change without notice as we iterate</span>
+                  <span>Features and functionality may change as we continue to improve the platform</span>
                 </li>
               </ul>
             </div>

@@ -5,8 +5,8 @@ import { requireInternalAuth, validateContentType } from '@/lib/auth';
 import { checkRateLimit, RATE_LIMITS, addRateLimitHeaders } from '@/lib/rate-limit';
 import { NUDGE_TOKEN, MONAD_TESTNET_CHAIN, MAX_CLAIM_AMOUNT } from '@/lib/constants';
 
-// Monad Testnet configuration (from constants)
-const monadTestnet = MONAD_TESTNET_CHAIN;
+// Monad Mainnet configuration (from constants)
+const monadChain = MONAD_TESTNET_CHAIN;
 
 // ERC20 transfer ABI
 const erc20TransferAbi = [
@@ -90,13 +90,13 @@ export async function POST(request: NextRequest) {
       // Create wallet client for signing transactions
       const walletClient = createWalletClient({
         account,
-        chain: monadTestnet,
+        chain: monadChain,
         transport: http(),
       });
 
       // Create public client for reading chain data
       const publicClient = createPublicClient({
-        chain: monadTestnet,
+        chain: monadChain,
         transport: http(),
       });
 
@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
       const txHash = await walletClient.sendTransaction({
         to: NUDGE_TOKEN,
         data,
-        chain: monadTestnet,
+        chain: monadChain,
       });
 
       // Log without sensitive details in production

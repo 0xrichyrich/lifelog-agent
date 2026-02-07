@@ -22,7 +22,8 @@
 | 📱 iOS App | TestFlight (com.skynet.nudge) |
 | 💻 GitHub | [github.com/0xrichyrich/lifelog-agent](https://github.com/0xrichyrich/lifelog-agent) |
 | 🪙 $NUDGE Token | `0x99cDfA46B933ea28Edf4BB620428E24C8EB63367` |
-| 🔗 Network | Monad Testnet (Chain ID: 10143) |
+| 🔗 Network | Monad Mainnet (Chain ID: 143) |
+| 💱 Trade | [nad.fun](https://nad.fun/tokens/0x99cDfA46B933ea28Edf4BB620428E24C8EB63367) |
 
 **Target Track:** Agent+Token ($140K — 10 winners @ $10K + $40K liquidity boost)
 

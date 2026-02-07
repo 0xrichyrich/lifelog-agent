@@ -11,7 +11,7 @@ import { PLATFORM_WALLET } from '@/lib/constants';
  * Supports x402 micropayments for paid agents
  * 
  * Authentication: Requires X-API-Key header matching INTERNAL_API_KEY
- * Payment verification: Real on-chain verification on Monad Testnet
+ * Payment verification: Real on-chain verification on Monad Mainnet
  */
 
 // Maximum conversation history entries per session
@@ -117,7 +117,7 @@ interface PaymentRequest {
 }
 
 /**
- * On-chain payment verification via Monad Testnet RPC
+ * On-chain payment verification via Monad Mainnet RPC
  * 
  * Verifies:
  * 1. Transaction exists and succeeded on-chain
@@ -141,7 +141,7 @@ async function verifyPaymentProof(proof: PaymentProof, agentId: string): Promise
     return { valid: false, error: 'This transaction has already been used' };
   }
 
-  // Check chain is monad (or monad-testnet)
+  // Check chain is monad (mainnet chain ID 143)
   if (proof.chain && !proof.chain.toLowerCase().includes('monad')) {
     return { valid: false, error: 'Payment must be on Monad network' };
   }
@@ -150,7 +150,7 @@ async function verifyPaymentProof(proof: PaymentProof, agentId: string): Promise
   const pricing = AGENT_PRICING[agentId];
   const expectedAmount = pricing?.perMessage || 10000;
 
-  // On-chain verification via Monad Testnet RPC
+  // On-chain verification via Monad Mainnet RPC
   // Use $NUDGE token for payment verification
   const verification = await verifyPaymentOnChain(
     proof.txHash,

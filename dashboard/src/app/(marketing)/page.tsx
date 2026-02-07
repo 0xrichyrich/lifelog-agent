@@ -585,7 +585,7 @@ export default function LandingPage() {
           
           {/* Contract Addresses */}
           <div className="card">
-            <h3 className="text-xl font-bold mb-6">Smart Contracts (Monad Testnet)</h3>
+            <h3 className="text-xl font-bold mb-6">Smart Contracts (Monad)</h3>
             <div className="space-y-4">
               <div className="flex items-center justify-between p-4 bg-surface-light rounded-xl">
                 <div>
@@ -608,6 +608,29 @@ export default function LandingPage() {
                 </div>
                 <CopyButton text="0x4E7825D923Cc09aA8be74C08B14c7Cd4A48522bc" />
               </div>
+            </div>
+            
+            {/* Trade $NUDGE */}
+            <div className="mt-6 pt-6 border-t border-card-border flex flex-wrap justify-center gap-4">
+              <a 
+                href="https://nad.fun/tokens/0x99cDfA46B933ea28Edf4BB620428E24C8EB63367" 
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-primary inline-flex items-center gap-2 px-6 py-3 rounded-xl"
+              >
+                <Coins className="w-5 h-5" />
+                Trade $NUDGE on nad.fun
+                <ExternalLink className="w-4 h-4" />
+              </a>
+              <a 
+                href="https://monadexplorer.com/address/0x99cDfA46B933ea28Edf4BB620428E24C8EB63367" 
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-secondary inline-flex items-center gap-2 px-6 py-3 rounded-xl"
+              >
+                View on Explorer
+                <ExternalLink className="w-4 h-4" />
+              </a>
             </div>
           </div>
         </div>
