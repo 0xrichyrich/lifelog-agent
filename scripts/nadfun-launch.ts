@@ -14,6 +14,12 @@
 
 import { ethers } from 'ethers';
 import * as dotenv from 'dotenv';
+import * as fs from 'fs';
+import * as path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 dotenv.config();
 
@@ -67,69 +73,13 @@ const CONFIG = {
 };
 
 // ============================================
-// ABIs
+// ABIs (loaded from files)
 // ============================================
 
-const BONDING_CURVE_ROUTER_ABI = [
-  {
-    type: 'function',
-    name: 'create',
-    inputs: [
-      {
-        name: 'params',
-        type: 'tuple',
-        components: [
-          { name: 'name', type: 'string' },
-          { name: 'symbol', type: 'string' },
-          { name: 'tokenURI', type: 'string' },
-          { name: 'amountOut', type: 'uint256' },
-          { name: 'salt', type: 'bytes32' },
-          { name: 'actionId', type: 'uint8' },
-        ],
-      },
-    ],
-    outputs: [
-      { name: 'token', type: 'address' },
-      { name: 'pool', type: 'address' },
-    ],
-    stateMutability: 'payable',
-  },
-];
-
-const LENS_ABI = [
-  {
-    type: 'function',
-    name: 'getInitialBuyAmountOut',
-    inputs: [{ name: '_amountIn', type: 'uint256' }],
-    outputs: [{ name: 'amountOut', type: 'uint256' }],
-    stateMutability: 'view',
-  },
-];
-
-const BONDING_CURVE_ABI = [
-  {
-    type: 'function',
-    name: 'config',
-    inputs: [],
-    outputs: [
-      { name: 'virtualMonReserve', type: 'uint256' },
-      { name: 'virtualTokenReserve', type: 'uint256' },
-      { name: 'targetTokenAmount', type: 'uint256' },
-    ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'feeConfig',
-    inputs: [],
-    outputs: [
-      { name: 'deployFeeAmount', type: 'uint256' },
-      { name: 'graduateFeeAmount', type: 'uint256' },
-      { name: 'protocolFee', type: 'uint24' },
-    ],
-    stateMutability: 'view',
-  },
-];
+const abiDir = path.join(__dirname, 'abi');
+const BONDING_CURVE_ROUTER_ABI = JSON.parse(fs.readFileSync(path.join(abiDir, 'IBondingCurveRouter.json'), 'utf-8'));
+const LENS_ABI = JSON.parse(fs.readFileSync(path.join(abiDir, 'ILens.json'), 'utf-8'));
+const BONDING_CURVE_ABI = JSON.parse(fs.readFileSync(path.join(abiDir, 'IBondingCurve.json'), 'utf-8'));
 
 // ============================================
 // HELPER FUNCTIONS
@@ -280,40 +230,74 @@ async function main() {
   console.log(`  Deploy Fee: ${formatMon(deployFeeAmount)}`);
   console.log(`  Protocol Fee: ${Number(protocolFee) / 10000}%`);
 
-  // Calculate costs
-  console.log('\n--- Cost Calculation ---');
+  // Calculate costs using Lens (authoritative, includes fees)
+  console.log('\n--- Cost Calculation (Lens-based) ---');
+
+  // Strategy: Use Lens.getInitialBuyAmountOut to find how many tokens we get
+  // for a given MON amount. The contract handles fees internally.
+  // We send: deployFee + monForBuy as msg.value
+  // The contract takes the 1% fee from monForBuy internally.
+
+  // Start with our target: ~2% of supply (20M tokens)
+  // Use binary search with Lens to find the right MON input
   const targetTokens = CONFIG.initialBuy.targetTokens;
   console.log(`Target tokens: ${formatTokens(targetTokens)} (${CONFIG.initialBuy.targetPercent}% of supply)`);
 
-  // Method 1: Manual calculation
+  // First, check what the manual calculation says
   const monNeededRaw = calculateMonNeededForTokens(
     targetTokens,
     virtualMonReserve,
     virtualTokenReserve
   );
-  console.log(`MON needed (raw): ${formatMon(monNeededRaw)}`);
+  console.log(`MON needed (raw constant-product): ${formatMon(monNeededRaw)}`);
 
-  // Add trading fee
-  // protocolFee is in basis points where 1,000,000 = 100%, so 10000 = 1%
-  const feePercent = Number(protocolFee) / 10000;
-  const tradingFee = (monNeededRaw * BigInt(protocolFee)) / 1000000n;
-  const monWithFee = monNeededRaw + tradingFee;
-  console.log(`Trading fee (${feePercent}%): ${formatMon(tradingFee)}`);
-  console.log(`MON with fee: ${formatMon(monWithFee)}`);
-
-  // Add deploy fee
-  const totalCost = monWithFee + deployFeeAmount;
-  console.log(`Deploy fee: ${formatMon(deployFeeAmount)}`);
-  console.log(`Total cost: ${formatMon(totalCost)}`);
-
-  // Verify with Lens contract
+  // Use Lens to verify - try different MON amounts
   console.log('\n--- Lens Verification ---');
+  let monForBuy = monNeededRaw; // Start with raw estimate
+  let lensTokensOut: bigint = 0n;
   try {
-    const lensTokensOut = await lens.getInitialBuyAmountOut(monWithFee);
-    console.log(`Lens estimate for ${formatMon(monWithFee)}: ${formatTokens(lensTokensOut)} tokens`);
+    // The Lens getInitialBuyAmountOut includes fees in the calculation
+    // It takes the MON you'd send for the buy portion and returns tokens
+    lensTokensOut = await lens.getInitialBuyAmountOut(monForBuy);
+    console.log(`Lens: ${formatMon(monForBuy)} → ${formatTokens(lensTokensOut)} tokens`);
+
+    // If Lens gives fewer tokens than target, we need to send more MON
+    // Binary search for the right amount
+    if (lensTokensOut < targetTokens) {
+      console.log('Lens returns less than target — adjusting...');
+      let lo = monForBuy;
+      let hi = monForBuy * 2n;
+      for (let i = 0; i < 20; i++) {
+        const mid = (lo + hi) / 2n;
+        const midOut = await lens.getInitialBuyAmountOut(mid);
+        if (midOut >= targetTokens) {
+          hi = mid;
+          monForBuy = mid;
+          lensTokensOut = midOut;
+        } else {
+          lo = mid;
+        }
+      }
+      console.log(`Adjusted: ${formatMon(monForBuy)} → ${formatTokens(lensTokensOut)} tokens`);
+    }
+
+    // Use what Lens says we'll get as amountOut (with 1% slippage tolerance)
+    const amountOutFromLens = lensTokensOut;
+    const amountOutMin = (amountOutFromLens * 99n) / 100n; // 1% slippage
+    console.log(`Using amountOut: ${formatTokens(amountOutFromLens)} (Lens estimate)`);
+    console.log(`Min acceptable (1% slippage): ${formatTokens(amountOutMin)}`);
+
   } catch (e) {
-    console.log('Lens verification skipped (may not support this query)');
+    console.log(`Lens call failed: ${e}`);
+    console.log('Falling back to manual calculation');
+    lensTokensOut = targetTokens;
   }
+
+  // Total value = deploy fee + MON for buy
+  const totalCost = deployFeeAmount + monForBuy;
+  console.log(`\nDeploy fee: ${formatMon(deployFeeAmount)}`);
+  console.log(`MON for buy: ${formatMon(monForBuy)}`);
+  console.log(`Total value to send: ${formatMon(totalCost)}`);
 
   // Check if we have enough balance
   console.log('\n--- Balance Check ---');
@@ -335,20 +319,22 @@ async function main() {
   console.log(`\nWith 5% gas buffer: ${formatMon(totalWithBuffer)}`);
 
   // Token creation parameters
+  // Use Lens-verified amountOut (what we actually expect to receive)
   console.log('\n--- Token Parameters ---');
   const salt = generateSalt();
+  const actualAmountOut = lensTokensOut || targetTokens;
   const params = {
     name: CONFIG.token.name,
     symbol: CONFIG.token.symbol,
     tokenURI: CONFIG.token.tokenURI,
-    amountOut: targetTokens,
+    amountOut: actualAmountOut,
     salt: salt,
-    actionId: 0,
+    actionId: 1, // Mainnet requires actionId=1
   };
   console.log(`Name: ${params.name}`);
   console.log(`Symbol: ${params.symbol}`);
   console.log(`TokenURI: ${params.tokenURI}`);
-  console.log(`AmountOut: ${formatTokens(params.amountOut)} tokens`);
+  console.log(`AmountOut: ${formatTokens(params.amountOut)} tokens (from Lens)`);
   console.log(`Salt: ${salt.substring(0, 18)}...`);
 
   // DRY RUN - stop here
@@ -373,7 +359,7 @@ async function main() {
     console.log('\nSending transaction...');
     const tx = await router.create(params, {
       value: totalCost,
-      gasLimit: 1_000_000n, // Conservative gas limit
+      gasLimit: 10_000_000n, // nad.fun create uses ~7M gas
     });
     console.log(`Transaction hash: ${tx.hash}`);
     console.log('Waiting for confirmation...');
@@ -409,7 +395,7 @@ async function main() {
     console.log('\n📋 Summary:');
     console.log(`  TX Hash: ${tx.hash}`);
     console.log(`  Total Cost: ${formatMon(totalCost)}`);
-    console.log(`  Tokens Bought: ~${formatTokens(targetTokens)}`);
+    console.log(`  Tokens Bought: ~${formatTokens(actualAmountOut)}`);
 
   } catch (error) {
     console.error('\n❌ Transaction failed:');
