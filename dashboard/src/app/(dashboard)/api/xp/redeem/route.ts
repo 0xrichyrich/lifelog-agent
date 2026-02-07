@@ -1,34 +1,39 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { redeemXP, getRedemptionBoost, getOrCreateUser } from '@/lib/xp';
-import { validateApiKey } from '@/lib/auth';
+import { 
+  redeemXPForNudge, 
+  getRedemptionStatus 
+} from '@/lib/xp-turso';
 import { checkRateLimit, RATE_LIMITS, addRateLimitHeaders } from '@/lib/rate-limit';
+import { validatePositiveInt } from '@/lib/validation';
 
 /**
- * POST /api/xp/redeem
- * Redeem XP for $NUDGE tokens
+ * GET /api/xp/redeem?userId=xxx
+ * Get user's redemption status including daily cap, rates, and weekly pool info
  * 
- * Base rate: 1000 XP = 100 NUDGE (10 XP per NUDGE)
- * Level boosts:
- *   - Level 5+: 10% boost
- *   - Level 10+: 25% boost
- *   - Level 20+: 50% boost
- * 
- * Body:
- *   userId: string (required)
- *   xpAmount: number (required, minimum 100)
+ * Response:
+ * {
+ *   dailyRedeemed: number,
+ *   dailyCap: 250,
+ *   dailyRemaining: number,
+ *   rate: number (XP per NUDGE),
+ *   streakMultiplier: number,
+ *   level: number,
+ *   weeklyPool: {
+ *     totalPool: 50000,
+ *     userWeeklyXP: number,
+ *     estimatedShare: number (percentage),
+ *     endsAt: string (ISO date)
+ *   }
+ * }
  */
-export async function POST(request: NextRequest) {
-  // Authentication required for redemption
-  const authError = validateApiKey(request);
-  if (authError) return authError;
-  
+export async function GET(request: NextRequest) {
   // Rate limiting
-  const rateLimitError = checkRateLimit(request, RATE_LIMITS.write);
+  const rateLimitError = checkRateLimit(request, RATE_LIMITS.read);
   if (rateLimitError) return rateLimitError;
   
   try {
-    const body = await request.json();
-    const { userId, xpAmount } = body;
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get('userId');
     
     if (!userId) {
       return NextResponse.json(
@@ -37,38 +42,105 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    if (!xpAmount || typeof xpAmount !== 'number' || xpAmount < 100) {
+    const status = await getRedemptionStatus(userId);
+    
+    const response = NextResponse.json({
+      success: true,
+      data: status,
+    });
+    return addRateLimitHeaders(response, RATE_LIMITS.read, request);
+  } catch (error) {
+    console.error('Failed to get redemption status:', error);
+    return NextResponse.json(
+      { error: 'Failed to get redemption status' },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * POST /api/xp/redeem
+ * Redeem XP for $NUDGE tokens
+ * 
+ * Tiered rates by level:
+ *   - Level 1-5: 10 XP = 1 $NUDGE
+ *   - Level 6-10: 8 XP = 1 $NUDGE
+ *   - Level 11+: 5 XP = 1 $NUDGE
+ * 
+ * Streak multipliers:
+ *   - 7+ day streak: 1.5x
+ *   - 30+ day streak: 2x
+ * 
+ * Daily cap: 250 $NUDGE
+ * 
+ * Body:
+ *   userId: string (required)
+ *   xpAmount: number (required, positive)
+ * 
+ * Response:
+ * {
+ *   nudgeAwarded: number,
+ *   xpSpent: number,
+ *   rate: number,
+ *   streakMultiplier: number,
+ *   dailyRemaining: number,
+ *   level: number
+ * }
+ */
+export async function POST(request: NextRequest) {
+  // Rate limiting
+  const rateLimitError = checkRateLimit(request, RATE_LIMITS.token);
+  if (rateLimitError) return rateLimitError;
+  
+  try {
+    const body = await request.json();
+    const { userId, xpAmount } = body;
+    
+    if (!userId || typeof userId !== 'string') {
       return NextResponse.json(
-        { error: 'xpAmount must be at least 100' },
+        { error: 'userId is required and must be a string' },
         { status: 400 }
       );
     }
     
-    const result = redeemXP(userId, xpAmount);
-    
-    if ('error' in result) {
+    // Validate xpAmount
+    const xpValidation = validatePositiveInt(xpAmount, { min: 1, max: 100000 });
+    if (!xpValidation.valid) {
       return NextResponse.json(
-        { error: result.error },
+        { error: xpValidation.error || 'Invalid xpAmount' },
         { status: 400 }
       );
     }
     
-    // Get updated user state
-    const user = getOrCreateUser(userId);
+    const result = await redeemXPForNudge(userId, xpValidation.value!);
+    
+    if (!result.success) {
+      return NextResponse.json(
+        { 
+          error: result.error,
+          data: {
+            rate: result.rate,
+            streakMultiplier: result.streakMultiplier,
+            dailyRemaining: result.dailyRemaining,
+            level: result.level,
+          }
+        },
+        { status: 400 }
+      );
+    }
     
     const response = NextResponse.json({
       success: true,
       data: {
-        redemptionId: result.id,
+        nudgeAwarded: result.nudgeAwarded,
         xpSpent: result.xpSpent,
-        nudgeReceived: result.nudgeReceived,
-        remainingXP: user.currentXP,
-        levelBoostApplied: getRedemptionBoost(user.level),
-        // Note: txHash will be updated after blockchain confirmation
-        message: 'Redemption queued. $NUDGE tokens will be distributed shortly.',
+        rate: result.rate,
+        streakMultiplier: result.streakMultiplier,
+        dailyRemaining: result.dailyRemaining,
+        level: result.level,
       },
     });
-    return addRateLimitHeaders(response, RATE_LIMITS.write, request);
+    return addRateLimitHeaders(response, RATE_LIMITS.token, request);
   } catch (error) {
     console.error('Failed to redeem XP:', error);
     return NextResponse.json(

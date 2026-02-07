@@ -80,6 +80,30 @@ function getClient(): Client {
   return _client;
 }
 
+// ============================================
+// REDEMPTION CONSTANTS
+// ============================================
+
+// Tiered XP-per-NUDGE rates based on level
+const XP_PER_NUDGE_BY_LEVEL = {
+  LOW: 10,    // Levels 1-5: 10 XP = 1 NUDGE
+  MID: 8,     // Levels 6-10: 8 XP = 1 NUDGE
+  HIGH: 5,    // Levels 11+: 5 XP = 1 NUDGE
+};
+
+// Streak multipliers
+const STREAK_MULTIPLIERS = {
+  BASE: 1.0,
+  WEEK: 1.5,   // 7+ day streak
+  MONTH: 2.0,  // 30+ day streak
+};
+
+// Daily cap
+const DAILY_NUDGE_CAP = 250;
+
+// Weekly pool
+const WEEKLY_POOL_AMOUNT = 50000;
+
 // Initialize XP tables
 let initialized = false;
 export async function initializeXPTables(): Promise<void> {
@@ -109,8 +133,51 @@ export async function initializeXPTables(): Promise<void> {
     )
   `);
   
+  // Redemption tracking table
+  await client.execute(`
+    CREATE TABLE IF NOT EXISTS nudge_redemptions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      userId TEXT NOT NULL,
+      xpSpent INTEGER NOT NULL,
+      nudgeAwarded REAL NOT NULL,
+      streakMultiplier REAL NOT NULL DEFAULT 1.0,
+      level INTEGER NOT NULL,
+      createdAt TEXT NOT NULL
+    )
+  `);
+  
+  // Weekly pool table
+  await client.execute(`
+    CREATE TABLE IF NOT EXISTS weekly_pool (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      weekStart TEXT NOT NULL,
+      weekEnd TEXT NOT NULL,
+      totalPool REAL NOT NULL DEFAULT 50000,
+      distributed INTEGER NOT NULL DEFAULT 0,
+      distributedAt TEXT,
+      createdAt TEXT NOT NULL
+    )
+  `);
+  
+  // Weekly pool claims
+  await client.execute(`
+    CREATE TABLE IF NOT EXISTS weekly_pool_claims (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      poolId INTEGER NOT NULL,
+      userId TEXT NOT NULL,
+      weeklyXP INTEGER NOT NULL,
+      sharePercent REAL NOT NULL,
+      nudgeAwarded REAL NOT NULL,
+      claimedAt TEXT NOT NULL,
+      FOREIGN KEY (poolId) REFERENCES weekly_pool(id)
+    )
+  `);
+  
   await client.execute(`CREATE INDEX IF NOT EXISTS idx_user_xp_userId ON user_xp(userId)`);
   await client.execute(`CREATE INDEX IF NOT EXISTS idx_xp_transactions_userId ON xp_transactions(userId)`);
+  await client.execute(`CREATE INDEX IF NOT EXISTS idx_nudge_redemptions_userId ON nudge_redemptions(userId)`);
+  await client.execute(`CREATE INDEX IF NOT EXISTS idx_nudge_redemptions_createdAt ON nudge_redemptions(createdAt)`);
+  await client.execute(`CREATE INDEX IF NOT EXISTS idx_weekly_pool_claims_poolId ON weekly_pool_claims(poolId)`);
   
   initialized = true;
 }
@@ -329,5 +396,531 @@ export async function getLeaderboard(limit: number = 10): Promise<LeaderboardEnt
     totalXP: Number(row.totalXP),
     level: Number(row.level),
     rank: index + 1,
+  }));
+}
+
+// ============================================
+// NUDGE REDEMPTION FUNCTIONS
+// ============================================
+
+export interface RedemptionResult {
+  success: boolean;
+  nudgeAwarded: number;
+  xpSpent: number;
+  rate: number;
+  streakMultiplier: number;
+  dailyRemaining: number;
+  level: number;
+  error?: string;
+}
+
+export interface RedemptionStatus {
+  dailyRedeemed: number;
+  dailyCap: number;
+  dailyRemaining: number;
+  rate: number;
+  streakMultiplier: number;
+  level: number;
+  weeklyPool: {
+    totalPool: number;
+    userWeeklyXP: number;
+    estimatedShare: number;
+    endsAt: string;
+  };
+}
+
+export interface RedemptionHistoryEntry {
+  id: number;
+  xpSpent: number;
+  nudgeAwarded: number;
+  streakMultiplier: number;
+  level: number;
+  createdAt: string;
+}
+
+export interface WeeklyPoolStatus {
+  pool: {
+    id: number;
+    weekStart: string;
+    weekEnd: string;
+    totalPool: number;
+    distributed: boolean;
+  };
+  userShare: {
+    weeklyXP: number;
+    estimatedShare: number;
+    estimatedNudge: number;
+  };
+  leaderboard: Array<{
+    userId: string;
+    weeklyXP: number;
+    estimatedShare: number;
+    rank: number;
+  }>;
+}
+
+/**
+ * Get XP-per-NUDGE rate based on user level
+ */
+export function getRedemptionRate(level: number): number {
+  if (level <= 5) return XP_PER_NUDGE_BY_LEVEL.LOW;
+  if (level <= 10) return XP_PER_NUDGE_BY_LEVEL.MID;
+  return XP_PER_NUDGE_BY_LEVEL.HIGH;
+}
+
+/**
+ * Get streak multiplier based on streak days
+ */
+export function getStreakMultiplier(streak: number): number {
+  if (streak >= 30) return STREAK_MULTIPLIERS.MONTH;
+  if (streak >= 7) return STREAK_MULTIPLIERS.WEEK;
+  return STREAK_MULTIPLIERS.BASE;
+}
+
+/**
+ * Get how much $NUDGE the user has redeemed today
+ */
+export async function getDailyRedemptionTotal(userId: string): Promise<number> {
+  await initializeXPTables();
+  const client = getClient();
+  
+  const today = new Date().toISOString().split('T')[0];
+  
+  const result = await client.execute({
+    sql: `SELECT COALESCE(SUM(nudgeAwarded), 0) as total 
+          FROM nudge_redemptions 
+          WHERE userId = ? AND DATE(createdAt) = ?`,
+    args: [userId, today],
+  });
+  
+  return Number(result.rows[0]?.total ?? 0);
+}
+
+/**
+ * Get start and end of current week (Sunday to Saturday)
+ */
+function getCurrentWeekRange(): { weekStart: string; weekEnd: string } {
+  const now = new Date();
+  const dayOfWeek = now.getDay(); // 0 = Sunday
+  
+  // Start of week (Sunday)
+  const weekStart = new Date(now);
+  weekStart.setDate(now.getDate() - dayOfWeek);
+  weekStart.setHours(0, 0, 0, 0);
+  
+  // End of week (Saturday 23:59:59)
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekStart.getDate() + 6);
+  weekEnd.setHours(23, 59, 59, 999);
+  
+  return {
+    weekStart: weekStart.toISOString().split('T')[0],
+    weekEnd: weekEnd.toISOString().split('T')[0],
+  };
+}
+
+/**
+ * Get or create current week's pool
+ */
+async function getOrCreateCurrentPool(): Promise<{
+  id: number;
+  weekStart: string;
+  weekEnd: string;
+  totalPool: number;
+  distributed: boolean;
+}> {
+  const client = getClient();
+  const { weekStart, weekEnd } = getCurrentWeekRange();
+  
+  // Check if pool exists for this week
+  const result = await client.execute({
+    sql: `SELECT * FROM weekly_pool WHERE weekStart = ? AND weekEnd = ?`,
+    args: [weekStart, weekEnd],
+  });
+  
+  if (result.rows.length > 0) {
+    const row = result.rows[0];
+    return {
+      id: Number(row.id),
+      weekStart: String(row.weekStart),
+      weekEnd: String(row.weekEnd),
+      totalPool: Number(row.totalPool),
+      distributed: Boolean(row.distributed),
+    };
+  }
+  
+  // Create new pool
+  const now = new Date().toISOString();
+  const insertResult = await client.execute({
+    sql: `INSERT INTO weekly_pool (weekStart, weekEnd, totalPool, distributed, createdAt)
+          VALUES (?, ?, ?, 0, ?)`,
+    args: [weekStart, weekEnd, WEEKLY_POOL_AMOUNT, now],
+  });
+  
+  return {
+    id: Number(insertResult.lastInsertRowid),
+    weekStart,
+    weekEnd,
+    totalPool: WEEKLY_POOL_AMOUNT,
+    distributed: false,
+  };
+}
+
+/**
+ * Get user's weekly XP (earned this week)
+ */
+async function getUserWeeklyXP(userId: string, weekStart: string, weekEnd: string): Promise<number> {
+  const client = getClient();
+  
+  const result = await client.execute({
+    sql: `SELECT COALESCE(SUM(amount), 0) as total 
+          FROM xp_transactions 
+          WHERE userId = ? AND DATE(createdAt) >= ? AND DATE(createdAt) <= ?`,
+    args: [userId, weekStart, weekEnd],
+  });
+  
+  return Number(result.rows[0]?.total ?? 0);
+}
+
+/**
+ * Get total XP earned by all users this week
+ */
+async function getTotalWeeklyXP(weekStart: string, weekEnd: string): Promise<number> {
+  const client = getClient();
+  
+  const result = await client.execute({
+    sql: `SELECT COALESCE(SUM(amount), 0) as total 
+          FROM xp_transactions 
+          WHERE DATE(createdAt) >= ? AND DATE(createdAt) <= ?`,
+    args: [weekStart, weekEnd],
+  });
+  
+  return Number(result.rows[0]?.total ?? 0);
+}
+
+/**
+ * Redeem XP for $NUDGE tokens
+ */
+export async function redeemXPForNudge(
+  userId: string,
+  xpAmount: number
+): Promise<RedemptionResult> {
+  await initializeXPTables();
+  const client = getClient();
+  
+  // Validate XP amount
+  if (!xpAmount || xpAmount <= 0) {
+    return {
+      success: false,
+      nudgeAwarded: 0,
+      xpSpent: 0,
+      rate: 0,
+      streakMultiplier: 1,
+      dailyRemaining: 0,
+      level: 1,
+      error: 'xpAmount must be positive',
+    };
+  }
+  
+  // Get user data
+  const user = await getOrCreateUser(userId);
+  const streak = await calculateStreak(userId);
+  
+  // Calculate rates
+  const rate = getRedemptionRate(user.level);
+  const streakMultiplier = getStreakMultiplier(streak);
+  
+  // Check user has enough XP
+  if (xpAmount > user.currentXP) {
+    return {
+      success: false,
+      nudgeAwarded: 0,
+      xpSpent: 0,
+      rate,
+      streakMultiplier,
+      dailyRemaining: DAILY_NUDGE_CAP - await getDailyRedemptionTotal(userId),
+      level: user.level,
+      error: `Insufficient XP. Have ${user.currentXP}, need ${xpAmount}`,
+    };
+  }
+  
+  // Calculate base NUDGE (before streak multiplier)
+  const baseNudge = xpAmount / rate;
+  
+  // Apply streak multiplier
+  const nudgeWithStreak = baseNudge * streakMultiplier;
+  
+  // Check daily cap
+  const dailyRedeemed = await getDailyRedemptionTotal(userId);
+  const dailyRemaining = DAILY_NUDGE_CAP - dailyRedeemed;
+  
+  if (dailyRemaining <= 0) {
+    return {
+      success: false,
+      nudgeAwarded: 0,
+      xpSpent: 0,
+      rate,
+      streakMultiplier,
+      dailyRemaining: 0,
+      level: user.level,
+      error: 'Daily redemption cap reached (250 $NUDGE)',
+    };
+  }
+  
+  // Cap the NUDGE at daily remaining
+  const finalNudge = Math.min(nudgeWithStreak, dailyRemaining);
+  
+  // If capped, recalculate actual XP spent
+  let actualXpSpent = xpAmount;
+  if (finalNudge < nudgeWithStreak) {
+    // We're hitting the cap, so only spend what's needed for the capped amount
+    actualXpSpent = Math.ceil((finalNudge / streakMultiplier) * rate);
+  }
+  
+  const now = new Date().toISOString();
+  
+  // Deduct XP from user
+  await client.execute({
+    sql: `UPDATE user_xp SET currentXP = currentXP - ?, lastActivityAt = ? WHERE userId = ?`,
+    args: [actualXpSpent, now, userId],
+  });
+  
+  // Record redemption
+  await client.execute({
+    sql: `INSERT INTO nudge_redemptions (userId, xpSpent, nudgeAwarded, streakMultiplier, level, createdAt)
+          VALUES (?, ?, ?, ?, ?, ?)`,
+    args: [userId, actualXpSpent, finalNudge, streakMultiplier, user.level, now],
+  });
+  
+  return {
+    success: true,
+    nudgeAwarded: Math.round(finalNudge * 100) / 100,
+    xpSpent: actualXpSpent,
+    rate,
+    streakMultiplier,
+    dailyRemaining: Math.max(0, dailyRemaining - finalNudge),
+    level: user.level,
+  };
+}
+
+/**
+ * Get user's redemption status (for GET request)
+ */
+export async function getRedemptionStatus(userId: string): Promise<RedemptionStatus> {
+  await initializeXPTables();
+  
+  const user = await getOrCreateUser(userId);
+  const streak = await calculateStreak(userId);
+  const dailyRedeemed = await getDailyRedemptionTotal(userId);
+  
+  const rate = getRedemptionRate(user.level);
+  const streakMultiplier = getStreakMultiplier(streak);
+  
+  // Get weekly pool info
+  const pool = await getOrCreateCurrentPool();
+  const userWeeklyXP = await getUserWeeklyXP(userId, pool.weekStart, pool.weekEnd);
+  const totalWeeklyXP = await getTotalWeeklyXP(pool.weekStart, pool.weekEnd);
+  
+  const estimatedShare = totalWeeklyXP > 0 
+    ? (userWeeklyXP / totalWeeklyXP) * 100 
+    : 0;
+  
+  return {
+    dailyRedeemed: Math.round(dailyRedeemed * 100) / 100,
+    dailyCap: DAILY_NUDGE_CAP,
+    dailyRemaining: Math.max(0, DAILY_NUDGE_CAP - dailyRedeemed),
+    rate,
+    streakMultiplier,
+    level: user.level,
+    weeklyPool: {
+      totalPool: pool.totalPool,
+      userWeeklyXP,
+      estimatedShare: Math.round(estimatedShare * 100) / 100,
+      endsAt: pool.weekEnd + 'T23:59:59Z',
+    },
+  };
+}
+
+/**
+ * Get weekly pool status with leaderboard
+ */
+export async function getWeeklyPoolStatus(userId: string): Promise<WeeklyPoolStatus> {
+  await initializeXPTables();
+  const client = getClient();
+  
+  const pool = await getOrCreateCurrentPool();
+  const userWeeklyXP = await getUserWeeklyXP(userId, pool.weekStart, pool.weekEnd);
+  const totalWeeklyXP = await getTotalWeeklyXP(pool.weekStart, pool.weekEnd);
+  
+  const estimatedShare = totalWeeklyXP > 0 
+    ? (userWeeklyXP / totalWeeklyXP) * 100 
+    : 0;
+  
+  const estimatedNudge = totalWeeklyXP > 0
+    ? (userWeeklyXP / totalWeeklyXP) * pool.totalPool
+    : 0;
+  
+  // Get leaderboard (top 10 XP earners this week)
+  const leaderboardResult = await client.execute({
+    sql: `SELECT userId, SUM(amount) as weeklyXP 
+          FROM xp_transactions 
+          WHERE DATE(createdAt) >= ? AND DATE(createdAt) <= ?
+          GROUP BY userId 
+          ORDER BY weeklyXP DESC 
+          LIMIT 10`,
+    args: [pool.weekStart, pool.weekEnd],
+  });
+  
+  const leaderboard = leaderboardResult.rows.map((row, index) => {
+    const weeklyXP = Number(row.weeklyXP);
+    const share = totalWeeklyXP > 0 ? (weeklyXP / totalWeeklyXP) * 100 : 0;
+    return {
+      userId: String(row.userId),
+      weeklyXP,
+      estimatedShare: Math.round(share * 100) / 100,
+      rank: index + 1,
+    };
+  });
+  
+  return {
+    pool: {
+      id: pool.id,
+      weekStart: pool.weekStart,
+      weekEnd: pool.weekEnd,
+      totalPool: pool.totalPool,
+      distributed: pool.distributed,
+    },
+    userShare: {
+      weeklyXP: userWeeklyXP,
+      estimatedShare: Math.round(estimatedShare * 100) / 100,
+      estimatedNudge: Math.round(estimatedNudge * 100) / 100,
+    },
+    leaderboard,
+  };
+}
+
+/**
+ * Distribute weekly pool to all users proportionally
+ * Should be called on Sunday evening / Monday morning
+ */
+export async function distributeWeeklyPool(): Promise<{
+  success: boolean;
+  poolId: number;
+  totalDistributed: number;
+  claimsCount: number;
+  error?: string;
+}> {
+  await initializeXPTables();
+  const client = getClient();
+  
+  // Get the most recent undistributed pool
+  const poolResult = await client.execute({
+    sql: `SELECT * FROM weekly_pool WHERE distributed = 0 ORDER BY weekEnd DESC LIMIT 1`,
+    args: [],
+  });
+  
+  if (poolResult.rows.length === 0) {
+    return {
+      success: false,
+      poolId: 0,
+      totalDistributed: 0,
+      claimsCount: 0,
+      error: 'No undistributed pool found',
+    };
+  }
+  
+  const pool = poolResult.rows[0];
+  const poolId = Number(pool.id);
+  const weekStart = String(pool.weekStart);
+  const weekEnd = String(pool.weekEnd);
+  const totalPool = Number(pool.totalPool);
+  
+  // Get all users' weekly XP
+  const usersResult = await client.execute({
+    sql: `SELECT userId, SUM(amount) as weeklyXP 
+          FROM xp_transactions 
+          WHERE DATE(createdAt) >= ? AND DATE(createdAt) <= ?
+          GROUP BY userId`,
+    args: [weekStart, weekEnd],
+  });
+  
+  if (usersResult.rows.length === 0) {
+    // No activity this week, mark as distributed with no claims
+    await client.execute({
+      sql: `UPDATE weekly_pool SET distributed = 1, distributedAt = ? WHERE id = ?`,
+      args: [new Date().toISOString(), poolId],
+    });
+    
+    return {
+      success: true,
+      poolId,
+      totalDistributed: 0,
+      claimsCount: 0,
+    };
+  }
+  
+  const totalWeeklyXP = usersResult.rows.reduce((sum, row) => sum + Number(row.weeklyXP), 0);
+  const now = new Date().toISOString();
+  
+  let totalDistributed = 0;
+  let claimsCount = 0;
+  
+  // Distribute to each user
+  for (const row of usersResult.rows) {
+    const userId = String(row.userId);
+    const weeklyXP = Number(row.weeklyXP);
+    const sharePercent = (weeklyXP / totalWeeklyXP) * 100;
+    const nudgeAwarded = (weeklyXP / totalWeeklyXP) * totalPool;
+    
+    await client.execute({
+      sql: `INSERT INTO weekly_pool_claims (poolId, userId, weeklyXP, sharePercent, nudgeAwarded, claimedAt)
+            VALUES (?, ?, ?, ?, ?, ?)`,
+      args: [poolId, userId, weeklyXP, sharePercent, nudgeAwarded, now],
+    });
+    
+    totalDistributed += nudgeAwarded;
+    claimsCount++;
+  }
+  
+  // Mark pool as distributed
+  await client.execute({
+    sql: `UPDATE weekly_pool SET distributed = 1, distributedAt = ? WHERE id = ?`,
+    args: [now, poolId],
+  });
+  
+  return {
+    success: true,
+    poolId,
+    totalDistributed: Math.round(totalDistributed * 100) / 100,
+    claimsCount,
+  };
+}
+
+/**
+ * Get user's redemption history
+ */
+export async function getRedemptionHistory(
+  userId: string,
+  limit: number = 20
+): Promise<RedemptionHistoryEntry[]> {
+  await initializeXPTables();
+  const client = getClient();
+  
+  const result = await client.execute({
+    sql: `SELECT id, xpSpent, nudgeAwarded, streakMultiplier, level, createdAt 
+          FROM nudge_redemptions 
+          WHERE userId = ? 
+          ORDER BY createdAt DESC 
+          LIMIT ?`,
+    args: [userId, limit],
+  });
+  
+  return result.rows.map(row => ({
+    id: Number(row.id),
+    xpSpent: Number(row.xpSpent),
+    nudgeAwarded: Number(row.nudgeAwarded),
+    streakMultiplier: Number(row.streakMultiplier),
+    level: Number(row.level),
+    createdAt: String(row.createdAt),
   }));
 }

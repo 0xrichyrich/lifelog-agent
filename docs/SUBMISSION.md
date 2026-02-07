@@ -197,6 +197,55 @@ User hires premium agent
 | Complete check-in | +10 XP |
 | Agent conversation | +5 XP |
 
+### 🔄 XP → $NUDGE Token Redemption
+
+Users can convert their earned XP directly into $NUDGE tokens through a tiered redemption system that rewards engagement and consistency.
+
+#### Tiered Conversion Rates (by User Level)
+
+| Level | Conversion Rate | Benefit |
+|-------|-----------------|---------|
+| 1-5 | 10 XP = 1 $NUDGE | Starter rate |
+| 6-10 | 8 XP = 1 $NUDGE | 25% bonus |
+| 11+ | 5 XP = 1 $NUDGE | 100% bonus |
+
+*Higher levels = better rates. Grind pays off!*
+
+#### Streak Multipliers
+
+| Streak | Multiplier | Example |
+|--------|------------|---------|
+| < 7 days | 1.0x | 100 XP → 10 $NUDGE |
+| 7-29 days | 1.5x | 100 XP → 15 $NUDGE |
+| 30+ days | 2.0x | 100 XP → 20 $NUDGE |
+
+*Consistency is rewarded. Break your streak? Back to 1x.*
+
+#### Daily Cap
+
+**250 $NUDGE per user per day** — prevents gaming while ensuring fair distribution.
+
+#### Weekly Bonus Pool 🏆
+
+Every Sunday, a **50,000 $NUDGE bonus pool** is distributed proportionally to all active users based on XP earned that week.
+
+```
+Weekly Pool Distribution:
+┌─────────────────────────────────────┐
+│  50,000 $NUDGE Total Pool           │
+├─────────────────────────────────────┤
+│  User A: 5,000 XP → 25% → 12,500    │
+│  User B: 3,000 XP → 15% → 7,500     │
+│  User C: 2,000 XP → 10% → 5,000     │
+│  ... distributed proportionally     │
+└─────────────────────────────────────┘
+```
+
+**Endpoints:**
+- `GET /api/xp/redeem?userId=xxx` — Check redemption status
+- `POST /api/xp/redeem` — Redeem XP for $NUDGE
+- `GET /api/xp/pool?userId=xxx` — Weekly pool status & leaderboard
+
 ### Spending $NUDGE
 
 | Feature | Cost |
