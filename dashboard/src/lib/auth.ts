@@ -160,8 +160,8 @@ export function validateUserId(userId: unknown): { valid: boolean; value?: strin
   // Wallet address format: 0x + 40 hex chars (case-insensitive)
   const walletRegex = /^0x[a-fA-F0-9]{40}$/;
   
-  // Device UUID format: 8-4-4-4-12 (uppercase hex with dashes)
-  const uuidRegex = /^[A-F0-9]{8}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{12}$/;
+  // Device UUID format: 8-4-4-4-12 (case-insensitive hex with dashes)
+  const uuidRegex = /^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$/;
   
   if (walletRegex.test(userId) || uuidRegex.test(userId)) {
     return { valid: true, value: userId };
