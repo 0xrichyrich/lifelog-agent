@@ -13,9 +13,6 @@ enum NudgeConstants {
     /// API base URL for the Nudge backend
     static let apiBaseURL = "https://www.littlenudge.app"
     
-    /// Internal API key for authenticated POST requests (XP redemption, etc.)
-    static let internalAPIKey = "nudge_internal_536dac823dae2ae2dff5e876b80c9353"
-    
     /// Token contract address on Monad testnet
     /// Note: This can be updated if the contract is redeployed
     static let tokenContractAddress = "0x99cDfA46B933ea28Edf4BB620428E24C8EB63367"
@@ -52,6 +49,10 @@ extension NudgeConstants {
         static let privyUserId = "privyUserId"
         static let walletAddress = "walletAddress"
         static let username = "nudgeUsername"
+        /// Session token received from backend after Privy authentication
+        static let sessionToken = "nudgeSessionToken"
+        /// Session token expiry timestamp (stored as ISO8601 string)
+        static let sessionTokenExpiry = "nudgeSessionTokenExpiry"
     }
 }
 

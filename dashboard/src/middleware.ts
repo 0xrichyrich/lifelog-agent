@@ -7,13 +7,17 @@ import { NextRequest, NextResponse } from 'next/server';
  */
 
 // Allowed origins for CORS
+// Localhost only allowed in development mode
 const ALLOWED_ORIGINS = [
   'https://dashboard-flame-five-76.vercel.app',
   'https://lifelog-dashboard.vercel.app',
   'https://www.littlenudge.app',
   'https://littlenudge.app',
-  'http://localhost:3000',
-  'http://localhost:3001',
+  // Only include localhost in development
+  ...(process.env.NODE_ENV === 'development' ? [
+    'http://localhost:3000',
+    'http://localhost:3001',
+  ] : []),
 ];
 
 // If NEXT_PUBLIC_APP_URL is set, add it to allowed origins

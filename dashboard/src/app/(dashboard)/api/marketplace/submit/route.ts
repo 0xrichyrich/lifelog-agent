@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyPaymentOnChain, isValidTxHash, TOKENS, isPaymentHashUsed, markPaymentHashUsed } from '@/lib/payment-verification';
-import { validateContentType } from '@/lib/auth';
-import { PLATFORM_WALLET, LISTING_FEE_USDC } from '@/lib/constants';
+import { validateContentType, requireInternalAuth } from '@/lib/auth';
+import { getPlatformWallet, LISTING_FEE_USDC } from '@/lib/constants';
 
 /**
  * Agent Marketplace Submission Endpoint
@@ -172,6 +172,10 @@ function validateSubmission(data: SubmissionRequest): string | null {
 }
 
 export async function POST(request: NextRequest) {
+  // Authentication required
+  const authError = requireInternalAuth(request);
+  if (authError) return authError;
+  
   // Validate Content-Type
   const contentTypeError = validateContentType(request);
   if (contentTypeError) return contentTypeError;
@@ -190,6 +194,7 @@ export async function POST(request: NextRequest) {
 
     // x402 Protocol: Check for payment proof
     if (!body.paymentProof) {
+      const platformWallet = getPlatformWallet();
       // Return 402 Payment Required with payment details
       return NextResponse.json(
         {
@@ -197,13 +202,13 @@ export async function POST(request: NextRequest) {
           message: 'A listing fee is required to submit your agent to the marketplace',
           amount: LISTING_FEE_USDC,
           currency: 'USDC',
-          recipientWallet: PLATFORM_WALLET,
+          recipientWallet: platformWallet,
           network: 'Base',
           x402: {
             version: '1.0',
             accepts: ['usdc'],
             price: LISTING_FEE_USDC,
-            payTo: PLATFORM_WALLET,
+            payTo: platformWallet,
             memo: `Agent listing fee for: ${body.name}`,
           },
         },
@@ -213,7 +218,7 @@ export async function POST(request: NextRequest) {
             'X-Payment-Required': 'true',
             'X-Payment-Amount': String(LISTING_FEE_USDC),
             'X-Payment-Currency': 'USDC',
-            'X-Payment-Address': PLATFORM_WALLET,
+            'X-Payment-Address': platformWallet,
           },
         }
       );

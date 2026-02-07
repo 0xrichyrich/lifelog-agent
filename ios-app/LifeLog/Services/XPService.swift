@@ -21,22 +21,27 @@ class XPService: ObservableObject {
     @Published var error: String?
     @Published var pendingNotification: XPNotification?
     
-    private let session: URLSession
     private var baseURL: String
     private var apiKey: String?
     
-    init(baseURL: String = "https://www.littlenudge.app", apiKey: String? = nil) {
+    init(baseURL: String = NudgeConstants.apiBaseURL, apiKey: String? = nil) {
         self.baseURL = baseURL
         self.apiKey = apiKey
-        
-        let config = URLSessionConfiguration.default
-        config.timeoutIntervalForRequest = 30
-        self.session = URLSession(configuration: config)
     }
     
     func updateConfig(baseURL: String, apiKey: String?) {
         self.baseURL = baseURL
         self.apiKey = apiKey
+    }
+    
+    /// Get a valid auth token (session token takes priority, fallback to apiKey)
+    private func getAuthToken() async -> String? {
+        // First try to get a valid session token from AuthService
+        if let sessionToken = await AuthService.shared.getValidToken() {
+            return sessionToken
+        }
+        // Fallback to apiKey if set
+        return apiKey
     }
     
     // MARK: - Fetch XP Status
@@ -50,11 +55,11 @@ class XPService: ObservableObject {
             }
             
             var request = URLRequest(url: url)
-            if let apiKey = apiKey, !apiKey.isEmpty {
-                request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+            if let token = await getAuthToken(), !token.isEmpty {
+                request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
             }
             
-            let (data, response) = try await session.data(for: request)
+            let (data, response) = try await SecureNetworking.session.data(for: request)
             
             guard let httpResponse = response as? HTTPURLResponse else {
                 throw XPError.invalidResponse
@@ -82,11 +87,11 @@ class XPService: ObservableObject {
             }
             
             var request = URLRequest(url: url)
-            if let apiKey = apiKey, !apiKey.isEmpty {
-                request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+            if let token = await getAuthToken(), !token.isEmpty {
+                request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
             }
             
-            let (data, response) = try await session.data(for: request)
+            let (data, response) = try await SecureNetworking.session.data(for: request)
             
             guard let httpResponse = response as? HTTPURLResponse else {
                 throw XPError.invalidResponse
@@ -111,11 +116,11 @@ class XPService: ObservableObject {
             }
             
             var request = URLRequest(url: url)
-            if let apiKey = apiKey, !apiKey.isEmpty {
-                request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+            if let token = await getAuthToken(), !token.isEmpty {
+                request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
             }
             
-            let (data, response) = try await session.data(for: request)
+            let (data, response) = try await SecureNetworking.session.data(for: request)
             
             guard let httpResponse = response as? HTTPURLResponse else {
                 throw XPError.invalidResponse
@@ -142,8 +147,10 @@ class XPService: ObservableObject {
             var request = URLRequest(url: url)
             request.httpMethod = "POST"
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            if let apiKey = apiKey, !apiKey.isEmpty {
-                request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+            
+            // Use session token for authenticated POST requests
+            if let token = await getAuthToken(), !token.isEmpty {
+                request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
             }
             
             let body: [String: Any] = [
@@ -152,7 +159,7 @@ class XPService: ObservableObject {
             ]
             request.httpBody = try JSONSerialization.data(withJSONObject: body)
             
-            let (data, response) = try await session.data(for: request)
+            let (data, response) = try await SecureNetworking.session.data(for: request)
             
             guard let httpResponse = response as? HTTPURLResponse else {
                 throw XPError.invalidResponse
@@ -208,11 +215,11 @@ class XPService: ObservableObject {
             }
             
             var request = URLRequest(url: url)
-            if let apiKey = apiKey, !apiKey.isEmpty {
-                request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+            if let token = await getAuthToken(), !token.isEmpty {
+                request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
             }
             
-            let (data, response) = try await session.data(for: request)
+            let (data, response) = try await SecureNetworking.session.data(for: request)
             
             guard let httpResponse = response as? HTTPURLResponse else {
                 throw XPError.invalidResponse
@@ -243,11 +250,11 @@ class XPService: ObservableObject {
             var request = URLRequest(url: url)
             request.httpMethod = "POST"
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            // Use internal API key for authenticated POST
-            request.setValue(NudgeConstants.internalAPIKey, forHTTPHeaderField: "X-API-Key")
             
-            if let apiKey = apiKey, !apiKey.isEmpty {
-                request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+            // Use session token for authenticated POST requests
+            // Session token is obtained after Privy login via AuthService
+            if let token = await getAuthToken(), !token.isEmpty {
+                request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
             }
             
             let body: [String: Any] = [
@@ -256,7 +263,7 @@ class XPService: ObservableObject {
             ]
             request.httpBody = try JSONSerialization.data(withJSONObject: body)
             
-            let (data, response) = try await session.data(for: request)
+            let (data, response) = try await SecureNetworking.session.data(for: request)
             
             guard let httpResponse = response as? HTTPURLResponse else {
                 throw XPError.invalidResponse
@@ -302,11 +309,11 @@ class XPService: ObservableObject {
             }
             
             var request = URLRequest(url: url)
-            if let apiKey = apiKey, !apiKey.isEmpty {
-                request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+            if let token = await getAuthToken(), !token.isEmpty {
+                request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
             }
             
-            let (data, response) = try await session.data(for: request)
+            let (data, response) = try await SecureNetworking.session.data(for: request)
             
             guard let httpResponse = response as? HTTPURLResponse else {
                 throw XPError.invalidResponse

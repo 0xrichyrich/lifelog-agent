@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createCheckIn, getCheckIns, initializeDatabase, isDatabaseConfigured } from '@/lib/db-turso';
 import { validateMessage, validateTimestamp, validateDate, validatePositiveInt } from '@/lib/validation';
 import { checkRateLimit, RATE_LIMITS, addRateLimitHeaders } from '@/lib/rate-limit';
-import { validateContentType } from '@/lib/auth';
+import { validateContentType, requireInternalAuth } from '@/lib/auth';
 
 // Initialize database tables on cold start
 let initialized = false;
@@ -34,9 +34,13 @@ async function ensureInitialized(): Promise<{ ready: boolean; error?: string }> 
  * POST /api/checkins
  * Create a new check-in
  * 
- * PUBLIC - No authentication required (for demo purposes)
+ * AUTHENTICATED - Requires INTERNAL_API_KEY
  */
 export async function POST(request: NextRequest) {
+  // Authentication required
+  const authError = requireInternalAuth(request);
+  if (authError) return authError;
+  
   // Validate Content-Type
   const contentTypeError = validateContentType(request);
   if (contentTypeError) return contentTypeError;

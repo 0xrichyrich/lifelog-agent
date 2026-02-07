@@ -10,18 +10,12 @@ import Foundation
 
 /// Service for interacting with wallet-related API endpoints
 actor WalletService {
-    private let session: URLSession
     private var baseURL: String
     private var apiKey: String?
     
-    init(baseURL: String = "https://www.littlenudge.app", apiKey: String? = nil) {
+    init(baseURL: String = NudgeConstants.apiBaseURL, apiKey: String? = nil) {
         self.baseURL = baseURL
         self.apiKey = apiKey
-        
-        let config = URLSessionConfiguration.default
-        config.timeoutIntervalForRequest = 30
-        config.timeoutIntervalForResource = 60
-        self.session = URLSession(configuration: config)
     }
     
     func updateBaseURL(_ url: String) {
@@ -58,10 +52,12 @@ actor WalletService {
     
     /// Fetch the $NUDGE token balance for a wallet address
     func fetchBalance(address: String) async throws -> WalletBalanceResponse {
-        let url = URL(string: "\(baseURL)/api/wallet/balance?address=\(address)")!
+        guard let url = URL(string: "\(baseURL)/api/wallet/balance?address=\(address)") else {
+            throw WalletError.invalidResponse
+        }
         let request = authenticatedRequest(url: url)
         
-        let (data, response) = try await session.data(for: request)
+        let (data, response) = try await SecureNetworking.session.data(for: request)
         
         guard let httpResponse = response as? HTTPURLResponse else {
             throw WalletError.invalidResponse
@@ -83,7 +79,9 @@ actor WalletService {
     
     /// Claim pending rewards (earned from check-ins and streaks)
     func claimRewards(address: String, signature: String? = nil) async throws -> ClaimRewardsResponse {
-        let url = URL(string: "\(baseURL)/api/wallet/claim")!
+        guard let url = URL(string: "\(baseURL)/api/wallet/claim") else {
+            throw WalletError.invalidResponse
+        }
         
         var body: [String: Any] = ["address": address]
         if let sig = signature {
@@ -92,7 +90,7 @@ actor WalletService {
         
         let request = try authenticatedPostRequest(url: url, body: body)
         
-        let (data, response) = try await session.data(for: request)
+        let (data, response) = try await SecureNetworking.session.data(for: request)
         
         guard let httpResponse = response as? HTTPURLResponse else {
             throw WalletError.invalidResponse
@@ -119,10 +117,12 @@ actor WalletService {
     
     /// Fetch transaction history for a wallet address
     func fetchTransactionHistory(address: String, limit: Int = 20, offset: Int = 0) async throws -> TransactionHistoryResponse {
-        let url = URL(string: "\(baseURL)/api/wallet/history?address=\(address)&limit=\(limit)&offset=\(offset)")!
+        guard let url = URL(string: "\(baseURL)/api/wallet/history?address=\(address)&limit=\(limit)&offset=\(offset)") else {
+            throw WalletError.invalidResponse
+        }
         let request = authenticatedRequest(url: url)
         
-        let (data, response) = try await session.data(for: request)
+        let (data, response) = try await SecureNetworking.session.data(for: request)
         
         guard let httpResponse = response as? HTTPURLResponse else {
             throw WalletError.invalidResponse
@@ -144,7 +144,9 @@ actor WalletService {
     
     /// Register/connect a wallet address with the user's account
     func connectWallet(address: String, privyUserId: String) async throws -> ConnectWalletResponse {
-        let url = URL(string: "\(baseURL)/api/wallet/connect")!
+        guard let url = URL(string: "\(baseURL)/api/wallet/connect") else {
+            throw WalletError.invalidResponse
+        }
         
         let body: [String: Any] = [
             "address": address,
@@ -154,7 +156,7 @@ actor WalletService {
         
         let request = try authenticatedPostRequest(url: url, body: body)
         
-        let (data, response) = try await session.data(for: request)
+        let (data, response) = try await SecureNetworking.session.data(for: request)
         
         guard let httpResponse = response as? HTTPURLResponse else {
             throw WalletError.invalidResponse
@@ -176,13 +178,15 @@ actor WalletService {
     
     /// Disconnect a wallet from the user's account
     func disconnectWallet(address: String) async throws {
-        let url = URL(string: "\(baseURL)/api/wallet/disconnect")!
+        guard let url = URL(string: "\(baseURL)/api/wallet/disconnect") else {
+            throw WalletError.invalidResponse
+        }
         
         let body: [String: Any] = ["address": address]
         
         let request = try authenticatedPostRequest(url: url, body: body)
         
-        let (_, response) = try await session.data(for: request)
+        let (_, response) = try await SecureNetworking.session.data(for: request)
         
         guard let httpResponse = response as? HTTPURLResponse else {
             throw WalletError.invalidResponse

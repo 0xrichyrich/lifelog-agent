@@ -107,7 +107,9 @@ actor APIClient {
     // MARK: - Activities
     func fetchActivities(for date: Date = Date()) async throws -> [Activity] {
         let dateString = formatDate(date)
-        let url = URL(string: "\(baseURL)/api/activities?date=\(dateString)")!
+        guard let url = URL(string: "\(baseURL)/api/activities?date=\(dateString)") else {
+            throw APIError.invalidResponse
+        }
         let request = authenticatedRequest(url: url)
         
         let (data, response) = try await session.data(for: request)
@@ -131,7 +133,9 @@ actor APIClient {
     
     // MARK: - Goals
     func fetchGoals() async throws -> [Goal] {
-        let url = URL(string: "\(baseURL)/api/goals")!
+        guard let url = URL(string: "\(baseURL)/api/goals") else {
+            throw APIError.invalidResponse
+        }
         let request = authenticatedRequest(url: url)
         
         let (data, response) = try await session.data(for: request)
@@ -155,7 +159,9 @@ actor APIClient {
     
     // MARK: - Check-ins
     func fetchCheckIns(limit: Int = 20) async throws -> [CheckIn] {
-        let url = URL(string: "\(baseURL)/api/checkins?limit=\(limit)")!
+        guard let url = URL(string: "\(baseURL)/api/checkins?limit=\(limit)") else {
+            throw APIError.invalidResponse
+        }
         let request = authenticatedRequest(url: url)
         
         let (data, response) = try await session.data(for: request)
@@ -178,7 +184,9 @@ actor APIClient {
     }
     
     func createCheckIn(message: String, activityType: String = "break") async throws -> CheckIn {
-        let url = URL(string: "\(baseURL)/api/checkins")!
+        guard let url = URL(string: "\(baseURL)/api/checkins") else {
+            throw APIError.invalidResponse
+        }
         
         // Validate message length client-side
         let trimmedMessage = message.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -225,7 +233,9 @@ actor APIClient {
     /// Transcribe audio via the backend proxy endpoint
     /// This avoids exposing OpenAI API keys in the iOS app
     func transcribeAudio(fileURL: URL) async throws -> String {
-        let transcribeURL = URL(string: "\(baseURL)/api/transcribe")!
+        guard let transcribeURL = URL(string: "\(baseURL)/api/transcribe") else {
+            throw APIError.invalidResponse
+        }
         var request = URLRequest(url: transcribeURL)
         request.httpMethod = "POST"
         if let apiKey = apiKey, !apiKey.isEmpty {

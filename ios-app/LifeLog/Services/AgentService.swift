@@ -42,21 +42,15 @@ enum AgentServiceError: Error, LocalizedError {
 // MARK: - Agent Service
 
 actor AgentService {
-    private let session: URLSession
     private let baseURL: String
     private var apiKey: String?
     
     // In-memory conversation cache
     private var conversations: [String: AgentConversation] = [:]
     
-    init(baseURL: String = "https://dashboard-flame-five-76.vercel.app", apiKey: String? = nil) {
+    init(baseURL: String = NudgeConstants.apiBaseURL, apiKey: String? = nil) {
         self.baseURL = baseURL
         self.apiKey = apiKey
-        
-        let config = URLSessionConfiguration.default
-        config.timeoutIntervalForRequest = 30
-        config.timeoutIntervalForResource = 60
-        self.session = URLSession(configuration: config)
     }
     
     func updateApiKey(_ key: String?) {
@@ -85,11 +79,14 @@ actor AgentService {
     
     /// Fetch list of available agents from the API
     func fetchAgents() async -> [Agent] {
-        let url = URL(string: "\(baseURL)/api/agents")!
+        guard let url = URL(string: "\(baseURL)/api/agents") else {
+            AppLogger.error("[AgentService] Invalid URL for agents")
+            return Agent.mockAgents
+        }
         let request = makeRequest(url: url)
         
         do {
-            let (data, response) = try await session.data(for: request)
+            let (data, response) = try await SecureNetworking.session.data(for: request)
             
             guard let httpResponse = response as? HTTPURLResponse else {
                 AppLogger.error("[AgentService] Invalid response type")
@@ -133,10 +130,14 @@ actor AgentService {
             components.queryItems = queryItems
         }
         
-        let request = makeRequest(url: components.url!)
+        guard let requestURL = components.url else {
+            AppLogger.error("[AgentService] Invalid URL for marketplace agents")
+            return Agent.mockAgents
+        }
+        let request = makeRequest(url: requestURL)
         
         do {
-            let (data, response) = try await session.data(for: request)
+            let (data, response) = try await SecureNetworking.session.data(for: request)
             
             guard let httpResponse = response as? HTTPURLResponse else {
                 AppLogger.error("[AgentService] Invalid response type for marketplace")
@@ -176,7 +177,9 @@ actor AgentService {
         conversationId: String? = nil,
         paymentProof: PaymentProof? = nil
     ) async throws -> (response: String, conversationId: String) {
-        let url = URL(string: "\(baseURL)/api/agents/\(agentId)/message")!
+        guard let url = URL(string: "\(baseURL)/api/agents/\(agentId)/message") else {
+            throw AgentServiceError.invalidResponse
+        }
         
         var body: [String: Any] = [
             "message": message
@@ -200,7 +203,7 @@ actor AgentService {
         // Add user ID to headers for the backend
         request.setValue(userId, forHTTPHeaderField: "X-User-ID")
         
-        let (data, response) = try await session.data(for: request)
+        let (data, response) = try await SecureNetworking.session.data(for: request)
         
         guard let httpResponse = response as? HTTPURLResponse else {
             throw AgentServiceError.invalidResponse
@@ -236,10 +239,12 @@ actor AgentService {
     
     /// Get pricing information for an agent
     func getAgentPricing(agentId: String) async throws -> AgentPricing {
-        let url = URL(string: "\(baseURL)/api/agents/\(agentId)/pricing")!
+        guard let url = URL(string: "\(baseURL)/api/agents/\(agentId)/pricing") else {
+            throw AgentServiceError.invalidResponse
+        }
         let request = makeRequest(url: url)
         
-        let (data, response) = try await session.data(for: request)
+        let (data, response) = try await SecureNetworking.session.data(for: request)
         
         guard let httpResponse = response as? HTTPURLResponse else {
             throw AgentServiceError.invalidResponse

@@ -21,17 +21,16 @@ function logSecurely(message: string, data?: Record<string, unknown>): void {
 /**
  * Validate API key for internal endpoints (iOS app, cron jobs, etc.)
  * Uses INTERNAL_API_KEY for app-to-backend communication
+ * 
+ * SECURITY: Fails CLOSED — if key is not configured, ALL requests are rejected.
+ * For local dev, set INTERNAL_API_KEY in .env.local
  */
 export function validateInternalApiKey(request: NextRequest): NextResponse | null {
   const apiKey = process.env.INTERNAL_API_KEY;
   
-  // If no API key is configured, allow in development only
+  // Fail CLOSED: If no API key is configured, reject ALL requests
   if (!apiKey) {
-    if (process.env.NODE_ENV === 'development') {
-      logSecurely('⚠️ INTERNAL_API_KEY not configured - allowing request in dev mode');
-      return null;
-    }
-    console.error('INTERNAL_API_KEY not configured in production');
+    console.error('INTERNAL_API_KEY not configured — rejecting request');
     return NextResponse.json(
       { error: 'Server configuration error' },
       { status: 500 }
@@ -70,16 +69,16 @@ export function validateInternalApiKey(request: NextRequest): NextResponse | nul
 /**
  * Validate API key (legacy - uses NUDGE_API_KEY)
  * Kept for backward compatibility with existing endpoints
+ * 
+ * SECURITY: Fails CLOSED — if key is not configured, ALL requests are rejected.
+ * For local dev, set NUDGE_API_KEY in .env.local
  */
 export function validateApiKey(request: NextRequest): NextResponse | null {
   const apiKey = process.env.NUDGE_API_KEY;
   
-  // If no API key is configured, allow in development only
+  // Fail CLOSED: If no API key is configured, reject ALL requests
   if (!apiKey) {
-    if (process.env.NODE_ENV === 'development') {
-      logSecurely('⚠️ NUDGE_API_KEY not configured - allowing request in dev mode');
-      return null;
-    }
+    console.error('NUDGE_API_KEY not configured — rejecting request');
     return NextResponse.json(
       { error: 'Server configuration error' },
       { status: 500 }
@@ -172,29 +171,40 @@ export function validateUserId(userId: unknown): { valid: boolean; value?: strin
 
 /**
  * Constant-time string comparison to prevent timing attacks
+ * 
+ * Uses Node's built-in crypto.timingSafeEqual when available.
+ * For mismatched lengths, pads the shorter buffer to avoid length leakage.
  */
 function timingSafeEqual(a: string, b: string): boolean {
-  // Use Buffer for proper constant-time comparison when lengths match
-  // For mismatched lengths, we still do the full comparison to avoid leaking length info
   const aBuffer = Buffer.from(a);
   const bBuffer = Buffer.from(b);
   
-  // If lengths differ, compare against a known-length buffer to maintain constant time
-  if (aBuffer.length !== bBuffer.length) {
-    // Compare a with itself to maintain timing consistency
-    let result = 0;
-    for (let i = 0; i < aBuffer.length; i++) {
-      result |= aBuffer[i] ^ aBuffer[i];
+  // Determine the max length and pad both buffers to that length
+  const maxLength = Math.max(aBuffer.length, bBuffer.length);
+  
+  // Create padded buffers of equal length
+  const aPadded = Buffer.alloc(maxLength);
+  const bPadded = Buffer.alloc(maxLength);
+  aBuffer.copy(aPadded);
+  bBuffer.copy(bPadded);
+  
+  // Use Node's built-in timing-safe comparison on equal-length buffers
+  // Note: We must ALSO check original lengths match, but do so after the comparison
+  // to ensure consistent timing regardless of where the mismatch occurs
+  try {
+    // Try Node's built-in (not available in all Edge runtimes)
+    const crypto = require('crypto');
+    const buffersMatch = crypto.timingSafeEqual(aPadded, bPadded);
+    const lengthsMatch = aBuffer.length === bBuffer.length;
+    return buffersMatch && lengthsMatch;
+  } catch {
+    // Fallback for Edge runtime: manual constant-time comparison
+    let result = aBuffer.length ^ bBuffer.length; // XOR of lengths (0 if equal)
+    for (let i = 0; i < maxLength; i++) {
+      result |= aPadded[i] ^ bPadded[i];
     }
-    return false; // Lengths differ
+    return result === 0;
   }
-  
-  let result = 0;
-  for (let i = 0; i < aBuffer.length; i++) {
-    result |= aBuffer[i] ^ bBuffer[i];
-  }
-  
-  return result === 0;
 }
 
 /**

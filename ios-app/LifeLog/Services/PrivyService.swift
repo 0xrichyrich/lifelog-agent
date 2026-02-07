@@ -153,6 +153,14 @@ class PrivyService: ObservableObject {
                 self.walletAddress = address
                 // Store wallet address in Keychain for security (not UserDefaults)
                 KeychainHelper.save(key: "walletAddress", value: address)
+                
+                // Exchange wallet address for a session token from the backend
+                do {
+                    try await AuthService.shared.exchangeForSessionToken(walletAddress: address)
+                } catch {
+                    AppLogger.warning("Failed to get session token: \(error.localizedDescription)")
+                    // Continue anyway - some features may still work without session token
+                }
             }
             
             // Save credentials securely in Keychain
@@ -196,6 +204,14 @@ class PrivyService: ObservableObject {
                 self.walletAddress = address
                 // Store wallet address in Keychain for security (not UserDefaults)
                 KeychainHelper.save(key: "walletAddress", value: address)
+                
+                // Exchange wallet address for a session token from the backend
+                do {
+                    try await AuthService.shared.exchangeForSessionToken(walletAddress: address)
+                } catch {
+                    AppLogger.warning("Failed to get session token: \(error.localizedDescription)")
+                    // Continue anyway - some features may still work without session token
+                }
             }
             
             // Save credentials securely in Keychain
@@ -226,6 +242,9 @@ class PrivyService: ObservableObject {
         userId = nil
         walletAddress = nil
         isAuthenticated = false
+        
+        // Clear session token
+        AuthService.shared.clearAuth()
         
         // Clear stored credentials from Keychain
         KeychainHelper.delete(key: "privyUserId")

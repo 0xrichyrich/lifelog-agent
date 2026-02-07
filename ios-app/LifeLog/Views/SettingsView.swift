@@ -309,18 +309,20 @@ struct SettingsView: View {
                             .foregroundStyle(.secondary)
                     }
                     
-                    Link(destination: URL(string: "https://github.com/0xrichyrich/lifelog-agent")!) {
-                        HStack {
-                            Image(systemName: "link")
-                                .foregroundStyle(Color.brandAccent)
-                            Text("GitHub Repository")
-                            Spacer()
-                            Image(systemName: "arrow.up.right")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                    if let githubURL = URL(string: "https://github.com/0xrichyrich/lifelog-agent") {
+                        Link(destination: githubURL) {
+                            HStack {
+                                Image(systemName: "link")
+                                    .foregroundStyle(Color.brandAccent)
+                                Text("GitHub Repository")
+                                Spacer()
+                                Image(systemName: "arrow.up.right")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
                         }
+                        .foregroundStyle(Color.textPrimary)
                     }
-                    .foregroundStyle(Color.textPrimary)
                 }
             }
             .navigationTitle("Settings")

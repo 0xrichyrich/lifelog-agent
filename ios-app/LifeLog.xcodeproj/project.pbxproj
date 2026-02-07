@@ -53,6 +53,8 @@
 		A11111110000000000000094 /* AppLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000094 /* AppLogger.swift */; };
 		A11111110000000000000095 /* NudgeConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000095 /* NudgeConstants.swift */; };
 		A11111110000000000000096 /* XPRedemptionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000096 /* XPRedemptionView.swift */; };
+		A11111110000000000000097 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000097 /* AuthService.swift */; };
+		A11111110000000000000098 /* SecureNetworking.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000098 /* SecureNetworking.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -129,6 +131,8 @@
 		A10000000000000000000094 /* AppLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLogger.swift; sourceTree = "<group>"; };
 		A10000000000000000000095 /* NudgeConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NudgeConstants.swift; sourceTree = "<group>"; };
 		A10000000000000000000096 /* XPRedemptionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XPRedemptionView.swift; sourceTree = "<group>"; };
+		A10000000000000000000097 /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
+		A10000000000000000000098 /* SecureNetworking.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecureNetworking.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -253,6 +257,8 @@
 				A10000000000000000000081 /* AgentService.swift */,
 				A10000000000000000000091 /* XPService.swift */,
 				A10000000000000000000094 /* AppLogger.swift */,
+				A10000000000000000000097 /* AuthService.swift */,
+				A10000000000000000000098 /* SecureNetworking.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -424,6 +430,8 @@
 				A11111110000000000000094 /* AppLogger.swift in Sources */,
 				A11111110000000000000095 /* NudgeConstants.swift in Sources */,
 				A11111110000000000000096 /* XPRedemptionView.swift in Sources */,
+				A11111110000000000000097 /* AuthService.swift in Sources */,
+				A11111110000000000000098 /* SecureNetworking.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

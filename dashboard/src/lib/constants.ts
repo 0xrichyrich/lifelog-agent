@@ -6,8 +6,27 @@
  */
 
 // Platform wallet for receiving payments
-// Uses env var with fallback for development/hackathon
-// IMPORTANT: In production, PLATFORM_WALLET_ADDRESS should be set in environment
+// SECURITY: Logs warning if not configured (cannot throw at import time due to build process)
+// The getter approach ensures this is evaluated at runtime, not build time
+let _platformWalletWarned = false;
+export function getPlatformWallet(): string {
+  const wallet = process.env.PLATFORM_WALLET_ADDRESS;
+  if (!wallet) {
+    if (!_platformWalletWarned) {
+      _platformWalletWarned = true;
+      if (process.env.NODE_ENV === 'production') {
+        console.error('CRITICAL: PLATFORM_WALLET_ADDRESS not configured in production — using fallback');
+      } else {
+        console.warn('WARNING: PLATFORM_WALLET_ADDRESS not set — using development fallback');
+      }
+    }
+    // Fallback address - logged as error/warning above
+    return '0x2390C495896C78668416859d9dE84212fCB10801';
+  }
+  return wallet;
+}
+
+// For backward compatibility - but prefer using getPlatformWallet() for lazy evaluation
 export const PLATFORM_WALLET = process.env.PLATFORM_WALLET_ADDRESS || '0x2390C495896C78668416859d9dE84212fCB10801';
 
 /**
@@ -15,8 +34,12 @@ export const PLATFORM_WALLET = process.env.PLATFORM_WALLET_ADDRESS || '0x2390C49
  * Call this at runtime, not import time, to avoid build failures
  */
 export function validatePlatformConfig(): void {
-  if (process.env.NODE_ENV === 'production' && !process.env.PLATFORM_WALLET_ADDRESS) {
-    console.warn('WARNING: PLATFORM_WALLET_ADDRESS not set in production, using fallback');
+  if (!process.env.PLATFORM_WALLET_ADDRESS) {
+    if (process.env.NODE_ENV === 'production') {
+      console.error('CRITICAL: PLATFORM_WALLET_ADDRESS environment variable is required in production');
+    } else {
+      console.warn('WARNING: PLATFORM_WALLET_ADDRESS not set in environment');
+    }
   }
 }
 
