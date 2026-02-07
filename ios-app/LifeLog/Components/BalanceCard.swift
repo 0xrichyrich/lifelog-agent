@@ -51,7 +51,7 @@ struct BalanceCard: View {
                     icon: "iphone",
                     label: "Screen",
                     value: formatMinutes(screenMinutes),
-                    color: Color(hex: "6366f1")!
+                    color: Color(hex: "6366f1") ?? .indigo
                 )
                 
                 BalanceStat(
@@ -123,7 +123,7 @@ struct BalanceBar: View {
             HStack(spacing: 2) {
                 // Screen time segment
                 RoundedRectangle(cornerRadius: 4)
-                    .fill(Color(hex: "6366f1")!.opacity(0.8))
+                    .fill((Color(hex: "6366f1") ?? .indigo).opacity(0.8))
                     .frame(width: animate ? geometry.size.width * screenRatio : 0)
                 
                 // Focus time segment

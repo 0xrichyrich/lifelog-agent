@@ -39,14 +39,14 @@ struct TimelineView: View {
             .navigationTitle("Timeline")
             .navigationBarTitleDisplayMode(.large)
             .refreshable {
-                print("🔃 Pull to refresh triggered")
+                AppLogger.debug("Pull to refresh triggered")
                 // Cancel any existing task and load fresh
                 loadTask?.cancel()
                 loadTask = nil
                 await loadActivities()
             }
             .onAppear {
-                print("👁️ Timeline onAppear")
+                AppLogger.debug("Timeline onAppear")
                 // Cancel any existing load and start fresh
                 loadTask?.cancel()
                 loadTask = Task {
@@ -54,7 +54,7 @@ struct TimelineView: View {
                 }
             }
             .onDisappear {
-                print("👁️ Timeline onDisappear")
+                AppLogger.debug("Timeline onDisappear")
                 // Cancel load if view disappears
                 loadTask?.cancel()
             }
@@ -252,11 +252,11 @@ struct TimelineView: View {
     
     // MARK: - Actions
     private func loadActivities() async {
-        print("🔄 loadActivities called, isCancelled: \(Task.isCancelled)")
+        AppLogger.debug("loadActivities called, isCancelled: \(Task.isCancelled)")
         
         // Check if cancelled before starting
         guard !Task.isCancelled else {
-            print("⏹️ Task was cancelled, skipping load")
+            AppLogger.debug("Task was cancelled, skipping load")
             return
         }
         
@@ -265,7 +265,7 @@ struct TimelineView: View {
         
         do {
             let endpoint = appState.apiEndpoint
-            print("📡 Timeline loading from: \(endpoint)")
+            AppLogger.debug("Timeline loading from: \(endpoint)")
             await apiClient.updateBaseURL(endpoint)
             
             // Check cancellation before network call
@@ -276,7 +276,7 @@ struct TimelineView: View {
             // Check cancellation before updating UI
             guard !Task.isCancelled else { return }
             
-            print("✅ Loaded \(fetchedActivities.count) activities")
+            AppLogger.debug("Loaded \(fetchedActivities.count) activities")
             
             await MainActor.run {
                 activities = fetchedActivities
@@ -286,11 +286,11 @@ struct TimelineView: View {
             }
         } catch is CancellationError {
             // Task was cancelled, this is expected behavior
-            print("📡 Timeline load cancelled (tab switched)")
+            AppLogger.debug("Timeline load cancelled (tab switched)")
         } catch {
             // Only show error if not cancelled
             guard !Task.isCancelled else { return }
-            print("❌ Failed to load activities from \(appState.apiEndpoint): \(error)")
+            AppLogger.error("Failed to load activities from \(appState.apiEndpoint)", error: error)
             await MainActor.run {
                 loadError = error
             }
@@ -306,7 +306,7 @@ struct TimelineView: View {
     private func parseActivitiesToBlocks(_ activities: [Activity]) -> [TimeBlock] {
         var blocks: [TimeBlock] = []
         
-        print("📊 Parsing \(activities.count) activities into time blocks")
+        AppLogger.debug("Parsing \(activities.count) activities into time blocks")
         
         // Create formatter that handles milliseconds
         let formatter = ISO8601DateFormatter()
@@ -315,7 +315,7 @@ struct TimelineView: View {
         for hour in 0..<24 {
             let hourActivities = activities.filter { activity in
                 guard let date = formatter.date(from: activity.timestamp) else { 
-                    print("⚠️ Failed to parse timestamp: \(activity.timestamp)")
+                    AppLogger.warning("Failed to parse timestamp: \(activity.timestamp)")
                     return false 
                 }
                 let activityHour = Calendar.current.component(.hour, from: date)
@@ -323,7 +323,7 @@ struct TimelineView: View {
             }
             
             if !hourActivities.isEmpty {
-                print("⏰ Hour \(hour): \(hourActivities.count) activities")
+                AppLogger.debug("Hour \(hour): \(hourActivities.count) activities")
             }
             
             // Use type-aware default durations for check-ins without explicit duration

@@ -50,6 +50,8 @@
 		A11111110000000000000091 /* XPService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000091 /* XPService.swift */; };
 		A11111110000000000000092 /* XPProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000092 /* XPProgressView.swift */; };
 		A11111110000000000000093 /* XPNotificationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000093 /* XPNotificationView.swift */; };
+		A11111110000000000000094 /* AppLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000094 /* AppLogger.swift */; };
+		A11111110000000000000095 /* NudgeConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000095 /* NudgeConstants.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -123,6 +125,8 @@
 		A10000000000000000000091 /* XPService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XPService.swift; sourceTree = "<group>"; };
 		A10000000000000000000092 /* XPProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XPProgressView.swift; sourceTree = "<group>"; };
 		A10000000000000000000093 /* XPNotificationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XPNotificationView.swift; sourceTree = "<group>"; };
+		A10000000000000000000094 /* AppLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLogger.swift; sourceTree = "<group>"; };
+		A10000000000000000000095 /* NudgeConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NudgeConstants.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -210,6 +214,7 @@
 				A10000000000000000000060 /* WalletModels.swift */,
 				A10000000000000000000080 /* Agent.swift */,
 				A10000000000000000000090 /* XPModels.swift */,
+				A10000000000000000000095 /* NudgeConstants.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -244,6 +249,7 @@
 				A10000000000000000000062 /* WalletService.swift */,
 				A10000000000000000000081 /* AgentService.swift */,
 				A10000000000000000000091 /* XPService.swift */,
+				A10000000000000000000094 /* AppLogger.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -412,6 +418,8 @@
 				A11111110000000000000091 /* XPService.swift in Sources */,
 				A11111110000000000000092 /* XPProgressView.swift in Sources */,
 				A11111110000000000000093 /* XPNotificationView.swift in Sources */,
+				A11111110000000000000094 /* AppLogger.swift in Sources */,
+				A11111110000000000000095 /* NudgeConstants.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

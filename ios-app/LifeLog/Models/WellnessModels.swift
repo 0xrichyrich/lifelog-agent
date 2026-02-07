@@ -90,14 +90,14 @@ enum AppCategory: String, Codable, CaseIterable {
     
     var color: Color {
         switch self {
-        case .socialMedia: return Color(hex: "e11d48")!
-        case .productivity: return Color(hex: "10b981")!
-        case .entertainment: return Color(hex: "8b5cf6")!
-        case .games: return Color(hex: "f59e0b")!
-        case .communication: return Color(hex: "3b82f6")!
-        case .healthFitness: return Color(hex: "ec4899")!
-        case .education: return Color(hex: "06b6d4")!
-        case .creativity: return Color(hex: "f97316")!
+        case .socialMedia: return Color(hex: "e11d48") ?? .red
+        case .productivity: return Color(hex: "10b981") ?? .green
+        case .entertainment: return Color(hex: "8b5cf6") ?? .purple
+        case .games: return Color(hex: "f59e0b") ?? .orange
+        case .communication: return Color(hex: "3b82f6") ?? .blue
+        case .healthFitness: return Color(hex: "ec4899") ?? .pink
+        case .education: return Color(hex: "06b6d4") ?? .cyan
+        case .creativity: return Color(hex: "f97316") ?? .orange
         case .other: return Color(.systemGray)
         }
     }
@@ -239,7 +239,7 @@ enum InsightType {
         case .morningGreeting:
             return Color.warning.opacity(0.15)
         case .eveningSummary:
-            return Color(hex: "8b5cf6")!.opacity(0.15)
+            return (Color(hex: "8b5cf6") ?? .purple).opacity(0.15)
         case .info:
             return Color(.systemGray).opacity(0.15)
         }
@@ -254,7 +254,7 @@ enum InsightType {
         case .morningGreeting:
             return Color.warning.opacity(0.3)
         case .eveningSummary:
-            return Color(hex: "8b5cf6")!.opacity(0.3)
+            return (Color(hex: "8b5cf6") ?? .purple).opacity(0.3)
         case .info:
             return Color(.systemGray).opacity(0.3)
         }

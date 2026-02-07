@@ -176,7 +176,7 @@ struct XPGainAnimation: View {
                 newLevel: 5
             )
         ) {
-            print("Dismissed")
+            AppLogger.debug("XP notification dismissed")
         }
     }
 }

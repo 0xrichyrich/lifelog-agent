@@ -92,12 +92,12 @@ actor AgentService {
             let (data, response) = try await session.data(for: request)
             
             guard let httpResponse = response as? HTTPURLResponse else {
-                print("[AgentService] Invalid response type")
+                AppLogger.error("[AgentService] Invalid response type")
                 return Agent.mockAgents
             }
             
             guard httpResponse.statusCode == 200 else {
-                print("[AgentService] Server returned \(httpResponse.statusCode)")
+                AppLogger.error("[AgentService] Server returned \(httpResponse.statusCode)")
                 return Agent.mockAgents
             }
             
@@ -105,7 +105,7 @@ actor AgentService {
             return decoded.agents
             
         } catch {
-            print("[AgentService] Error fetching agents: \(error)")
+            AppLogger.error("[AgentService] Error fetching agents", error: error)
             return Agent.mockAgents
         }
     }
@@ -139,21 +139,21 @@ actor AgentService {
             let (data, response) = try await session.data(for: request)
             
             guard let httpResponse = response as? HTTPURLResponse else {
-                print("[AgentService] Invalid response type for marketplace")
+                AppLogger.error("[AgentService] Invalid response type for marketplace")
                 return Agent.mockAgents
             }
             
             guard httpResponse.statusCode == 200 else {
-                print("[AgentService] Marketplace returned \(httpResponse.statusCode)")
+                AppLogger.error("[AgentService] Marketplace returned \(httpResponse.statusCode)")
                 return Agent.mockAgents
             }
             
             let decoded = try JSONDecoder().decode(MarketplaceAgentResponse.self, from: data)
-            print("[AgentService] Fetched \(decoded.agents.count) marketplace agents")
+            AppLogger.debug("[AgentService] Fetched \(decoded.agents.count) marketplace agents")
             return decoded.agents
             
         } catch {
-            print("[AgentService] Error fetching marketplace agents: \(error)")
+            AppLogger.error("[AgentService] Error fetching marketplace agents", error: error)
             return Agent.mockAgents
         }
     }

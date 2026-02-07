@@ -121,7 +121,7 @@ struct LifeLogApp: App {
                     WidgetCenter.shared.reloadAllTimelines()
                 }
             } catch {
-                print("Failed to process pending quick log: \(error)")
+                AppLogger.error("Failed to process pending quick log", error: error)
                 // Don't clear on failure - will retry next time
             }
         }

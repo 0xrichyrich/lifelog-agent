@@ -96,7 +96,7 @@ struct ConfettiEffect: View {
     
     @State private var particles: [ConfettiParticle] = []
     
-    private let colors: [Color] = [.success, .brandAccent, .warning, Color(hex: "9333ea")!, Color(hex: "ec4899")!]
+    private let colors: [Color] = [.success, .brandAccent, .warning, Color(hex: "9333ea") ?? .purple, Color(hex: "ec4899") ?? .pink]
     
     var body: some View {
         GeometryReader { geometry in

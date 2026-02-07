@@ -427,7 +427,7 @@ struct WalletView: View {
                 walletState.transactions = historyResponse.transactions
             }
         } catch {
-            print("Failed to refresh wallet data: \(error)")
+            AppLogger.error("Failed to refresh wallet data", error: error)
         }
     }
     

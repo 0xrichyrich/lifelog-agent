@@ -39,11 +39,11 @@ enum QuickLogType: String, CaseIterable, Identifiable {
         case .focus: return .success
         case .meeting: return .warning
         case .break: return Color(.systemGray)
-        case .coffee: return Color(hex: "8b5a2b")!
+        case .coffee: return Color(hex: "8b5a2b") ?? .brown
         case .exercise: return .brandAccent
-        case .reading: return Color(hex: "9333ea")!
-        case .lunch: return Color(hex: "ea580c")!
-        case .walk: return Color(hex: "06b6d4")!
+        case .reading: return Color(hex: "9333ea") ?? .purple
+        case .lunch: return Color(hex: "ea580c") ?? .orange
+        case .walk: return Color(hex: "06b6d4") ?? .cyan
         }
     }
     
@@ -200,7 +200,7 @@ struct QuickLogGrid: View {
 #Preview {
     QuickLogGrid { type in
         try? await Task.sleep(nanoseconds: 500_000_000)
-        print("Logged: \(type.rawValue)")
+        AppLogger.debug("Logged: \(type.rawValue)")
     }
     .padding()
     .background(Color.background)

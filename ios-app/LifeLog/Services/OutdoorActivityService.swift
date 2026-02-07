@@ -238,7 +238,7 @@ final class OutdoorActivityService: NSObject, ObservableObject {
             }
             
         } catch {
-            print("Failed to fetch Health workouts: \(error)")
+            AppLogger.error("Failed to fetch Health workouts", error: error)
         }
     }
     

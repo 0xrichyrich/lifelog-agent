@@ -256,21 +256,22 @@ extension Color {
     
     // Theme colors - Light theme with mint green accent
     // Inspired by the kawaii mint green squircle mascot
-    static let background = Color(hex: "F8FAFB")!          // Soft off-white background
-    static let cardBackground = Color(hex: "FFFFFF")!      // Pure white cards
-    static let textPrimary = Color(hex: "1F2937")!         // Dark gray for text
-    static let textSecondary = Color(hex: "6B7280")!       // Medium gray for secondary text
-    static let brandAccent = Color(hex: "A8E6CF")!         // Mint green (mascot color)
-    static let brandAccentDark = Color(hex: "7DD3B0")!     // Darker mint for contrast
-    static let brandInteractive = Color(hex: "1D7A5F")!    // Dark mint for buttons/links (WCAG AA compliant)
-    static let success = Color(hex: "6FCF97")!             // Soft green (complementary)
-    static let warning = Color(hex: "F2C94C")!             // Warm yellow
-    static let danger = Color(hex: "EB5757")!              // Soft red
-    static let mintLight = Color(hex: "E8F5F0")!           // Very light mint for backgrounds
-    static let mintMedium = Color(hex: "B8EDD9")!          // Medium mint
+    // Using safe nil-coalescing to prevent crashes from hex parsing issues
+    static let background = Color(hex: "F8FAFB") ?? Color(.systemGray6)     // Soft off-white background
+    static let cardBackground = Color(hex: "FFFFFF") ?? .white              // Pure white cards
+    static let textPrimary = Color(hex: "1F2937") ?? .primary               // Dark gray for text
+    static let textSecondary = Color(hex: "6B7280") ?? .secondary           // Medium gray for secondary text
+    static let brandAccent = Color(hex: "A8E6CF") ?? .mint                  // Mint green (mascot color)
+    static let brandAccentDark = Color(hex: "7DD3B0") ?? .green             // Darker mint for contrast
+    static let brandInteractive = Color(hex: "1D7A5F") ?? .teal             // Dark mint for buttons/links (WCAG AA compliant)
+    static let success = Color(hex: "6FCF97") ?? .green                     // Soft green (complementary)
+    static let warning = Color(hex: "F2C94C") ?? .yellow                    // Warm yellow
+    static let danger = Color(hex: "EB5757") ?? .red                        // Soft red
+    static let mintLight = Color(hex: "E8F5F0") ?? Color(.systemGray6)      // Very light mint for backgrounds
+    static let mintMedium = Color(hex: "B8EDD9") ?? .mint                   // Medium mint
     
     // Semantic colors for the light theme
-    static let surfaceElevated = Color(hex: "FFFFFF")!     // Elevated surfaces (cards, modals)
-    static let divider = Color(hex: "E5E7EB")!             // Subtle dividers
-    static let inputBackground = Color(hex: "F3F4F6")!     // Input field backgrounds
+    static let surfaceElevated = Color(hex: "FFFFFF") ?? .white             // Elevated surfaces (cards, modals)
+    static let divider = Color(hex: "E5E7EB") ?? Color(.separator)          // Subtle dividers
+    static let inputBackground = Color(hex: "F3F4F6") ?? Color(.systemGray5) // Input field backgrounds
 }

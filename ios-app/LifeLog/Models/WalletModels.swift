@@ -24,17 +24,22 @@ final class WalletState {
     var embeddedWalletAddress: String?
     
     init() {
-        // Load from UserDefaults
-        self.isConnected = UserDefaults.standard.bool(forKey: "walletConnected")
-        self.walletAddress = UserDefaults.standard.string(forKey: "walletAddress")
-        self.privyUserId = KeychainHelper.load(key: "privyUserId")
+        // Load connection state from UserDefaults (non-sensitive flag)
+        self.isConnected = UserDefaults.standard.bool(forKey: NudgeConstants.UserDefaultsKeys.walletConnected)
+        // Load wallet address from Keychain (sensitive data)
+        self.walletAddress = KeychainHelper.load(key: NudgeConstants.KeychainKeys.walletAddress)
+        self.privyUserId = KeychainHelper.load(key: NudgeConstants.KeychainKeys.privyUserId)
     }
     
     func save() {
-        UserDefaults.standard.set(isConnected, forKey: "walletConnected")
-        UserDefaults.standard.set(walletAddress, forKey: "walletAddress")
+        // Connection state is non-sensitive, can use UserDefaults
+        UserDefaults.standard.set(isConnected, forKey: NudgeConstants.UserDefaultsKeys.walletConnected)
+        // Wallet address is sensitive, use Keychain
+        if let address = walletAddress {
+            KeychainHelper.save(key: NudgeConstants.KeychainKeys.walletAddress, value: address)
+        }
         if let userId = privyUserId {
-            KeychainHelper.save(key: "privyUserId", value: userId)
+            KeychainHelper.save(key: NudgeConstants.KeychainKeys.privyUserId, value: userId)
         }
     }
     
@@ -47,9 +52,9 @@ final class WalletState {
         pendingRewards = "0"
         transactions = []
         
-        UserDefaults.standard.removeObject(forKey: "walletConnected")
-        UserDefaults.standard.removeObject(forKey: "walletAddress")
-        KeychainHelper.delete(key: "privyUserId")
+        UserDefaults.standard.removeObject(forKey: NudgeConstants.UserDefaultsKeys.walletConnected)
+        KeychainHelper.delete(key: NudgeConstants.KeychainKeys.walletAddress)
+        KeychainHelper.delete(key: NudgeConstants.KeychainKeys.privyUserId)
     }
     
     var shortAddress: String {
@@ -178,15 +183,16 @@ struct ConnectWalletResponse: Codable {
 }
 
 // MARK: - Token Constants
+/// Token constants sourced from centralized NudgeConstants
 enum NudgeToken {
-    // Monad testnet - deployed contract
-    static let contractAddress = "0xaEb52D53b6c3265580B91Be08C620Dc45F57a35F"
-    static let symbol = "NUDGE"
-    static let decimals = 18
-    static let chainId = 10143 // Monad testnet
-    static let chainName = "Monad Testnet"
-    static let rpcUrl = "https://testnet-rpc.monad.xyz/"
-    static let explorerUrl = "https://testnet.monad.xyz"
+    // Monad testnet - deployed contract (centralized in NudgeConstants)
+    static var contractAddress: String { NudgeConstants.tokenContractAddress }
+    static var symbol: String { NudgeConstants.tokenSymbol }
+    static var decimals: Int { NudgeConstants.tokenDecimals }
+    static var chainId: Int { NudgeConstants.chainId }
+    static var chainName: String { NudgeConstants.chainName }
+    static var rpcUrl: String { NudgeConstants.rpcUrl }
+    static var explorerUrl: String { NudgeConstants.explorerUrl }
 }
 
 // Keep alias for backwards compatibility

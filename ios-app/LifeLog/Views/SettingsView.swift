@@ -71,7 +71,7 @@ struct SettingsView: View {
                                     .foregroundStyle(.secondary)
                             }
                             Spacer()
-                            if UserDefaults.standard.bool(forKey: "walletConnected") {
+                            if UserDefaults.standard.bool(forKey: NudgeConstants.UserDefaultsKeys.walletConnected) {
                                 HStack(spacing: 4) {
                                     Circle()
                                         .fill(Color.success)
@@ -651,9 +651,9 @@ struct LeaderboardRowView: View {
     
     private var rankColor: Color {
         switch entry.rank {
-        case 1: return Color(hex: "FFD700")! // Gold
-        case 2: return Color(hex: "C0C0C0")! // Silver
-        case 3: return Color(hex: "CD7F32")! // Bronze
+        case 1: return Color(hex: "FFD700") ?? .yellow // Gold
+        case 2: return Color(hex: "C0C0C0") ?? .gray // Silver
+        case 3: return Color(hex: "CD7F32") ?? .orange // Bronze
         default: return Color.brandAccent
         }
     }

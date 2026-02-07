@@ -426,16 +426,19 @@ struct CheckInView: View {
     
     private func awardXPForCheckIn() async {
         // Use wallet address as userId if available (matches SettingsView)
+        // Note: Device identifier is used as fallback for non-wallet users.
+        // This is acceptable for XP tracking but should never be sent to analytics/third parties.
+        // identifierForVendor changes on app reinstall, which could cause XP tracking issues.
         let walletAddr = privyService.walletAddress
         let deviceId = UIDevice.current.identifierForVendor?.uuidString
         let userId = walletAddr ?? deviceId ?? "anonymous"
         
-        print("🎮 XP Award - wallet: \(walletAddr ?? "nil"), device: \(deviceId ?? "nil"), using: \(userId)")
+        AppLogger.debug("XP Award - wallet: \(walletAddr ?? "nil"), device: \(deviceId != nil ? "[redacted]" : "nil"), using: \(userId.prefix(10))...")
         
         xpService.updateConfig(baseURL: appState.apiEndpoint, apiKey: appState.apiKey)
         
         if let notification = await xpService.awardXP(userId: userId, activity: .dailyCheckin) {
-            print("🎮 XP Award success: +\(notification.amount) XP")
+            AppLogger.debug("XP Award success: +\(notification.amount) XP")
             await MainActor.run {
                 // Show XP notification after completion animation
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.8) {
@@ -443,7 +446,7 @@ struct CheckInView: View {
                 }
             }
         } else {
-            print("🎮 XP Award returned nil notification")
+            AppLogger.debug("XP Award returned nil notification")
         }
     }
     
@@ -462,7 +465,7 @@ struct CheckInView: View {
             await MainActor.run {
                 loadError = error
             }
-            print("Failed to load check-ins: \(error)")
+            AppLogger.error("Failed to load check-ins", error: error)
         }
         
         await MainActor.run {

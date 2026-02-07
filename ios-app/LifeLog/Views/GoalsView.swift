@@ -164,7 +164,7 @@ struct GoalsView: View {
                 appState.syncToSharedDefaults()
             }
         } catch {
-            print("Failed to load goals: \(error)")
+            AppLogger.error("Failed to load goals", error: error)
             await MainActor.run {
                 loadError = error
             }

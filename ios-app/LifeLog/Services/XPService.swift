@@ -65,7 +65,7 @@ class XPService: ObservableObject {
             self.status = decoded.data
         } catch {
             self.error = error.localizedDescription
-            print("XP Status fetch error: \(error)")
+            AppLogger.error("XP Status fetch error", error: error)
         }
         
         isLoading = false
@@ -96,7 +96,7 @@ class XPService: ObservableObject {
             let decoded = try JSONDecoder().decode(XPHistoryResponse.self, from: data)
             self.history = decoded.data.history
         } catch {
-            print("XP History fetch error: \(error)")
+            AppLogger.error("XP History fetch error", error: error)
         }
     }
     
@@ -125,7 +125,7 @@ class XPService: ObservableObject {
             let decoded = try JSONDecoder().decode(LeaderboardResponse.self, from: data)
             self.leaderboard = decoded.data.leaderboard
         } catch {
-            print("Leaderboard fetch error: \(error)")
+            AppLogger.error("Leaderboard fetch error", error: error)
         }
     }
     
@@ -188,7 +188,7 @@ class XPService: ObservableObject {
             return notification
             
         } catch {
-            print("XP Award error: \(error)")
+            AppLogger.error("XP Award error", error: error)
             return nil
         }
     }

@@ -123,7 +123,7 @@ enum KeychainHelper {
         
         let status = SecItemAdd(addQuery as CFDictionary, nil)
         if status != errSecSuccess && status != errSecDuplicateItem {
-            print("Keychain save error: \(status)")
+            AppLogger.error("Keychain save error: \(status)")
         }
     }
     

@@ -242,9 +242,9 @@ struct XPProgressView: View {
         case 5...9:
             return [Color.success, Color.brandAccentDark]
         case 10...19:
-            return [Color(hex: "667EEA")!, Color(hex: "764BA2")!]
+            return [Color(hex: "667EEA") ?? .purple, Color(hex: "764BA2") ?? .indigo]
         case 20...:
-            return [Color(hex: "F093FB")!, Color(hex: "F5576C")!]
+            return [Color(hex: "F093FB") ?? .pink, Color(hex: "F5576C") ?? .red]
         default:
             return [Color.brandAccent, Color.mintMedium]
         }
@@ -338,7 +338,7 @@ struct XPProgressCompactView: View {
             ),
             isLoading: false
         ) {
-            print("Leaderboard tapped")
+            AppLogger.debug("Leaderboard tapped")
         }
         
         XPProgressView(status: nil, isLoading: true)

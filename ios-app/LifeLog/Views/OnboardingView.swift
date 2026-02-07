@@ -461,7 +461,7 @@ struct FirstCheckInScreen: View {
                             text = "Deep in work mode 💻"
                             submitWithAnimation()
                         }
-                        OneTapMoodButton(emoji: "🧘", label: "Taking Break", color: Color(hex: "8b5cf6")!) {
+                        OneTapMoodButton(emoji: "🧘", label: "Taking Break", color: Color(hex: "8b5cf6") ?? .purple) {
                             text = "Taking a mindful break 🧘"
                             submitWithAnimation()
                         }
@@ -839,7 +839,7 @@ struct SetGoalScreen: View {
         GoalTemplate(name: "4hrs Deep Work", icon: "brain.head.profile", color: .success, target: "4 hours/day"),
         GoalTemplate(name: "Exercise 3x/week", icon: "figure.run", color: .brandAccent, target: "3 times/week"),
         GoalTemplate(name: "Daily Check-in", icon: "square.and.pencil", color: .warning, target: "1 check-in/day"),
-        GoalTemplate(name: "Read 30min", icon: "book.fill", color: Color(hex: "8b5cf6")!, target: "30 min/day"),
+        GoalTemplate(name: "Read 30min", icon: "book.fill", color: Color(hex: "8b5cf6") ?? .purple, target: "30 min/day"),
     ]
     
     var body: some View {

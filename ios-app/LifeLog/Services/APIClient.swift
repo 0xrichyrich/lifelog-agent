@@ -3,24 +3,76 @@
 //  LifeLog
 //
 //  Created by Joshua Rich on 2026-02-02.
-//  Security-hardened version with API key authentication
+//  Security-hardened version with API key authentication and certificate validation
 //
 
 import Foundation
 
+// MARK: - Certificate Pinning Delegate
+/// URLSession delegate that enforces HTTPS and validates server certificates
+/// Note: Full certificate pinning is not implemented for Let's Encrypt certs (they rotate frequently)
+/// Instead, we enforce HTTPS and validate the certificate chain via iOS trust evaluation
+final class APISessionDelegate: NSObject, URLSessionDelegate {
+    /// Allowed domains for API communication
+    private let allowedDomains: Set<String> = [
+        "littlenudge.app",
+        "www.littlenudge.app"
+    ]
+    
+    func urlSession(
+        _ session: URLSession,
+        didReceive challenge: URLAuthenticationChallenge,
+        completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void
+    ) {
+        guard challenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodServerTrust,
+              let serverTrust = challenge.protectionSpace.serverTrust,
+              let host = challenge.protectionSpace.host as String? else {
+            // Not a server trust challenge - reject
+            completionHandler(.cancelAuthenticationChallenge, nil)
+            return
+        }
+        
+        // Verify the host is in our allowed list
+        let isAllowedDomain = allowedDomains.contains { host.hasSuffix($0) }
+        
+        guard isAllowedDomain else {
+            AppLogger.warning("Rejecting connection to non-allowed domain: \(host)")
+            completionHandler(.cancelAuthenticationChallenge, nil)
+            return
+        }
+        
+        // Evaluate the server's certificate chain using iOS default trust
+        var error: CFError?
+        let isValid = SecTrustEvaluateWithError(serverTrust, &error)
+        
+        if isValid {
+            let credential = URLCredential(trust: serverTrust)
+            completionHandler(.useCredential, credential)
+        } else {
+            AppLogger.error("Certificate validation failed for \(host): \(String(describing: error))")
+            completionHandler(.cancelAuthenticationChallenge, nil)
+        }
+    }
+}
+
 actor APIClient {
     private let session: URLSession
+    private let sessionDelegate: APISessionDelegate
     private var baseURL: String
     private var apiKey: String?
     
-    init(baseURL: String = "https://www.littlenudge.app", apiKey: String? = nil) {
+    init(baseURL: String = NudgeConstants.apiBaseURL, apiKey: String? = nil) {
         self.baseURL = baseURL
         self.apiKey = apiKey
+        self.sessionDelegate = APISessionDelegate()
         
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 30
         config.timeoutIntervalForResource = 60
-        self.session = URLSession(configuration: config)
+        // TLS minimum version for security
+        config.tlsMinimumSupportedProtocolVersion = .TLSv12
+        
+        self.session = URLSession(configuration: config, delegate: sessionDelegate, delegateQueue: nil)
     }
     
     func updateBaseURL(_ url: String) {

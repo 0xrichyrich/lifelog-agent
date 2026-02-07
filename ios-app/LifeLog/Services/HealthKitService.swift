@@ -67,14 +67,36 @@ final class HealthKitService: ObservableObject {
             return
         }
         
-        // For read-only HealthKit access, authorizationStatus only tells us about WRITE permissions
+        // For read-only HealthKit access, we check actual authorization status
         // iOS intentionally hides read permission status for privacy (so apps can't tell if user denied)
-        // We check UserDefaults to remember if user previously completed authorization flow
-        isAuthorized = UserDefaults.standard.bool(forKey: "healthKitAuthorizationCompleted")
+        // We check if ANY of our requested types have undetermined status
+        // If all are determined, user has seen the dialog (though we don't know if they granted access)
+        // The safest approach is to try fetching data and see if it works
+        
+        // Check if user has interacted with HealthKit permissions at all
+        // We do this by checking if any type has a non-notDetermined status
+        guard let stepType = HKQuantityType.quantityType(forIdentifier: .stepCount) else {
+            isAuthorized = false
+            return
+        }
+        
+        // For write permissions, we can check status. For read, iOS hides it for privacy.
+        // Since we only request read permissions, we can't reliably check.
+        // Instead, we'll attempt to fetch data when needed - if it returns data, we have access.
+        // For now, we'll assume the user completed authorization if they've used the app before.
+        // This is acceptable per Apple's HealthKit patterns.
+        let status = healthStore.authorizationStatus(for: stepType)
+        
+        // We can't directly check read authorization, but if user denied write (which we don't request),
+        // the status would be .sharingDenied. Since we only read, we check if status is determined.
+        // Note: This is a best-effort check - the real validation happens when we fetch data.
+        isAuthorized = status != .notDetermined
     }
     
     func markAuthorizationCompleted() {
-        UserDefaults.standard.set(true, forKey: "healthKitAuthorizationCompleted")
+        // The authorization flow was shown to the user
+        // We set isAuthorized to true because the dialog was presented
+        // Actual data access will be verified when fetching data
         isAuthorized = true
     }
     
