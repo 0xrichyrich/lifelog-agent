@@ -1,14 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { validateSessionToken } from './auth-turso';
 
 /**
- * API Key Authentication Middleware
+ * API Key & Session Token Authentication Middleware
  * 
- * Validates requests against INTERNAL_API_KEY environment variable.
- * Returns null if authenticated, or NextResponse with error if not.
+ * Supports two authentication methods:
  * 
- * Supports both:
- * - Authorization: Bearer <key>
- * - X-API-Key: <key>
+ * 1. Session Token (iOS app): Authorization: Bearer <session_token>
+ *    - 64 hex character tokens from POST /api/auth/token
+ *    - Validated against Turso session_tokens table
+ *    - Returns wallet address on success
+ * 
+ * 2. API Key (backend-to-backend): X-API-Key: <key>
+ *    - Static key from INTERNAL_API_KEY env var
+ *    - Used for cron jobs, internal services
+ * 
+ * Session tokens are tried FIRST, then fall back to API key.
  */
 
 // Production logging helper - never log sensitive data in production
@@ -115,11 +122,122 @@ export function validateApiKey(request: NextRequest): NextResponse | null {
 }
 
 /**
+ * Result from session token authentication
+ */
+export interface SessionAuthResult {
+  authenticated: boolean;
+  walletAddress?: string;
+  error?: NextResponse;
+}
+
+/**
+ * Try to authenticate via session token (Bearer token in Authorization header)
+ * Returns the wallet address if valid, null if no token or invalid
+ * 
+ * This is async because it validates against Turso database.
+ */
+export async function trySessionTokenAuth(request: NextRequest): Promise<SessionAuthResult> {
+  const authHeader = request.headers.get('authorization');
+  
+  // No Authorization header
+  if (!authHeader) {
+    return { authenticated: false };
+  }
+  
+  // Must be Bearer token
+  if (!authHeader.startsWith('Bearer ')) {
+    return { authenticated: false };
+  }
+  
+  const token = authHeader.slice(7);
+  
+  // Session tokens are exactly 64 hex characters
+  // API keys are typically different length, so this filters them out
+  if (token.length !== 64 || !/^[a-fA-F0-9]{64}$/.test(token)) {
+    return { authenticated: false };
+  }
+  
+  try {
+    const result = await validateSessionToken(token);
+    
+    if (result.valid && result.walletAddress) {
+      return {
+        authenticated: true,
+        walletAddress: result.walletAddress,
+      };
+    }
+    
+    // Token was the right format but invalid/expired
+    return {
+      authenticated: false,
+      error: NextResponse.json(
+        { error: result.error || 'Invalid session token' },
+        { status: 401 }
+      ),
+    };
+  } catch (error) {
+    console.error('Session token validation error:', error);
+    return { authenticated: false };
+  }
+}
+
+/**
  * Require internal API auth - returns error response or null
  * Usage: const authError = requireInternalAuth(request); if (authError) return authError;
+ * 
+ * SYNC version - only checks X-API-Key, does NOT check session tokens.
+ * Use requireInternalAuthAsync for full authentication including session tokens.
  */
 export function requireInternalAuth(request: NextRequest): NextResponse | null {
   return validateInternalApiKey(request);
+}
+
+/**
+ * Require internal API auth (async version) - checks session tokens first, then API key
+ * 
+ * Priority:
+ * 1. Session token (Bearer token with 64 hex chars) - for iOS app
+ * 2. X-API-Key header - for backend-to-backend calls
+ * 
+ * Usage:
+ *   const authResult = await requireInternalAuthAsync(request);
+ *   if (authResult.error) return authResult.error;
+ *   const userId = authResult.walletAddress || extractUserIdFromRequest(request);
+ */
+export async function requireInternalAuthAsync(request: NextRequest): Promise<{
+  authenticated: boolean;
+  walletAddress?: string;
+  error?: NextResponse;
+}> {
+  // Try session token first (for iOS app)
+  const sessionResult = await trySessionTokenAuth(request);
+  
+  if (sessionResult.authenticated) {
+    return {
+      authenticated: true,
+      walletAddress: sessionResult.walletAddress,
+    };
+  }
+  
+  // If session token was provided but invalid, return that specific error
+  if (sessionResult.error) {
+    return {
+      authenticated: false,
+      error: sessionResult.error,
+    };
+  }
+  
+  // Fall back to API key (for backend-to-backend)
+  const apiKeyError = validateInternalApiKey(request);
+  if (apiKeyError) {
+    return {
+      authenticated: false,
+      error: apiKeyError,
+    };
+  }
+  
+  // Authenticated via API key (no wallet address in this case)
+  return { authenticated: true };
 }
 
 /**
