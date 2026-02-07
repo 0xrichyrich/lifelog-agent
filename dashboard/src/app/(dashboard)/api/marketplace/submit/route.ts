@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyPaymentOnChain, isValidTxHash, TOKENS } from '@/lib/payment-verification';
+import { validateContentType } from '@/lib/auth';
 
 /**
  * Agent Marketplace Submission Endpoint
@@ -31,9 +32,15 @@ const LISTING_FEE_USDC = 100000; // $0.10 USDC (6 decimals)
 // In-memory storage for MVP (will be replaced with database later)
 // Note: This persists across warm function invocations but resets on cold starts
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const globalForAgents = globalThis as typeof globalThis & { communityAgents?: SubmittedAgent[] };
+const globalForAgents = globalThis as typeof globalThis & { 
+  communityAgents?: SubmittedAgent[];
+  usedPaymentHashes?: Set<string>;
+};
 if (!globalForAgents.communityAgents) {
   globalForAgents.communityAgents = [];
+}
+if (!globalForAgents.usedPaymentHashes) {
+  globalForAgents.usedPaymentHashes = new Set();
 }
 
 interface SubmittedAgent {
@@ -64,6 +71,31 @@ interface SubmittedAgent {
   isCommunity: boolean;
 }
 
+// Public agent data (strips sensitive fields like systemPrompt)
+interface PublicAgent {
+  id: string;
+  name: string;
+  icon: string;
+  description: string;
+  category: string;
+  pricing: {
+    perMessage: number;
+    isFree: boolean;
+  };
+  creatorWallet: string;
+  capabilities: string[];
+  price: number;
+  isFree: boolean;
+  rating: number;
+  totalRatings: number;
+  usageCount: number;
+  featured: boolean;
+  triggers: string[];
+  createdAt: string;
+  status: string;
+  isCommunity: boolean;
+}
+
 interface SubmissionRequest {
   name: string;
   icon: string;
@@ -87,6 +119,12 @@ function loadCommunityAgents(): SubmittedAgent[] {
 // Save community agents to memory
 function saveCommunityAgents(agents: SubmittedAgent[]): void {
   globalForAgents.communityAgents = agents;
+}
+
+// Strip systemPrompt from agent data for public API responses
+function stripSensitiveData(agent: SubmittedAgent): PublicAgent {
+  const { systemPrompt: _systemPrompt, paymentTx: _paymentTx, ...publicData } = agent;
+  return publicData;
 }
 
 // Generate unique ID
@@ -138,6 +176,10 @@ function validateSubmission(data: SubmissionRequest): string | null {
 }
 
 export async function POST(request: NextRequest) {
+  // Validate Content-Type
+  const contentTypeError = validateContentType(request);
+  if (contentTypeError) return contentTypeError;
+  
   try {
     const body: SubmissionRequest = await request.json();
 
@@ -191,9 +233,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check for duplicate payment (replay protection)
+    const usedHashes = globalForAgents.usedPaymentHashes!;
+    if (usedHashes.has(body.paymentProof.toLowerCase())) {
+      return NextResponse.json(
+        { error: 'This payment has already been used for a submission' },
+        { status: 400 }
+      );
+    }
+
     // On-chain verification via Monad Testnet RPC
-    console.log('[Marketplace] Verifying payment on-chain:', body.paymentProof);
-    
     const verification = await verifyPaymentOnChain(
       body.paymentProof,
       LISTING_FEE_USDC, // Expected listing fee amount
@@ -201,7 +250,6 @@ export async function POST(request: NextRequest) {
     );
 
     if (!verification.valid) {
-      console.warn('[Marketplace] Payment verification failed:', verification.error);
       return NextResponse.json(
         { 
           error: 'Payment verification failed',
@@ -210,13 +258,19 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-
-    console.log('[Marketplace] Payment verified on-chain:', {
-      txHash: body.paymentProof,
-      amount: verification.amount?.toString(),
-      from: verification.from,
-      to: verification.to
-    });
+    
+    // Mark payment hash as used (replay protection)
+    usedHashes.add(body.paymentProof.toLowerCase());
+    
+    // Cleanup old hashes if too many (prevent memory leak)
+    if (usedHashes.size > 10000) {
+      const iterator = usedHashes.values();
+      for (let i = 0; i < 5000; i++) {
+        const next = iterator.next();
+        if (next.done) break;
+        usedHashes.delete(next.value);
+      }
+    }
     
     // Load existing agents
     const agents = loadCommunityAgents();
@@ -280,7 +334,16 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// GET endpoint to check submission status or list user's submissions
+/**
+ * GET /api/marketplace/submit
+ * Check submission status or list user's submissions
+ * 
+ * Query params:
+ *   wallet: string - filter by creator wallet
+ *   id: string - get specific agent by ID
+ * 
+ * Security: systemPrompt is STRIPPED from all responses
+ */
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const wallet = searchParams.get('wallet');
@@ -288,23 +351,25 @@ export async function GET(request: NextRequest) {
 
   const agents = loadCommunityAgents();
 
-  // Get specific agent by ID
+  // Get specific agent by ID (strip sensitive data)
   if (agentId) {
     const agent = agents.find(a => a.id === agentId);
     if (!agent) {
       return NextResponse.json({ error: 'Agent not found' }, { status: 404 });
     }
-    return NextResponse.json({ agent });
+    // Return public data only - no systemPrompt
+    return NextResponse.json({ agent: stripSensitiveData(agent) });
   }
 
-  // Get all agents by creator wallet
+  // Get all agents by creator wallet (strip sensitive data)
   if (wallet) {
-    const userAgents = agents.filter(
-      a => a.creatorWallet.toLowerCase() === wallet.toLowerCase()
-    );
+    const userAgents = agents
+      .filter(a => a.creatorWallet.toLowerCase() === wallet.toLowerCase())
+      .map(stripSensitiveData);
     return NextResponse.json({ agents: userAgents, total: userAgents.length });
   }
 
-  // Return all community agents
-  return NextResponse.json({ agents, total: agents.length });
+  // Return all community agents (strip sensitive data)
+  const publicAgents = agents.map(stripSensitiveData);
+  return NextResponse.json({ agents: publicAgents, total: publicAgents.length });
 }

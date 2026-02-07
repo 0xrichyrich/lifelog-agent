@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createCheckIn, getCheckIns, initializeDatabase, isDatabaseConfigured } from '@/lib/db-turso';
 import { validateMessage, validateTimestamp, validateDate, validatePositiveInt } from '@/lib/validation';
 import { checkRateLimit, RATE_LIMITS, addRateLimitHeaders } from '@/lib/rate-limit';
+import { validateContentType } from '@/lib/auth';
 
 // Initialize database tables on cold start
 let initialized = false;
@@ -9,29 +10,37 @@ let initError: Error | null = null;
 
 async function ensureInitialized(): Promise<{ ready: boolean; error?: string }> {
   if (!isDatabaseConfigured()) {
-    return { ready: false, error: 'TURSO_DATABASE_URL environment variable is not set' };
+    return { ready: false, error: 'Database not configured' };
   }
   
   if (initError) {
-    return { ready: false, error: initError.message };
+    return { ready: false, error: 'Database initialization failed' };
   }
   
   if (!initialized) {
     try {
-      console.log('Initializing database tables...');
       await initializeDatabase();
       initialized = true;
-      console.log('Database initialized successfully');
     } catch (error) {
       initError = error instanceof Error ? error : new Error('Unknown initialization error');
       console.error('Failed to initialize database:', initError);
-      return { ready: false, error: initError.message };
+      return { ready: false, error: 'Database initialization failed' };
     }
   }
   return { ready: true };
 }
 
+/**
+ * POST /api/checkins
+ * Create a new check-in
+ * 
+ * PUBLIC - No authentication required (for demo purposes)
+ */
 export async function POST(request: NextRequest) {
+  // Validate Content-Type
+  const contentTypeError = validateContentType(request);
+  if (contentTypeError) return contentTypeError;
+  
   // Rate limiting
   const rateLimitError = checkRateLimit(request, RATE_LIMITS.checkins);
   if (rateLimitError) return rateLimitError;
@@ -40,10 +49,7 @@ export async function POST(request: NextRequest) {
     const initResult = await ensureInitialized();
     if (!initResult.ready) {
       return NextResponse.json({
-        error: 'Database not ready',
-        message: initResult.error || 'Database initialization failed',
-        setup: 'Visit /api/setup to initialize the database, or check that TURSO_DATABASE_URL and TURSO_AUTH_TOKEN are set in Vercel env vars',
-        docs: 'https://turso.tech/app - create database, then add env vars',
+        error: 'Service temporarily unavailable',
       }, { status: 503 });
     }
     
@@ -88,14 +94,23 @@ export async function POST(request: NextRequest) {
     
     return addRateLimitHeaders(response, RATE_LIMITS.checkins, request);
   } catch (error) {
+    // Log the actual error server-side
     console.error('Failed to create check-in:', error);
+    
+    // Return generic error to client
     return NextResponse.json(
-      { error: 'Failed to create check-in', details: error instanceof Error ? error.message : 'Unknown error' },
+      { error: 'Failed to create check-in' },
       { status: 500 }
     );
   }
 }
 
+/**
+ * GET /api/checkins
+ * Get check-ins with optional filters
+ * 
+ * PUBLIC - No authentication required (read-only)
+ */
 export async function GET(request: NextRequest) {
   // Rate limiting
   const rateLimitError = checkRateLimit(request, RATE_LIMITS.read);
@@ -107,9 +122,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({
         checkins: [],
         count: 0,
-        error: 'Database not ready',
-        message: initResult.error || 'Database initialization failed',
-        setup: '/api/setup to initialize',
+        error: 'Service temporarily unavailable',
       });
     }
     
@@ -154,11 +167,13 @@ export async function GET(request: NextRequest) {
     
     return addRateLimitHeaders(response, RATE_LIMITS.read, request);
   } catch (error) {
+    // Log the actual error server-side
     console.error('Failed to fetch check-ins:', error);
+    
+    // Return generic error to client
     return NextResponse.json({
       checkins: [],
       error: 'Service temporarily unavailable',
-      details: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 }

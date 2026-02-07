@@ -95,12 +95,10 @@ export async function verifyPaymentOnChain(
         };
       }
 
-      console.log('[Payment] Native transfer verified:', {
-        txHash,
-        amount: tx.value.toString(),
-        from: tx.from,
-        to: tx.to
-      });
+      // Log verification success without sensitive details in production
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Payment] Native transfer verified');
+      }
 
       return { 
         valid: true, 
@@ -135,13 +133,10 @@ export async function verifyPaymentOnChain(
         const amount = BigInt(log.data);
         
         if (amount >= expectedBigInt) {
-          console.log('[Payment] ERC20 transfer verified:', {
-            txHash,
-            token: tokenAddress,
-            amount: amount.toString(),
-            from,
-            to
-          });
+          // Log verification success without sensitive details in production
+          if (process.env.NODE_ENV === 'development') {
+            console.log('[Payment] ERC20 transfer verified');
+          }
 
           return { 
             valid: true, 

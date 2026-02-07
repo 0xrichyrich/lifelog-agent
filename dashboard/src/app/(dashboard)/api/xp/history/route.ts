@@ -1,13 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getHistory } from '@/lib/xp-turso';
 import { checkRateLimit, RATE_LIMITS, addRateLimitHeaders } from '@/lib/rate-limit';
+import { validateUserId } from '@/lib/auth';
 
 /**
  * GET /api/xp/history
  * Get XP transaction history for a user
  * 
+ * PUBLIC - No authentication required (read-only)
+ * 
  * Query params:
- *   userId: string (required)
+ *   userId: string (required) - wallet address or device UUID
  *   limit?: number (default 50, max 100)
  */
 export async function GET(request: NextRequest) {
@@ -17,17 +20,23 @@ export async function GET(request: NextRequest) {
   
   const { searchParams } = new URL(request.url);
   const userId = searchParams.get('userId');
-  const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100);
+  const limitParam = searchParams.get('limit') || '50';
   
-  if (!userId) {
+  // Validate userId format
+  const userIdResult = validateUserId(userId);
+  if (!userIdResult.valid) {
     return NextResponse.json(
-      { error: 'userId is required' },
+      { error: userIdResult.error },
       { status: 400 }
     );
   }
   
+  // Parse limit with radix 10 and validate
+  const parsedLimit = parseInt(limitParam, 10);
+  const limit = isNaN(parsedLimit) ? 50 : Math.min(Math.max(1, parsedLimit), 100);
+  
   try {
-    const { history, total } = await getHistory(userId, limit);
+    const { history, total } = await getHistory(userIdResult.value!, limit);
     
     // Enrich with activity descriptions
     const enrichedHistory = history.map(tx => ({
@@ -46,7 +55,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Failed to get XP history:', error);
     return NextResponse.json(
-      { error: 'Failed to get XP history' },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }

@@ -33,11 +33,13 @@ export async function GET(request: NextRequest) {
     const response = NextResponse.json(data);
     return addRateLimitHeaders(response, RATE_LIMITS.export, request);
   } catch (error) {
+    // Log the actual error server-side
     console.error('Export failed:', error);
+    
+    // Return generic error to client (don't leak internal details)
     return NextResponse.json({
       exportedAt: new Date().toISOString(),
       error: 'Export failed',
-      details: error instanceof Error ? error.message : 'Unknown error',
       activities: [],
       checkIns: [],
       media: [],

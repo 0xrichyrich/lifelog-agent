@@ -16,6 +16,12 @@ async function ensureInitialized() {
   }
 }
 
+/**
+ * GET /api/activities
+ * Get activities for a specific date
+ * 
+ * PUBLIC - No authentication required (read-only)
+ */
 export async function GET(request: NextRequest) {
   // Rate limiting
   const rateLimitError = checkRateLimit(request, RATE_LIMITS.read);
@@ -45,12 +51,15 @@ export async function GET(request: NextRequest) {
     });
     return addRateLimitHeaders(response, RATE_LIMITS.read, request);
   } catch (error) {
+    // Log the actual error server-side
     console.error('Failed to fetch activities:', error);
+    
+    // Return generic error to client (don't leak internal details)
     const response = NextResponse.json({
       date: dateResult.value,
       activities: [],
       source: 'error',
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: 'Service temporarily unavailable',
     });
     return addRateLimitHeaders(response, RATE_LIMITS.read, request);
   }

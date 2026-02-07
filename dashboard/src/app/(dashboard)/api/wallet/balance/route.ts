@@ -1,16 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { validateApiKey } from '@/lib/auth';
+import { requireInternalAuth } from '@/lib/auth';
+import { checkRateLimit, RATE_LIMITS, addRateLimitHeaders } from '@/lib/rate-limit';
 
+/**
+ * GET /api/wallet/balance?address=xxx
+ * Get wallet balance and pending rewards
+ * 
+ * Authentication: Requires X-API-Key header matching INTERNAL_API_KEY
+ */
 export async function GET(request: NextRequest) {
-  // Authentication
-  // Auth removed for public access
-  // if (authError) return authError;
+  // Authentication required (privacy - reveals user balances)
+  const authError = requireInternalAuth(request);
+  if (authError) return authError;
+  
+  // Rate limiting
+  const rateLimitError = checkRateLimit(request, RATE_LIMITS.read);
+  if (rateLimitError) return rateLimitError;
 
   const { searchParams } = new URL(request.url);
   const address = searchParams.get('address');
 
   if (!address) {
     return NextResponse.json({ error: 'Address required' }, { status: 400 });
+  }
+
+  // Validate address format
+  if (!/^0x[a-fA-F0-9]{40}$/.test(address)) {
+    return NextResponse.json({ error: 'Invalid address format' }, { status: 400 });
   }
 
   // TODO: Integrate with actual blockchain/database
@@ -26,5 +42,6 @@ export async function GET(request: NextRequest) {
     lastUpdated: new Date().toISOString(),
   };
 
-  return NextResponse.json(mockBalance);
+  const response = NextResponse.json(mockBalance);
+  return addRateLimitHeaders(response, RATE_LIMITS.read, request);
 }

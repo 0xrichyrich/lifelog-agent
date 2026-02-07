@@ -145,7 +145,10 @@ export async function GET(request: NextRequest) {
     });
     return addRateLimitHeaders(response, RATE_LIMITS.read, request);
   } catch (error) {
+    // Log the actual error server-side
     console.error('Failed to generate insights:', error);
+    
+    // Return generic error to client (don't leak internal details)
     return NextResponse.json({
       days: daysResult.value,
       insights: {
@@ -155,7 +158,7 @@ export async function GET(request: NextRequest) {
         weeklyTrends: [],
       },
       source: 'error',
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: 'Service temporarily unavailable',
     });
   }
 }

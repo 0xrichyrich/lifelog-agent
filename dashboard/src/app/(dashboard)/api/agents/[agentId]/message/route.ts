@@ -1,14 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { randomUUID } from 'crypto';
 import { verifyPaymentOnChain, isValidTxHash, TOKENS } from '@/lib/payment-verification';
+import { requireInternalAuth, validateContentType } from '@/lib/auth';
+import { checkRateLimit, RATE_LIMITS, addRateLimitHeaders } from '@/lib/rate-limit';
 
 /**
  * Agent Message Endpoint
  * Sends a message to an AI agent and returns the response
  * Supports x402 micropayments for paid agents
  * 
+ * Authentication: Requires X-API-Key header matching INTERNAL_API_KEY
  * Payment verification: Real on-chain verification on Monad Testnet
  */
+
+// Maximum conversation history entries per session
+const MAX_CONVERSATION_HISTORY = 20;
 
 // Agent pricing configuration (matches /api/agents)
 // Amount is in USDC micro-units (6 decimals): 10000 = $0.01
@@ -63,9 +69,40 @@ const AGENT_NAMES: Record<string, string> = {
   'book-buddy': 'Book Buddy',
 };
 
-// In-memory conversation storage (for demo purposes)
-// In production, use a database
-const conversations: Map<string, { role: string; content: string }[]> = new Map();
+// In-memory conversation storage with LRU behavior
+// Key: conversationKey, Value: { messages, lastAccess }
+const conversations: Map<string, { messages: { role: string; content: string }[]; lastAccess: number }> = new Map();
+const MAX_CONVERSATIONS = 1000;
+
+// In-memory tracking of processed transaction hashes for replay protection
+// TODO: For production, use Turso database for persistence across instances
+const processedTxHashes = new Set<string>();
+const MAX_TX_HASHES = 10000;
+
+function cleanupOldConversations(): void {
+  if (conversations.size <= MAX_CONVERSATIONS) return;
+  
+  // Convert to array, sort by lastAccess, remove oldest half
+  const entries = Array.from(conversations.entries())
+    .sort((a, b) => a[1].lastAccess - b[1].lastAccess);
+  
+  const toRemove = Math.floor(entries.length / 2);
+  for (let i = 0; i < toRemove; i++) {
+    conversations.delete(entries[i][0]);
+  }
+}
+
+function cleanupOldTxHashes(): void {
+  if (processedTxHashes.size <= MAX_TX_HASHES) return;
+  
+  const iterator = processedTxHashes.values();
+  const toRemove = Math.floor(processedTxHashes.size / 2);
+  for (let i = 0; i < toRemove; i++) {
+    const next = iterator.next();
+    if (next.done) break;
+    processedTxHashes.delete(next.value);
+  }
+}
 
 interface PaymentProof {
   signature: string;
@@ -100,33 +137,24 @@ interface PaymentRequest {
  * 3. Amount meets required amount
  * 4. Replay protection via processed tx hashes
  */
-
-// In-memory tracking of processed transaction hashes for replay protection
-// TODO: For production, use Redis or database for persistence across instances
-const processedTxHashes = new Set<string>();
-
 async function verifyPaymentProof(proof: PaymentProof, agentId: string): Promise<{ valid: boolean; error?: string }> {
   // Basic validation
   if (!proof.txHash) {
-    console.warn('[Payment] No txHash in proof:', proof);
     return { valid: false, error: 'Transaction hash required for verification' };
   }
 
   // Quick format validation
   if (!isValidTxHash(proof.txHash)) {
-    console.warn('[Payment] Invalid txHash format:', proof.txHash);
     return { valid: false, error: 'Invalid transaction hash format' };
   }
 
   // REPLAY PROTECTION: Check if tx hash was already used
   if (processedTxHashes.has(proof.txHash.toLowerCase())) {
-    console.warn('[Payment] Replay attack detected - tx already used:', proof.txHash);
     return { valid: false, error: 'This transaction has already been used' };
   }
 
   // Check chain is monad (or monad-testnet)
   if (proof.chain && !proof.chain.toLowerCase().includes('monad')) {
-    console.warn('[Payment] Invalid chain:', proof.chain);
     return { valid: false, error: 'Payment must be on Monad network' };
   }
 
@@ -143,24 +171,13 @@ async function verifyPaymentProof(proof: PaymentProof, agentId: string): Promise
   );
 
   if (!verification.valid) {
-    console.warn('[Payment] On-chain verification failed:', verification.error);
     return { valid: false, error: verification.error };
   }
 
   // Mark tx hash as processed (replay protection)
   processedTxHashes.add(proof.txHash.toLowerCase());
+  cleanupOldTxHashes();
   
-  // Cleanup old tx hashes periodically (prevent memory leak)
-  if (processedTxHashes.size > 10000) {
-    const iterator = processedTxHashes.values();
-    for (let i = 0; i < 5000; i++) {
-      const next = iterator.next();
-      if (next.done) break;
-      processedTxHashes.delete(next.value);
-    }
-  }
-  
-  console.log('[Payment] On-chain verification SUCCESS for agent:', agentId, 'txHash:', proof.txHash, 'amount:', verification.amount?.toString());
   return { valid: true };
 }
 
@@ -189,6 +206,18 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ agentId: string }> }
 ) {
+  // Authentication required
+  const authError = requireInternalAuth(request);
+  if (authError) return authError;
+  
+  // Validate Content-Type
+  const contentTypeError = validateContentType(request);
+  if (contentTypeError) return contentTypeError;
+  
+  // Rate limiting
+  const rateLimitError = checkRateLimit(request, RATE_LIMITS.write);
+  if (rateLimitError) return rateLimitError;
+  
   try {
     const { agentId } = await params;
     const body = await request.json() as MessageRequest;
@@ -210,11 +239,9 @@ export async function POST(
     
     if (isPaidAgent) {
       // For paid agents, always require payment unless proof is provided
-      // (In production, free tier would use database/KV for state tracking)
       if (!paymentProof) {
         // Return 402 Payment Required
         const paymentRequest = createPaymentRequest(agentId);
-        console.log('[x402] Payment required for', agentId, 'user:', userId);
         
         return NextResponse.json(paymentRequest, { status: 402 });
       }
@@ -227,8 +254,6 @@ export async function POST(
           { status: 400 }
         );
       }
-      
-      console.log('[x402] Payment verified on-chain for', agentId, 'user:', userId);
     }
 
     // Check for OpenAI API key
@@ -240,19 +265,24 @@ export async function POST(
       );
     }
 
-    // Get or create conversation
+    // Get or create conversation with LRU cleanup
     const convId = conversationId || randomUUID();
     const convKey = `${userId}_${agentId}_${convId}`;
     
-    let history = conversations.get(convKey) || [];
+    let convData = conversations.get(convKey);
+    let history = convData?.messages || [];
     
     // Add user message to history
     history.push({ role: 'user', content: message });
     
-    // Keep only last 10 messages for context
-    if (history.length > 10) {
-      history = history.slice(-10);
+    // Cap conversation history to prevent unbounded growth
+    if (history.length > MAX_CONVERSATION_HISTORY) {
+      history = history.slice(-MAX_CONVERSATION_HISTORY);
     }
+
+    // Update conversation with LRU timestamp
+    conversations.set(convKey, { messages: history, lastAccess: Date.now() });
+    cleanupOldConversations();
 
     // Build messages array for OpenAI
     const messages = [
@@ -276,8 +306,7 @@ export async function POST(
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('OpenAI API error:', response.status, errorText);
+      console.error('OpenAI API error:', response.status);
       return NextResponse.json(
         { error: 'AI service error' },
         { status: 502 }
@@ -289,11 +318,17 @@ export async function POST(
 
     // Add assistant message to history
     history.push({ role: 'assistant', content: assistantMessage });
-    conversations.set(convKey, history);
+    
+    // Cap again after adding assistant message
+    if (history.length > MAX_CONVERSATION_HISTORY) {
+      history = history.slice(-MAX_CONVERSATION_HISTORY);
+    }
+    
+    conversations.set(convKey, { messages: history, lastAccess: Date.now() });
 
     // Build response
     const responseId = randomUUID();
-    return NextResponse.json({
+    const jsonResponse = NextResponse.json({
       conversationId: convId,
       response: {
         id: responseId,
@@ -303,6 +338,8 @@ export async function POST(
       },
       paymentRequired: null,
     });
+    
+    return addRateLimitHeaders(jsonResponse, RATE_LIMITS.write, request);
 
   } catch (error) {
     console.error('Agent message error:', error);

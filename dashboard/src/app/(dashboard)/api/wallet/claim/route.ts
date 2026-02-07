@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createWalletClient, createPublicClient, http, parseUnits, encodeFunctionData } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
+import { requireInternalAuth, validateContentType } from '@/lib/auth';
+import { checkRateLimit, RATE_LIMITS, addRateLimitHeaders } from '@/lib/rate-limit';
 
 // Monad Testnet configuration
 const monadTestnet = {
@@ -20,6 +22,9 @@ const monadTestnet = {
 // $NUDGE Token contract
 const NUDGE_TOKEN = '0xaEb52D53b6c3265580B91Be08C620Dc45F57a35F' as const;
 
+// Maximum claim amount per request (prevents draining)
+const MAX_CLAIM_AMOUNT = 1000;
+
 // ERC20 transfer ABI
 const erc20TransferAbi = [
   {
@@ -34,6 +39,18 @@ const erc20TransferAbi = [
 ] as const;
 
 export async function POST(request: NextRequest) {
+  // Authentication required (prevents unauthorized draining)
+  const authError = requireInternalAuth(request);
+  if (authError) return authError;
+  
+  // Validate Content-Type
+  const contentTypeError = validateContentType(request);
+  if (contentTypeError) return contentTypeError;
+  
+  // Rate limiting - strict limits for token transfers
+  const rateLimitError = checkRateLimit(request, RATE_LIMITS.token);
+  if (rateLimitError) return rateLimitError;
+  
   try {
     const body = await request.json();
     const { address, amount: requestedAmount } = body;
@@ -57,9 +74,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Default claim amount (in NUDGE tokens)
-    // In production, this would come from the user's earned rewards in database
-    const claimAmount = requestedAmount || '100'; // Default 100 NUDGE for demo
+    // Validate and cap the claim amount server-side
+    let claimAmount: number;
+    
+    if (requestedAmount !== undefined && requestedAmount !== null) {
+      // Parse and validate requested amount
+      const parsed = typeof requestedAmount === 'string' 
+        ? parseFloat(requestedAmount) 
+        : Number(requestedAmount);
+      
+      if (isNaN(parsed) || parsed <= 0) {
+        return NextResponse.json(
+          { error: 'Invalid amount: must be a positive number' },
+          { status: 400 }
+        );
+      }
+      
+      // Cap at maximum allowed
+      claimAmount = Math.min(parsed, MAX_CLAIM_AMOUNT);
+    } else {
+      // Default claim amount for demo
+      claimAmount = 100;
+    }
+    
+    // Use floor to ensure we never transfer more than intended
+    claimAmount = Math.floor(claimAmount * 100) / 100;
     
     try {
       // Create account from private key
@@ -79,7 +118,7 @@ export async function POST(request: NextRequest) {
       });
 
       // Parse amount with 18 decimals
-      const amountInWei = parseUnits(claimAmount, 18);
+      const amountInWei = parseUnits(claimAmount.toString(), 18);
 
       // Encode the transfer function call
       const data = encodeFunctionData({
@@ -95,7 +134,10 @@ export async function POST(request: NextRequest) {
         chain: monadTestnet,
       });
 
-      console.log(`Token transfer sent: ${txHash} - ${claimAmount} NUDGE to ${address}`);
+      // Log without sensitive details in production
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`Token transfer sent: ${txHash} - ${claimAmount} NUDGE`);
+      }
 
       // Wait for transaction confirmation (optional, can be done async)
       try {
@@ -104,30 +146,33 @@ export async function POST(request: NextRequest) {
           timeout: 30_000, // 30 second timeout
         });
         
-        return NextResponse.json({
+        const response = NextResponse.json({
           success: true,
-          amount: claimAmount,
+          amount: claimAmount.toString(),
           txHash,
           status: receipt.status === 'success' ? 'confirmed' : 'failed',
           blockNumber: receipt.blockNumber.toString(),
           message: `Successfully transferred ${claimAmount} NUDGE tokens!`,
         });
-      } catch (receiptError) {
+        return addRateLimitHeaders(response, RATE_LIMITS.token, request);
+      } catch {
         // Transaction sent but receipt not yet available
-        return NextResponse.json({
+        const response = NextResponse.json({
           success: true,
-          amount: claimAmount,
+          amount: claimAmount.toString(),
           txHash,
           status: 'pending',
           message: `Transfer submitted. ${claimAmount} NUDGE tokens on the way!`,
         });
+        return addRateLimitHeaders(response, RATE_LIMITS.token, request);
       }
 
-    } catch (txError: any) {
+    } catch (txError: unknown) {
       console.error('Transaction error:', txError);
       
-      // Check for common errors
-      if (txError.message?.includes('insufficient funds')) {
+      // Check for common errors without exposing internal details
+      const errorMessage = txError instanceof Error ? txError.message : '';
+      if (errorMessage.includes('insufficient funds')) {
         return NextResponse.json(
           { success: false, error: 'Platform wallet has insufficient gas' },
           { status: 503 }
@@ -135,12 +180,12 @@ export async function POST(request: NextRequest) {
       }
       
       return NextResponse.json(
-        { success: false, error: 'Transaction failed: ' + (txError.shortMessage || txError.message) },
+        { success: false, error: 'Transaction failed' },
         { status: 500 }
       );
     }
 
-  } catch (error: any) {
+  } catch (error) {
     console.error('Claim error:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to process claim' },

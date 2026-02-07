@@ -5,10 +5,13 @@ import {
 } from '@/lib/xp-turso';
 import { checkRateLimit, RATE_LIMITS, addRateLimitHeaders } from '@/lib/rate-limit';
 import { validatePositiveInt } from '@/lib/validation';
+import { requireInternalAuth, validateUserId, validateContentType } from '@/lib/auth';
 
 /**
  * GET /api/xp/redeem?userId=xxx
  * Get user's redemption status including daily cap, rates, and weekly pool info
+ * 
+ * PUBLIC - No authentication required (read-only status check)
  * 
  * Response:
  * {
@@ -35,14 +38,16 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
     
-    if (!userId) {
+    // Validate userId format
+    const userIdResult = validateUserId(userId);
+    if (!userIdResult.valid) {
       return NextResponse.json(
-        { error: 'userId is required' },
+        { error: userIdResult.error },
         { status: 400 }
       );
     }
     
-    const status = await getRedemptionStatus(userId);
+    const status = await getRedemptionStatus(userIdResult.value!);
     
     const response = NextResponse.json({
       success: true,
@@ -52,7 +57,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Failed to get redemption status:', error);
     return NextResponse.json(
-      { error: 'Failed to get redemption status' },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }
@@ -61,6 +66,8 @@ export async function GET(request: NextRequest) {
 /**
  * POST /api/xp/redeem
  * Redeem XP for $NUDGE tokens
+ * 
+ * Authentication: Requires X-API-Key header matching INTERNAL_API_KEY
  * 
  * Tiered rates by level:
  *   - Level 1-5: 10 XP = 1 $NUDGE
@@ -71,11 +78,11 @@ export async function GET(request: NextRequest) {
  *   - 7+ day streak: 1.5x
  *   - 30+ day streak: 2x
  * 
- * Daily cap: 250 $NUDGE
+ * Daily cap: 250 $NUDGE (rolling 24-hour window)
  * 
  * Body:
- *   userId: string (required)
- *   xpAmount: number (required, positive)
+ *   userId: string (required) - wallet address or device UUID
+ *   xpAmount: number (required, positive integer)
  * 
  * Response:
  * {
@@ -88,6 +95,14 @@ export async function GET(request: NextRequest) {
  * }
  */
 export async function POST(request: NextRequest) {
+  // Authentication required for POST (state-changing operation)
+  const authError = requireInternalAuth(request);
+  if (authError) return authError;
+  
+  // Validate Content-Type
+  const contentTypeError = validateContentType(request);
+  if (contentTypeError) return contentTypeError;
+  
   // Rate limiting
   const rateLimitError = checkRateLimit(request, RATE_LIMITS.token);
   if (rateLimitError) return rateLimitError;
@@ -96,9 +111,11 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { userId, xpAmount } = body;
     
-    if (!userId || typeof userId !== 'string') {
+    // Validate userId format
+    const userIdResult = validateUserId(userId);
+    if (!userIdResult.valid) {
       return NextResponse.json(
-        { error: 'userId is required and must be a string' },
+        { error: userIdResult.error },
         { status: 400 }
       );
     }
@@ -112,7 +129,7 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    const result = await redeemXPForNudge(userId, xpValidation.value!);
+    const result = await redeemXPForNudge(userIdResult.value!, xpValidation.value!);
     
     if (!result.success) {
       return NextResponse.json(
@@ -144,7 +161,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Failed to redeem XP:', error);
     return NextResponse.json(
-      { error: 'Failed to redeem XP' },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }

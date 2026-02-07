@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { validateApiKey } from '@/lib/auth';
+import { validateApiKey, validateContentType } from '@/lib/auth';
 import { validateAction, validateQuery, validateMessage } from '@/lib/validation';
 import { checkRateLimit, RATE_LIMITS, addRateLimitHeaders } from '@/lib/rate-limit';
 
@@ -116,6 +116,10 @@ export async function POST(request: NextRequest) {
   // Authentication
   const authError = validateApiKey(request);
   if (authError) return authError;
+  
+  // Validate Content-Type
+  const contentTypeError = validateContentType(request);
+  if (contentTypeError) return contentTypeError;
   
   // Rate limiting
   const rateLimitError = checkRateLimit(request, RATE_LIMITS.acp);

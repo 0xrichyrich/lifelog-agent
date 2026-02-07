@@ -4,10 +4,13 @@ import {
   distributeWeeklyPool 
 } from '@/lib/xp-turso';
 import { checkRateLimit, RATE_LIMITS, addRateLimitHeaders } from '@/lib/rate-limit';
+import { requireInternalAuth, validateUserId, validateContentType } from '@/lib/auth';
 
 /**
  * GET /api/xp/pool?userId=xxx
  * Get weekly bonus pool status including user's share and leaderboard
+ * 
+ * PUBLIC - No authentication required (read-only)
  * 
  * Weekly pool: 50,000 $NUDGE distributed every Sunday
  * Split proportionally by XP earned that week
@@ -40,14 +43,16 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
     
-    if (!userId) {
+    // Validate userId format
+    const userIdResult = validateUserId(userId);
+    if (!userIdResult.valid) {
       return NextResponse.json(
-        { error: 'userId is required' },
+        { error: userIdResult.error },
         { status: 400 }
       );
     }
     
-    const status = await getWeeklyPoolStatus(userId);
+    const status = await getWeeklyPoolStatus(userIdResult.value!);
     
     const response = NextResponse.json({
       success: true,
@@ -57,7 +62,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Failed to get pool status:', error);
     return NextResponse.json(
-      { error: 'Failed to get pool status' },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }
@@ -67,10 +72,11 @@ export async function GET(request: NextRequest) {
  * POST /api/xp/pool
  * Trigger weekly pool distribution (admin/cron endpoint)
  * 
+ * Authentication: Requires X-API-Key header matching INTERNAL_API_KEY
+ * Time Guard: Can only be called after weekEnd (Saturday 23:59:59 UTC)
+ * 
  * This should be called on Sunday evening or Monday morning
  * to distribute the weekly pool to all active users.
- * 
- * For hackathon demo, no auth required.
  * 
  * Response:
  * {
@@ -80,6 +86,14 @@ export async function GET(request: NextRequest) {
  * }
  */
 export async function POST(request: NextRequest) {
+  // Authentication required (admin-only operation)
+  const authError = requireInternalAuth(request);
+  if (authError) return authError;
+  
+  // Validate Content-Type
+  const contentTypeError = validateContentType(request);
+  if (contentTypeError) return contentTypeError;
+  
   // Rate limiting - use token limit since this modifies state
   const rateLimitError = checkRateLimit(request, RATE_LIMITS.token);
   if (rateLimitError) return rateLimitError;
@@ -108,7 +122,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Failed to distribute pool:', error);
     return NextResponse.json(
-      { error: 'Failed to distribute pool' },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }

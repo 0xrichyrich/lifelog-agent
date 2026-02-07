@@ -1,6 +1,13 @@
 // XP System using Turso Database for Vercel Edge/Serverless
 import { createClient, Client } from '@libsql/client';
 
+// Production logging - never log sensitive data
+function logSecurely(message: string): void {
+  if (process.env.NODE_ENV === 'development') {
+    console.log(message);
+  }
+}
+
 // XP Activity types and their base rewards
 export enum XPActivity {
   DAILY_CHECKIN = 'DAILY_CHECKIN',
@@ -104,6 +111,12 @@ const DAILY_NUDGE_CAP = 250;
 // Weekly pool
 const WEEKLY_POOL_AMOUNT = 50000;
 
+// 24 hours in milliseconds (for rolling window)
+const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
+
+// 36-hour window for streak detection (timezone tolerance)
+const STREAK_WINDOW_HOURS = 36;
+
 // Initialize XP tables
 let initialized = false;
 export async function initializeXPTables(): Promise<void> {
@@ -118,7 +131,8 @@ export async function initializeXPTables(): Promise<void> {
       totalXP INTEGER NOT NULL DEFAULT 0,
       currentXP INTEGER NOT NULL DEFAULT 0,
       level INTEGER NOT NULL DEFAULT 1,
-      lastActivityAt TEXT NOT NULL
+      lastActivityAt TEXT NOT NULL,
+      CHECK (currentXP >= 0)
     )
   `);
   
@@ -175,6 +189,7 @@ export async function initializeXPTables(): Promise<void> {
   
   await client.execute(`CREATE INDEX IF NOT EXISTS idx_user_xp_userId ON user_xp(userId)`);
   await client.execute(`CREATE INDEX IF NOT EXISTS idx_xp_transactions_userId ON xp_transactions(userId)`);
+  await client.execute(`CREATE INDEX IF NOT EXISTS idx_xp_transactions_createdAt ON xp_transactions(createdAt)`);
   await client.execute(`CREATE INDEX IF NOT EXISTS idx_nudge_redemptions_userId ON nudge_redemptions(userId)`);
   await client.execute(`CREATE INDEX IF NOT EXISTS idx_nudge_redemptions_createdAt ON nudge_redemptions(createdAt)`);
   await client.execute(`CREATE INDEX IF NOT EXISTS idx_weekly_pool_claims_poolId ON weekly_pool_claims(poolId)`);
@@ -293,7 +308,7 @@ export async function getStatus(userId: string): Promise<XPStatus> {
   const xpForNextLevel = nextLevelThreshold - currentLevelThreshold;
   const progressToNextLevel = xpForNextLevel > 0 ? (user.currentXP / xpForNextLevel) * 100 : 100;
   
-  // Calculate streak (simplified - count consecutive days with activity)
+  // Calculate streak (using UTC with 36-hour window)
   const streak = await calculateStreak(userId);
   
   // Redemption boost based on level
@@ -311,33 +326,48 @@ export async function getStatus(userId: string): Promise<XPStatus> {
   };
 }
 
-// Calculate user's current streak
+/**
+ * Calculate user's current streak
+ * Uses UTC consistently with a 36-hour window for "consecutive days"
+ * to handle timezone edge cases
+ */
 async function calculateStreak(userId: string): Promise<number> {
   const client = getClient();
   
+  // Get activity dates in UTC
   const result = await client.execute({
     sql: `SELECT DATE(createdAt) as day FROM xp_transactions 
           WHERE userId = ? 
           GROUP BY DATE(createdAt) 
           ORDER BY day DESC 
-          LIMIT 30`,
+          LIMIT 60`,
     args: [userId],
   });
   
   if (result.rows.length === 0) return 0;
   
   let streak = 0;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  
+  // Use UTC for consistent date handling
+  const now = new Date();
+  const todayUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
   
   for (let i = 0; i < result.rows.length; i++) {
-    const activityDate = new Date(String(result.rows[i].day));
-    activityDate.setHours(0, 0, 0, 0);
+    const activityDateStr = String(result.rows[i].day);
+    const activityDate = new Date(activityDateStr + 'T00:00:00Z');
     
-    const expectedDate = new Date(today);
-    expectedDate.setDate(expectedDate.getDate() - i);
+    // Expected date for this position in streak
+    const expectedDate = new Date(todayUTC);
+    expectedDate.setUTCDate(expectedDate.getUTCDate() - i);
     
-    if (activityDate.getTime() === expectedDate.getTime()) {
+    // Calculate hours between dates (for 36-hour tolerance)
+    const hoursDiff = Math.abs(expectedDate.getTime() - activityDate.getTime()) / (1000 * 60 * 60);
+    
+    // Allow 36-hour window for consecutive day detection (timezone tolerance)
+    if (hoursDiff <= STREAK_WINDOW_HOURS) {
+      streak++;
+    } else if (i === 0 && hoursDiff <= 48) {
+      // First entry: if activity was yesterday (within 48h), still start counting
       streak++;
     } else {
       break;
@@ -355,10 +385,13 @@ export async function getHistory(userId: string, limit: number = 20): Promise<{
   await initializeXPTables();
   const client = getClient();
   
+  // Clamp limit to safe range
+  const safeLimit = Math.min(Math.max(1, limit), 100);
+  
   const [historyResult, countResult] = await Promise.all([
     client.execute({
       sql: 'SELECT * FROM xp_transactions WHERE userId = ? ORDER BY createdAt DESC LIMIT ?',
-      args: [userId, limit],
+      args: [userId, safeLimit],
     }),
     client.execute({
       sql: 'SELECT COUNT(*) as total FROM xp_transactions WHERE userId = ?',
@@ -386,9 +419,12 @@ export async function getLeaderboard(limit: number = 10): Promise<LeaderboardEnt
   await initializeXPTables();
   const client = getClient();
   
+  // Clamp limit to safe range
+  const safeLimit = Math.min(Math.max(1, limit), 100);
+  
   const result = await client.execute({
     sql: 'SELECT userId, totalXP, level FROM user_xp ORDER BY totalXP DESC LIMIT ?',
-    args: [limit],
+    args: [safeLimit],
   });
   
   return result.rows.map((row, index) => ({
@@ -478,40 +514,45 @@ export function getStreakMultiplier(streak: number): number {
 }
 
 /**
- * Get how much $NUDGE the user has redeemed today
+ * Get how much $NUDGE the user has redeemed in the last 24 hours (rolling window)
+ * Uses rolling 24-hour window instead of calendar day to prevent midnight exploitation
  */
 export async function getDailyRedemptionTotal(userId: string): Promise<number> {
   await initializeXPTables();
   const client = getClient();
   
-  const today = new Date().toISOString().split('T')[0];
+  // Rolling 24-hour window in UTC
+  const twentyFourHoursAgo = new Date(Date.now() - TWENTY_FOUR_HOURS_MS).toISOString();
   
   const result = await client.execute({
     sql: `SELECT COALESCE(SUM(nudgeAwarded), 0) as total 
           FROM nudge_redemptions 
-          WHERE userId = ? AND DATE(createdAt) = ?`,
-    args: [userId, today],
+          WHERE userId = ? AND createdAt > ?`,
+    args: [userId, twentyFourHoursAgo],
   });
   
   return Number(result.rows[0]?.total ?? 0);
 }
 
 /**
- * Get start and end of current week (Sunday to Saturday)
+ * Get start and end of current week (Sunday to Saturday) in UTC
  */
 function getCurrentWeekRange(): { weekStart: string; weekEnd: string } {
   const now = new Date();
-  const dayOfWeek = now.getDay(); // 0 = Sunday
+  const dayOfWeek = now.getUTCDay(); // 0 = Sunday (UTC)
   
-  // Start of week (Sunday)
-  const weekStart = new Date(now);
-  weekStart.setDate(now.getDate() - dayOfWeek);
-  weekStart.setHours(0, 0, 0, 0);
+  // Start of week (Sunday) in UTC
+  const weekStart = new Date(Date.UTC(
+    now.getUTCFullYear(),
+    now.getUTCMonth(),
+    now.getUTCDate() - dayOfWeek,
+    0, 0, 0, 0
+  ));
   
-  // End of week (Saturday 23:59:59)
+  // End of week (Saturday 23:59:59) in UTC
   const weekEnd = new Date(weekStart);
-  weekEnd.setDate(weekStart.getDate() + 6);
-  weekEnd.setHours(23, 59, 59, 999);
+  weekEnd.setUTCDate(weekStart.getUTCDate() + 6);
+  weekEnd.setUTCHours(23, 59, 59, 999);
   
   return {
     weekStart: weekStart.toISOString().split('T')[0],
@@ -600,6 +641,9 @@ async function getTotalWeeklyXP(weekStart: string, weekEnd: string): Promise<num
 
 /**
  * Redeem XP for $NUDGE tokens
+ * 
+ * CRITICAL FIX: Uses atomic SQL UPDATE with WHERE clause to prevent race conditions
+ * The UPDATE only succeeds if currentXP >= xpAmount, checked atomically
  */
 export async function redeemXPForNudge(
   userId: string,
@@ -608,8 +652,8 @@ export async function redeemXPForNudge(
   await initializeXPTables();
   const client = getClient();
   
-  // Validate XP amount
-  if (!xpAmount || xpAmount <= 0) {
+  // Validate XP amount (must be positive integer)
+  if (!xpAmount || xpAmount <= 0 || !Number.isInteger(xpAmount)) {
     return {
       success: false,
       nudgeAwarded: 0,
@@ -618,7 +662,7 @@ export async function redeemXPForNudge(
       streakMultiplier: 1,
       dailyRemaining: 0,
       level: 1,
-      error: 'xpAmount must be positive',
+      error: 'xpAmount must be a positive integer',
     };
   }
   
@@ -630,27 +674,7 @@ export async function redeemXPForNudge(
   const rate = getRedemptionRate(user.level);
   const streakMultiplier = getStreakMultiplier(streak);
   
-  // Check user has enough XP
-  if (xpAmount > user.currentXP) {
-    return {
-      success: false,
-      nudgeAwarded: 0,
-      xpSpent: 0,
-      rate,
-      streakMultiplier,
-      dailyRemaining: DAILY_NUDGE_CAP - await getDailyRedemptionTotal(userId),
-      level: user.level,
-      error: `Insufficient XP. Have ${user.currentXP}, need ${xpAmount}`,
-    };
-  }
-  
-  // Calculate base NUDGE (before streak multiplier)
-  const baseNudge = xpAmount / rate;
-  
-  // Apply streak multiplier
-  const nudgeWithStreak = baseNudge * streakMultiplier;
-  
-  // Check daily cap
+  // Check daily cap first (rolling 24-hour window)
   const dailyRedeemed = await getDailyRedemptionTotal(userId);
   const dailyRemaining = DAILY_NUDGE_CAP - dailyRedeemed;
   
@@ -663,42 +687,71 @@ export async function redeemXPForNudge(
       streakMultiplier,
       dailyRemaining: 0,
       level: user.level,
-      error: 'Daily redemption cap reached (250 $NUDGE)',
+      error: 'Daily redemption cap reached (250 $NUDGE in 24 hours)',
     };
   }
+  
+  // Calculate base NUDGE (before streak multiplier) using Math.floor for safety
+  const baseNudge = Math.floor(xpAmount / rate);
+  
+  // Apply streak multiplier (floor to never give more than earned)
+  const nudgeWithStreak = Math.floor(baseNudge * streakMultiplier * 100) / 100;
   
   // Cap the NUDGE at daily remaining
   const finalNudge = Math.min(nudgeWithStreak, dailyRemaining);
   
-  // If capped, recalculate actual XP spent
+  // If capped, recalculate actual XP spent (ceil to ensure we charge enough)
   let actualXpSpent = xpAmount;
   if (finalNudge < nudgeWithStreak) {
     // We're hitting the cap, so only spend what's needed for the capped amount
     actualXpSpent = Math.ceil((finalNudge / streakMultiplier) * rate);
   }
   
+  // Ensure actualXpSpent doesn't exceed requested amount
+  actualXpSpent = Math.min(actualXpSpent, xpAmount);
+  
   const now = new Date().toISOString();
   
-  // Deduct XP from user
-  await client.execute({
-    sql: `UPDATE user_xp SET currentXP = currentXP - ?, lastActivityAt = ? WHERE userId = ?`,
-    args: [actualXpSpent, now, userId],
+  // ATOMIC UPDATE: Only succeeds if user has enough XP
+  // This prevents race conditions from concurrent redemption requests
+  const updateResult = await client.execute({
+    sql: `UPDATE user_xp 
+          SET currentXP = currentXP - ?, lastActivityAt = ? 
+          WHERE userId = ? AND currentXP >= ?`,
+    args: [actualXpSpent, now, userId, actualXpSpent],
   });
   
-  // Record redemption
+  // Check if update succeeded (rowsAffected === 0 means insufficient XP or concurrent modification)
+  if (updateResult.rowsAffected === 0) {
+    // Re-fetch user to get current balance for error message
+    const currentUser = await getOrCreateUser(userId);
+    return {
+      success: false,
+      nudgeAwarded: 0,
+      xpSpent: 0,
+      rate,
+      streakMultiplier,
+      dailyRemaining: Math.max(0, dailyRemaining),
+      level: user.level,
+      error: `Insufficient XP. Have ${currentUser.currentXP}, need ${actualXpSpent}`,
+    };
+  }
+  
+  // Record redemption (use floor for final amount to never overpay)
+  const recordedNudge = Math.floor(finalNudge * 100) / 100;
   await client.execute({
     sql: `INSERT INTO nudge_redemptions (userId, xpSpent, nudgeAwarded, streakMultiplier, level, createdAt)
           VALUES (?, ?, ?, ?, ?, ?)`,
-    args: [userId, actualXpSpent, finalNudge, streakMultiplier, user.level, now],
+    args: [userId, actualXpSpent, recordedNudge, streakMultiplier, user.level, now],
   });
   
   return {
     success: true,
-    nudgeAwarded: Math.round(finalNudge * 100) / 100,
+    nudgeAwarded: recordedNudge,
     xpSpent: actualXpSpent,
     rate,
     streakMultiplier,
-    dailyRemaining: Math.max(0, dailyRemaining - finalNudge),
+    dailyRemaining: Math.max(0, dailyRemaining - recordedNudge),
     level: user.level,
   };
 }
@@ -726,7 +779,7 @@ export async function getRedemptionStatus(userId: string): Promise<RedemptionSta
     : 0;
   
   return {
-    dailyRedeemed: Math.round(dailyRedeemed * 100) / 100,
+    dailyRedeemed: Math.floor(dailyRedeemed * 100) / 100,
     dailyCap: DAILY_NUDGE_CAP,
     dailyRemaining: Math.max(0, DAILY_NUDGE_CAP - dailyRedeemed),
     rate,
@@ -735,7 +788,7 @@ export async function getRedemptionStatus(userId: string): Promise<RedemptionSta
     weeklyPool: {
       totalPool: pool.totalPool,
       userWeeklyXP,
-      estimatedShare: Math.round(estimatedShare * 100) / 100,
+      estimatedShare: Math.floor(estimatedShare * 100) / 100,
       endsAt: pool.weekEnd + 'T23:59:59Z',
     },
   };
@@ -757,7 +810,7 @@ export async function getWeeklyPoolStatus(userId: string): Promise<WeeklyPoolSta
     : 0;
   
   const estimatedNudge = totalWeeklyXP > 0
-    ? (userWeeklyXP / totalWeeklyXP) * pool.totalPool
+    ? Math.floor((userWeeklyXP / totalWeeklyXP) * pool.totalPool * 100) / 100
     : 0;
   
   // Get leaderboard (top 10 XP earners this week)
@@ -777,7 +830,7 @@ export async function getWeeklyPoolStatus(userId: string): Promise<WeeklyPoolSta
     return {
       userId: String(row.userId),
       weeklyXP,
-      estimatedShare: Math.round(share * 100) / 100,
+      estimatedShare: Math.floor(share * 100) / 100,
       rank: index + 1,
     };
   });
@@ -792,8 +845,8 @@ export async function getWeeklyPoolStatus(userId: string): Promise<WeeklyPoolSta
     },
     userShare: {
       weeklyXP: userWeeklyXP,
-      estimatedShare: Math.round(estimatedShare * 100) / 100,
-      estimatedNudge: Math.round(estimatedNudge * 100) / 100,
+      estimatedShare: Math.floor(estimatedShare * 100) / 100,
+      estimatedNudge,
     },
     leaderboard,
   };
@@ -802,6 +855,8 @@ export async function getWeeklyPoolStatus(userId: string): Promise<WeeklyPoolSta
 /**
  * Distribute weekly pool to all users proportionally
  * Should be called on Sunday evening / Monday morning
+ * 
+ * Security: Includes time guard to prevent early distribution
  */
 export async function distributeWeeklyPool(): Promise<{
   success: boolean;
@@ -835,6 +890,20 @@ export async function distributeWeeklyPool(): Promise<{
   const weekEnd = String(pool.weekEnd);
   const totalPool = Number(pool.totalPool);
   
+  // TIME GUARD: Only allow distribution after weekEnd (Saturday 23:59:59 UTC)
+  const weekEndDate = new Date(weekEnd + 'T23:59:59Z');
+  const now = new Date();
+  
+  if (now < weekEndDate) {
+    return {
+      success: false,
+      poolId,
+      totalDistributed: 0,
+      claimsCount: 0,
+      error: `Pool cannot be distributed before week ends (${weekEnd}T23:59:59Z)`,
+    };
+  }
+  
   // Get all users' weekly XP
   const usersResult = await client.execute({
     sql: `SELECT userId, SUM(amount) as weeklyXP 
@@ -848,7 +917,7 @@ export async function distributeWeeklyPool(): Promise<{
     // No activity this week, mark as distributed with no claims
     await client.execute({
       sql: `UPDATE weekly_pool SET distributed = 1, distributedAt = ? WHERE id = ?`,
-      args: [new Date().toISOString(), poolId],
+      args: [now.toISOString(), poolId],
     });
     
     return {
@@ -860,22 +929,21 @@ export async function distributeWeeklyPool(): Promise<{
   }
   
   const totalWeeklyXP = usersResult.rows.reduce((sum, row) => sum + Number(row.weeklyXP), 0);
-  const now = new Date().toISOString();
   
   let totalDistributed = 0;
   let claimsCount = 0;
   
-  // Distribute to each user
+  // Distribute to each user (using floor to never overpay)
   for (const row of usersResult.rows) {
-    const userId = String(row.userId);
+    const claimUserId = String(row.userId);
     const weeklyXP = Number(row.weeklyXP);
     const sharePercent = (weeklyXP / totalWeeklyXP) * 100;
-    const nudgeAwarded = (weeklyXP / totalWeeklyXP) * totalPool;
+    const nudgeAwarded = Math.floor((weeklyXP / totalWeeklyXP) * totalPool * 100) / 100;
     
     await client.execute({
       sql: `INSERT INTO weekly_pool_claims (poolId, userId, weeklyXP, sharePercent, nudgeAwarded, claimedAt)
             VALUES (?, ?, ?, ?, ?, ?)`,
-      args: [poolId, userId, weeklyXP, sharePercent, nudgeAwarded, now],
+      args: [poolId, claimUserId, weeklyXP, sharePercent, nudgeAwarded, now.toISOString()],
     });
     
     totalDistributed += nudgeAwarded;
@@ -885,13 +953,13 @@ export async function distributeWeeklyPool(): Promise<{
   // Mark pool as distributed
   await client.execute({
     sql: `UPDATE weekly_pool SET distributed = 1, distributedAt = ? WHERE id = ?`,
-    args: [now, poolId],
+    args: [now.toISOString(), poolId],
   });
   
   return {
     success: true,
     poolId,
-    totalDistributed: Math.round(totalDistributed * 100) / 100,
+    totalDistributed: Math.floor(totalDistributed * 100) / 100,
     claimsCount,
   };
 }
@@ -906,13 +974,16 @@ export async function getRedemptionHistory(
   await initializeXPTables();
   const client = getClient();
   
+  // Clamp limit to safe range
+  const safeLimit = Math.min(Math.max(1, limit), 100);
+  
   const result = await client.execute({
     sql: `SELECT id, xpSpent, nudgeAwarded, streakMultiplier, level, createdAt 
           FROM nudge_redemptions 
           WHERE userId = ? 
           ORDER BY createdAt DESC 
           LIMIT ?`,
-    args: [userId, limit],
+    args: [userId, safeLimit],
   });
   
   return result.rows.map(row => ({
